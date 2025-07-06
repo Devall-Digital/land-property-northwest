@@ -1,0 +1,27 @@
+# Deployment logs
+deploy.log
+
+# Common files to ignore
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Cache directories
+.cache/
+.temp/ 
