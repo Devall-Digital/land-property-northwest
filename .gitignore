@@ -1,10 +1,6 @@
 # Deployment logs
 deploy.log
 
-# Webhook deployment files (contain secret tokens)
-webhook-deploy.php
-webhook-*.php
-
 # Common files to ignore
 .DS_Store
 Thumbs.db
