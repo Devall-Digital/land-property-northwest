@@ -3,398 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Windows & Doors Oldham | UPVC Specialists | Land Property Northwest</title>
-    <meta name="description" content="Premium windows and doors installation in Oldham, Saddleworth & Greater Manchester. Expert UPVC specialists with 20+ years experience. Free quotes available.">
-    <meta name="keywords" content="windows Oldham, doors Oldham, UPVC windows Oldham, home improvements Oldham, windows Saddleworth, windows and doors Oldham">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://landpropertynorthwest.co.uk/">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232563eb'/><rect x='15' y='25' width='70' height='50' fill='none' stroke='white' stroke-width='3'/><rect x='25' y='35' width='20' height='30' fill='none' stroke='white' stroke-width='2'/><rect x='55' y='35' width='20' height='30' fill='none' stroke='white' stroke-width='2'/><circle cx='30' cy='50' r='1.5' fill='white'/><circle cx='65' cy='50' r='1.5' fill='white'/></svg>">
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- External CSS -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- Schema.org structured data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Land Property Northwest",
-      "description": "Professional windows and doors installation in Oldham and Greater Manchester",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Oldham",
-        "addressRegion": "Greater Manchester",
-        "addressCountry": "UK"
-      },
-      "telephone": "07561724095",
-      "serviceArea": {
-        "@type": "GeoCircle",
-        "geoMidpoint": {
-          "@type": "GeoCoordinates",
-          "latitude": 53.5409,
-          "longitude": -2.1183
-        },
-        "geoRadius": "25000"
-      },
-      "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "Windows and Doors Services",
-        "itemListElement": [
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "UPVC Windows Installation"
+    <title>Coming Soon</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            cursor: none;
+        }
+        
+        .container {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .background-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 20s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .main-text {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            user-select: none;
+        }
+        
+        .website {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.2em;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: slide-up 1s ease-out 0.5s forwards;
+        }
+        
+        .coming-soon {
+            font-size: clamp(1.5rem, 4vw, 4rem);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: slide-up 1s ease-out 1s forwards;
+        }
+        
+        @keyframes slide-up {
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Composite Doors Installation"
+        }
+        
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.2s ease;
+        }
+        
+        .cursor.hover {
+            transform: scale(2);
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+        
+        .particle {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.1; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 0.3; }
+        }
+        
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        
+        .glitch::before {
+            animation: glitch-1 2s infinite;
+            color: #fff;
+            z-index: -1;
+        }
+        
+        .glitch::after {
+            animation: glitch-2 2s infinite;
+            color: #fff;
+            z-index: -2;
+        }
+        
+        @keyframes glitch-1 {
+            0%, 14%, 15%, 49%, 50%, 99%, 100% {
+                transform: translate(0);
             }
-          }
-        ]
-      }
-    }
-    </script>
-
-
+            15%, 49% {
+                transform: translate(-2px, 2px);
+            }
+        }
+        
+        @keyframes glitch-2 {
+            0%, 20%, 21%, 62%, 63%, 99%, 100% {
+                transform: translate(0);
+            }
+            21%, 62% {
+                transform: translate(2px, -2px);
+            }
+        }
+        
+        .loading-bar {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            z-index: 3;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: #fff;
+            width: 0;
+            animation: loading 3s ease-in-out infinite;
+        }
+        
+        @keyframes loading {
+            0% { width: 0; }
+            50% { width: 100%; }
+            100% { width: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .background-grid {
+                background-size: 30px 30px;
+            }
+            
+            @keyframes grid-move {
+                0% { transform: translate(0, 0); }
+                100% { transform: translate(30px, 30px); }
+            }
+        }
+        
+        @media (hover: none) {
+            .cursor {
+                display: none;
+            }
+            
+            body {
+                cursor: auto;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <nav class="nav container">
-            <a href="#" class="logo">
-                <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100" height="100" fill="#2563eb" rx="8"/>
-                    <rect x="15" y="25" width="70" height="50" fill="none" stroke="white" stroke-width="3"/>
-                    <rect x="25" y="35" width="20" height="30" fill="none" stroke="white" stroke-width="2"/>
-                    <rect x="55" y="35" width="20" height="30" fill="none" stroke="white" stroke-width="2"/>
-                    <circle cx="30" cy="50" r="1.5" fill="white"/>
-                    <circle cx="65" cy="50" r="1.5" fill="white"/>
-                    <path d="M45 25 L50 15 L55 25" stroke="white" stroke-width="2" fill="none"/>
-                </svg>
-                Land Property Northwest
-            </a>
-            <ul class="nav-menu">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#areas">Areas</a></li>
-                <li><a href="#contact" class="nav-cta">Get Quote</a></li>
-            </ul>
-            <button class="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Premium Windows & Doors in Oldham</h1>
-                <p class="hero-subtitle">Transform your home with our expert UPVC window and door installations. Serving Oldham, Saddleworth, and Greater Manchester with professional quality for over 20 years.</p>
-                <div class="hero-cta">
-                    <a href="tel:07561724095" class="btn btn-primary">📞 Call Now: 07561724095</a>
-                    <a href="#contact" class="btn btn-secondary">Get Free Quote</a>
-                </div>
-                <div class="hero-features">
-                    <div class="hero-feature">
-                        <span>✓</span> 20+ Years Experience
-                    </div>
-                    <div class="hero-feature">
-                        <span>✓</span> FREE Quotes
-                    </div>
-                    <div class="hero-feature">
-                        <span>✓</span> 10 Year Guarantee
-                    </div>
-                    <div class="hero-feature">
-                        <span>✓</span> Local Oldham Team
-                    </div>
-                </div>
-            </div>
+    <div class="cursor"></div>
+    
+    <div class="container">
+        <div class="background-grid"></div>
+        
+        <div class="particles" id="particles"></div>
+        
+        <div class="main-text">
+            <h1 class="website glitch" data-text="WEBSITE">WEBSITE</h1>
+            <h2 class="coming-soon">COMING SOON</h2>
         </div>
-    </section>
-
-    <!-- Services Section -->
-    <section id="services" class="services">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Our Expert Services</h2>
-                <p class="section-subtitle">Professional window and door solutions for homes across Oldham and Greater Manchester</p>
-            </div>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">🪟</div>
-                    <h3>UPVC Windows</h3>
-                    <p>Energy-efficient double and triple glazed windows designed to reduce heating costs and enhance your home's security and appearance.</p>
-                    <ul class="service-features">
-                        <li>A-Rated Energy Efficiency</li>
-                        <li>Multi-point locking systems</li>
-                        <li>Noise reduction technology</li>
-                        <li>Low maintenance UPVC frames</li>
-                        <li>Choice of colors and styles</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-primary">Get Quote</a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🚪</div>
-                    <h3>Composite Doors</h3>
-                    <p>Secure, stylish composite doors that provide excellent insulation and kerb appeal. Available in a wide range of designs and colors.</p>
-                    <ul class="service-features">
-                        <li>High security multi-point locks</li>
-                        <li>Excellent thermal performance</li>
-                        <li>Virtually maintenance-free</li>
-                        <li>Wide choice of designs</li>
-                        <li>Reinforced steel core</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-primary">Get Quote</a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🏠</div>
-                    <h3>Home Improvements</h3>
-                    <p>Complete home improvement solutions including conservatories, porches, and roofline work to enhance your property's value.</p>
-                    <ul class="service-features">
-                        <li>Conservatory design & build</li>
-                        <li>Porch installations</li>
-                        <li>Roofline & guttering</li>
-                        <li>Property maintenance</li>
-                        <li>Free design consultation</li>
-                    </ul>
-                    <a href="#contact" class="btn btn-primary">Get Quote</a>
-                </div>
-            </div>
+        
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
         </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about" class="about">
-        <div class="container">
-            <div class="about-grid">
-                <div class="about-content">
-                    <h2>Oldham's Trusted Window & Door Specialists</h2>
-                    <p>For over two decades, Land Property Northwest has been transforming homes across Oldham, Saddleworth, and Greater Manchester with premium quality windows and doors.</p>
-                    <p>Our experienced team of local craftsmen takes pride in delivering exceptional service, from initial consultation through to final installation. We use only the highest quality materials and latest technology to ensure your home improvements exceed expectations.</p>
-                    <p>Based locally in Oldham, we understand the unique needs of homeowners in our area, from the traditional stone cottages of Saddleworth to modern developments throughout Greater Manchester.</p>
-                    <div class="about-stats">
-                        <div class="stat">
-                            <span class="stat-number">2000+</span>
-                            <span class="stat-label">Happy Customers</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">20+</span>
-                            <span class="stat-label">Years Experience</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">10</span>
-                            <span class="stat-label">Year Guarantee</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">100%</span>
-                            <span class="stat-label">Local Team</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="about-image">
-                    <img src="https://images.unsplash.com/photo-1558618644-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Professional window installation team in Oldham">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Areas We Serve -->
-    <section id="areas" class="areas">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Areas We Serve</h2>
-                <p class="section-subtitle">Professional window and door services across Oldham and Greater Manchester</p>
-            </div>
-            <div class="areas-grid">
-                <div class="area-card">
-                    <h3>Oldham</h3>
-                    <p>Central Oldham and surrounding neighborhoods</p>
-                </div>
-                <div class="area-card">
-                    <h3>Saddleworth</h3>
-                    <p>Premium services for Saddleworth villages</p>
-                </div>
-                <div class="area-card">
-                    <h3>Uppermill</h3>
-                    <p>Specialist installations in Uppermill area</p>
-                </div>
-                <div class="area-card">
-                    <h3>Delph</h3>
-                    <p>Expert services for Delph residents</p>
-                </div>
-                <div class="area-card">
-                    <h3>Dobcross</h3>
-                    <p>Professional installations in Dobcross</p>
-                </div>
-                <div class="area-card">
-                    <h3>Greenfield</h3>
-                    <p>Quality services for Greenfield homes</p>
-                </div>
-                <div class="area-card">
-                    <h3>Shaw</h3>
-                    <p>Comprehensive services in Shaw</p>
-                </div>
-                <div class="area-card">
-                    <h3>Royton</h3>
-                    <p>Expert installations in Royton area</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Get Your Free Quote Today</h2>
-                <p class="section-subtitle">Ready to transform your home? Contact us for a no-obligation consultation and quote</p>
-            </div>
-            
-            <!-- Email Suggestions Box -->
-            <div class="email-suggestions">
-                <h4>📧 Suggested Email Addresses for Your Domain:</h4>
-                <ul>
-                    <li><strong>info@landpropertynorthwest.co.uk</strong> - General inquiries</li>
-                    <li><strong>quotes@landpropertynorthwest.co.uk</strong> - Quote requests</li>
-                    <li><strong>hello@landpropertynorthwest.co.uk</strong> - Friendly contact</li>
-                    <li><strong>support@landpropertynorthwest.co.uk</strong> - Customer support</li>
-                    <li><strong>sales@landpropertynorthwest.co.uk</strong> - Sales inquiries</li>
-                </ul>
-            </div>
-
-            <div class="contact-grid">
-                <div class="contact-info">
-                    <h3>Contact Information</h3>
-                    <div class="contact-item">
-                        <div class="contact-icon">📞</div>
-                        <div class="contact-details">
-                            <h4>Phone</h4>
-                            <p><a href="tel:07561724095" style="color: var(--primary-blue); text-decoration: none;">07561724095</a></p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">📍</div>
-                        <div class="contact-details">
-                            <h4>Service Area</h4>
-                            <p>Oldham, Saddleworth & Greater Manchester</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">🕒</div>
-                        <div class="contact-details">
-                            <h4>Working Hours</h4>
-                            <p>Mon-Fri: 8:00 AM - 6:00 PM<br>
-                            Sat: 9:00 AM - 4:00 PM<br>
-                            Sun: Emergency calls only</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">💬</div>
-                        <div class="contact-details">
-                            <h4>Response Time</h4>
-                            <p>We respond to all inquiries within 2 hours during business hours</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contact-form">
-                    <h3>Request Your Free Quote</h3>
-                    <form action="process-form.php" method="POST" id="contactForm">
-                        <div class="form-group">
-                            <label for="name">Full Name *</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone Number *</label>
-                            <input type="tel" id="phone" name="phone" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email">
-                        </div>
-                        <div class="form-group">
-                            <label for="location">Property Location *</label>
-                            <input type="text" id="location" name="location" placeholder="e.g., Oldham, Saddleworth" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="service">Service Required *</label>
-                            <select id="service" name="service" required>
-                                <option value="">Select a service</option>
-                                <option value="windows">UPVC Windows</option>
-                                <option value="doors">Composite Doors</option>
-                                <option value="both">Windows & Doors</option>
-                                <option value="improvements">Home Improvements</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Additional Details</label>
-                            <textarea id="message" name="message" placeholder="Tell us about your project, timescales, or any specific requirements..."></textarea>
-                        </div>
-                        <!-- Honeypot for spam protection -->
-                        <input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
-                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">Get My Free Quote</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Land Property Northwest</h3>
-                    <p>Your trusted partner for premium windows, doors, and home improvements in Oldham and Greater Manchester.</p>
-                    <p>Over 20 years of professional service with a 10-year guarantee on all installations.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Services</h3>
-                    <a href="#services">UPVC Windows</a>
-                    <a href="#services">Composite Doors</a>
-                    <a href="#services">Home Improvements</a>
-                    <a href="#services">Conservatories</a>
-                    <a href="#services">Roofline Work</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Areas Served</h3>
-                    <a href="#areas">Oldham</a>
-                    <a href="#areas">Saddleworth</a>
-                    <a href="#areas">Uppermill</a>
-                    <a href="#areas">Delph</a>
-                    <a href="#areas">Greater Manchester</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Contact</h3>
-                    <a href="tel:07561724095">📞 07561724095</a>
-                    <p>Mon-Fri: 8:00 AM - 6:00 PM</p>
-                    <p>Sat: 9:00 AM - 4:00 PM</p>
-                    <p>Emergency calls available</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Land Property Northwest. All rights reserved. | Professional windows and doors in Oldham, Saddleworth & Greater Manchester</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Quick Call Button -->
-    <div class="quick-call">
-        <a href="tel:07561724095">📞 Call Now for FREE Quote: 07561724095</a>
     </div>
 
-    <!-- External JavaScript -->
-    <script src="script.js"></script>
+    <script>
+        // Custom cursor
+        const cursor = document.querySelector('.cursor');
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        
+        function animateCursor() {
+            const dx = mouseX - cursorX;
+            const dy = mouseY - cursorY;
+            
+            cursorX += dx * 0.1;
+            cursorY += dy * 0.1;
+            
+            cursor.style.left = cursorX - 10 + 'px';
+            cursor.style.top = cursorY - 10 + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+        
+        // Hover effect for cursor
+        document.addEventListener('mouseenter', () => {
+            cursor.classList.add('hover');
+        });
+        
+        document.addEventListener('mouseleave', () => {
+            cursor.classList.remove('hover');
+        });
+        
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 4 + 1;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = window.innerHeight + 'px';
+            
+            const duration = Math.random() * 3 + 3;
+            particle.style.animationDuration = duration + 's';
+            
+            document.getElementById('particles').appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, duration * 1000);
+        }
+        
+        // Create particles periodically
+        setInterval(createParticle, 300);
+        
+        // Random glitch effect
+        const glitchElement = document.querySelector('.glitch');
+        setInterval(() => {
+            if (Math.random() < 0.1) {
+                glitchElement.style.animation = 'none';
+                glitchElement.offsetHeight; // Trigger reflow
+                glitchElement.style.animation = null;
+            }
+        }, 100);
+        
+        // Keyboard interactions
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                document.body.style.filter = 'invert(1)';
+                setTimeout(() => {
+                    document.body.style.filter = 'none';
+                }, 100);
+            }
+        });
+        
+        // Click effect
+        document.addEventListener('click', (e) => {
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255,255,255,0.3)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = (e.clientX - 50) + 'px';
+            ripple.style.top = (e.clientY - 50) + 'px';
+            ripple.style.width = '100px';
+            ripple.style.height = '100px';
+            ripple.style.pointerEvents = 'none';
+            ripple.style.zIndex = '1000';
+            
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+        
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Prevent right-click context menu for cleaner experience
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+        
+        // Add some randomness to the grid animation
+        const grid = document.querySelector('.background-grid');
+        setInterval(() => {
+            const speed = Math.random() * 10 + 15;
+            grid.style.animationDuration = speed + 's';
+        }, 5000);
+    </script>
 </body>
 </html> 
