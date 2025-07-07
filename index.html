@@ -309,7 +309,7 @@
                 </div>
                 <div class="contact-form">
                     <h3>Request Your Free Quote</h3>
-                    <form action="#" method="POST">
+                    <form action="process-form.php" method="POST" id="contactForm">
                         <div class="form-group">
                             <label for="name">Full Name *</label>
                             <input type="text" id="name" name="name" required>
@@ -341,7 +341,9 @@
                             <label for="message">Additional Details</label>
                             <textarea id="message" name="message" placeholder="Tell us about your project, timescales, or any specific requirements..."></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Get My Free Quote</button>
+                        <!-- Honeypot for spam protection -->
+                        <input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">Get My Free Quote</button>
                     </form>
                 </div>
             </div>

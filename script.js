@@ -20,32 +20,51 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Form submission
-    const contactForm = document.querySelector('form');
+    const contactForm = document.querySelector('#contactForm');
+    const submitBtn = document.querySelector('#submitBtn');
+    
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Disable submit button
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+            }
+            
             // Get form data
             const formData = new FormData(this);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-
-            // Basic validation
-            if (!data.name || !data.phone || !data.location || !data.service) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-
-            // Show success message
-            alert('Thank you for your inquiry! We will contact you within 2 hours to discuss your free quote.');
             
-            // Reset form
-            this.reset();
-            
-            // In a real implementation, you would send this data to your server
-            console.log('Form submission data:', data);
+            // Send to PHP backend
+            fetch('process-form.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success
+                    alert(`Thank you! We will contact you within 2 hours to discuss your free quote.\n\nNeed immediate assistance? Call ${data.phone} now!`);
+                    this.reset();
+                    trackConversion('form_submission');
+                } else {
+                    // Error
+                    const errorMsg = data.errors ? data.errors.join('\n') : 'Something went wrong. Please try again.';
+                    alert(`Please correct the following:\n\n${errorMsg}\n\nOr call us directly: ${data.phone}`);
+                }
+            })
+            .catch(error => {
+                console.error('Form submission error:', error);
+                alert('There was a problem submitting your form. Please call us directly at 07561724095 or try again.');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Get My Free Quote';
+                }
+            });
         });
     }
 
