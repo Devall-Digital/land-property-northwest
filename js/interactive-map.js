@@ -31,7 +31,7 @@ class InteractiveMap {
         mapboxgl.accessToken = 'pk.eyJ1Ijoibm9ydGh3ZXN0LXByb3BlcnR5IiwiYSI6ImNrZXhhbXBsZSJ9.example';
         
         this.map = new mapboxgl.Map({
-            container: 'developmentMap',
+            container: 'landMap',
             style: 'mapbox://styles/mapbox/dark-v11',
             center: [-2.2426, 53.4808], // Manchester coordinates
             zoom: 10,
@@ -47,7 +47,7 @@ class InteractiveMap {
     }
 
     createFallbackMap() {
-        const mapContainer = document.getElementById('developmentMap');
+        const mapContainer = document.getElementById('landMap');
         if (!mapContainer) return;
 
         // Create a styled fallback map
@@ -131,7 +131,7 @@ class InteractiveMap {
         `;
 
         // Add controls to map container
-        const mapContainer = document.getElementById('developmentMap');
+        const mapContainer = document.getElementById('landMap');
         if (mapContainer) {
             mapContainer.appendChild(mapControls);
         }
