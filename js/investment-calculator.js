@@ -363,7 +363,7 @@ Past performance is not indicative of future results.
 Please consult with a financial advisor before making investment decisions.
 
 Northwest Property & Land
-Tel: +44 161 4XX XXXX
+Tel: +44 7561 724 095
 Email: invest@landpropertynorthwest.co.uk
 Web: landpropertynorthwest.co.uk
         `;
