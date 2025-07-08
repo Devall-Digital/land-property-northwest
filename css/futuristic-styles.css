@@ -1905,3 +1905,236 @@ a {
 .text-right { text-align: right; }
 
 /* Responsive Design - Will be handled in futuristic-responsive.css */
+
+/* Interactive Map Fallback Styles */
+.fallback-map {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+}
+
+.map-overlay h3 {
+    color: var(--primary-white);
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+    text-align: center;
+}
+
+.map-overlay p {
+    color: var(--gray-400);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.map-placeholder {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.map-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: grid-move 30s linear infinite;
+}
+
+.development-sites {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.site-marker {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    transition: var(--transition-normal);
+}
+
+.site-marker:hover {
+    transform: scale(1.1);
+}
+
+.marker-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+.marker-info {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--accent-gold);
+    border-radius: 8px;
+    padding: var(--spacing-sm);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-normal);
+    z-index: 10;
+}
+
+.site-marker:hover .marker-info {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(10px);
+}
+
+.marker-info h4 {
+    color: var(--primary-white);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+}
+
+.marker-info p {
+    color: var(--gray-300);
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.marker-info .roi {
+    color: var(--accent-gold);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Map Controls */
+.map-controls {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    z-index: 5;
+}
+
+.control-group {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+}
+
+.control-btn {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primary-white);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.control-btn:hover,
+.control-btn.active {
+    background: var(--accent-gold);
+    color: var(--primary-black);
+    border-color: var(--accent-gold);
+}
+
+/* Custom Map Markers */
+.custom-marker {
+    position: relative;
+    cursor: pointer;
+}
+
+.custom-marker .marker-icon {
+    width: 30px;
+    height: 30px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+}
+
+.custom-marker .marker-popup {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid var(--accent-gold);
+    border-radius: 8px;
+    padding: var(--spacing-sm);
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-normal);
+    z-index: 10;
+}
+
+.custom-marker:hover .marker-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.custom-marker .marker-popup h4 {
+    color: var(--primary-white);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+}
+
+.custom-marker .marker-popup p {
+    color: var(--gray-300);
+    font-size: 0.75rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.custom-marker .marker-popup .roi {
+    color: var(--accent-gold);
+    font-size: 0.75rem;
+    font-weight: 600;
+}

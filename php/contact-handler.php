@@ -37,7 +37,7 @@ $config = [
     ],
     'company' => [
         'name' => 'Northwest Property & Land Sales',
-        'phone' => '+44 161 XXX XXXX',
+        'phone' => '+44 7561 724 095',
         'website' => 'https://landpropertynorthwest.co.uk'
     ]
 ];
