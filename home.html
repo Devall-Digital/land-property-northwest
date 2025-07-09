@@ -6,16 +6,42 @@
     <title>Northwest Property & Land | Redefining Real Estate in the Digital Age</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Experience the future of property and land sales in Northwest England. Virtual tours, AI-powered search, and exclusive development opportunities.">
-    <meta name="keywords" content="futuristic property sales, smart real estate, northwest property, digital property tours, land development, investment opportunities">
+    <meta name="description" content="Experience the future of property and land sales in Northwest England. Virtual tours, AI-powered search, and exclusive development opportunities across Manchester, Liverpool, and Cheshire.">
+    <meta name="keywords" content="futuristic property sales, smart real estate, northwest property, digital property tours, land development, investment opportunities, Manchester property, Liverpool property, Cheshire property, virtual tours, property investment, development land">
     <meta name="author" content="Northwest Property & Land">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="geo.region" content="GB">
+    <meta name="geo.placename" content="Northwest England">
+    <meta name="geo.position" content="53.4808;-2.2426">
+    <meta name="ICBM" content="53.4808, -2.2426">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://landpropertynorthwest.co.uk/">
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Northwest Property & Land | The Future of Real Estate">
-    <meta property="og:description" content="Discover properties through immersive virtual experiences">
+    <meta property="og:description" content="Discover properties through immersive virtual experiences. AI-powered search, virtual tours, and exclusive development opportunities across Northwest England.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://landpropertynorthwest.co.uk">
     <meta property="og:image" content="https://landpropertynorthwest.co.uk/images/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Northwest Property & Land">
+    <meta property="og:locale" content="en_GB">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Northwest Property & Land | The Future of Real Estate">
+    <meta name="twitter:description" content="Discover properties through immersive virtual experiences. AI-powered search, virtual tours, and exclusive development opportunities.">
+    <meta name="twitter:image" content="https://landpropertynorthwest.co.uk/images/twitter-card.jpg">
+    <meta name="twitter:site" content="@northwestproperty">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Favicon -->
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -25,15 +51,122 @@
     <link rel="stylesheet" href="css/futuristic-animations.css">
     <link rel="stylesheet" href="css/futuristic-responsive.css">
     
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="dns-prefetch" href="//api.mapbox.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Critical CSS for accessibility -->
+    <style>
+        .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+        
+        /* Focus indicators for accessibility */
+        *:focus {
+            outline: 2px solid #00ffff !important;
+            outline-offset: 2px !important;
+        }
+        
+        /* Skip to main content link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 10000;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+    </style>
+    
     <!-- Mapbox GL JS for interactive maps -->
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "RealEstateAgent",
+        "name": "Northwest Property & Land",
+        "description": "Experience the future of property and land sales in Northwest England. Virtual tours, AI-powered search, and exclusive development opportunities.",
+        "url": "https://landpropertynorthwest.co.uk",
+        "logo": "https://landpropertynorthwest.co.uk/assets/logo.svg",
+        "image": "https://landpropertynorthwest.co.uk/images/og-image.jpg",
+        "telephone": "+447561724095",
+        "email": "invest@landpropertynorthwest.co.uk",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Manchester",
+            "addressRegion": "Northwest England",
+            "addressCountry": "GB"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 53.4808,
+            "longitude": -2.2426
+        },
+        "openingHours": "Mo-Fr 09:00-18:00, Sa 10:00-16:00",
+        "priceRange": "£££",
+        "areaServed": [
+            "Manchester",
+            "Liverpool", 
+            "Cheshire",
+            "Lake District"
+        ],
+        "serviceType": [
+            "Property Sales",
+            "Land Development",
+            "Virtual Tours",
+            "Investment Analysis"
+        ],
+        "sameAs": [
+            "https://linkedin.com/company/northwest-property",
+            "https://twitter.com/northwestproperty",
+            "https://instagram.com/northwestproperty"
+        ]
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Northwest Property & Land",
+        "url": "https://landpropertynorthwest.co.uk",
+        "description": "The future of real estate in Northwest England",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://landpropertynorthwest.co.uk/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#hero" class="skip-link">Skip to main content</a>
+    
     <!-- Custom Cursor -->
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
@@ -61,39 +194,39 @@
     </div>
     
     <!-- Navigation -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
             <div class="nav-logo">
-                <div class="logo-text glitch" data-text="NORTHWEST">NORTHWEST</div>
+                <div class="logo-text glitch" data-text="NORTHWEST" aria-label="Northwest Property and Land">NORTHWEST</div>
                 <div class="logo-subtitle">PROPERTY & LAND</div>
             </div>
             
-            <div class="nav-menu" id="navMenu">
-                <div class="nav-item" data-hover="HOME">
-                    <a href="#hero" class="nav-link">HOME</a>
+            <div class="nav-menu" id="navMenu" role="menubar">
+                <div class="nav-item" data-hover="HOME" role="none">
+                    <a href="#hero" class="nav-link" role="menuitem" aria-label="Go to home section">HOME</a>
                 </div>
-                <div class="nav-item" data-hover="PROPERTIES">
-                    <a href="#properties" class="nav-link">PROPERTIES</a>
+                <div class="nav-item" data-hover="PROPERTIES" role="none">
+                    <a href="#properties" class="nav-link" role="menuitem" aria-label="View featured properties">PROPERTIES</a>
                 </div>
-                <div class="nav-item" data-hover="LAND">
-                    <a href="#land" class="nav-link">LAND</a>
+                <div class="nav-item" data-hover="LAND" role="none">
+                    <a href="#land" class="nav-link" role="menuitem" aria-label="Explore development land opportunities">LAND</a>
                 </div>
-                <div class="nav-item" data-hover="VIRTUAL TOURS">
-                    <a href="#tours" class="nav-link">VIRTUAL TOURS</a>
+                <div class="nav-item" data-hover="VIRTUAL TOURS" role="none">
+                    <a href="#tours" class="nav-link" role="menuitem" aria-label="Experience virtual property tours">VIRTUAL TOURS</a>
                 </div>
-                <div class="nav-item" data-hover="INVEST">
-                    <a href="#invest" class="nav-link">INVEST</a>
+                <div class="nav-item" data-hover="INVEST" role="none">
+                    <a href="#invest" class="nav-link" role="menuitem" aria-label="Use investment calculator">INVEST</a>
                 </div>
-                <div class="nav-item" data-hover="CONTACT">
-                    <a href="#contact" class="nav-link nav-cta">CONTACT</a>
+                <div class="nav-item" data-hover="CONTACT" role="none">
+                    <a href="#contact" class="nav-link nav-cta" role="menuitem" aria-label="Contact us">CONTACT</a>
                 </div>
             </div>
             
-            <div class="nav-toggle" id="navToggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navMenu">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
         </div>
     </nav>
     
@@ -180,39 +313,40 @@
             
             <div class="search-interface">
                 <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="Describe your dream property...">
-                    <button class="search-btn">
-                        <span class="search-icon"></span>
+                    <input type="text" class="search-input" placeholder="Describe your dream property..." aria-label="Search for properties" aria-describedby="search-description">
+                    <button class="search-btn" aria-label="Search properties">
+                        <span class="search-icon" aria-hidden="true"></span>
                     </button>
                 </div>
+                <div id="search-description" class="sr-only">Enter keywords to search for properties matching your criteria</div>
                 
-                <div class="search-filters">
-                    <div class="filter-chip active" data-filter="all">ALL PROPERTIES</div>
-                    <div class="filter-chip" data-filter="residential">RESIDENTIAL</div>
-                    <div class="filter-chip" data-filter="commercial">COMMERCIAL</div>
-                    <div class="filter-chip" data-filter="land">DEVELOPMENT LAND</div>
-                    <div class="filter-chip" data-filter="luxury">LUXURY</div>
+                <div class="search-filters" role="group" aria-label="Property type filters">
+                    <button class="filter-chip active" data-filter="all" aria-pressed="true">ALL PROPERTIES</button>
+                    <button class="filter-chip" data-filter="residential" aria-pressed="false">RESIDENTIAL</button>
+                    <button class="filter-chip" data-filter="commercial" aria-pressed="false">COMMERCIAL</button>
+                    <button class="filter-chip" data-filter="land" aria-pressed="false">DEVELOPMENT LAND</button>
+                    <button class="filter-chip" data-filter="luxury" aria-pressed="false">LUXURY</button>
                 </div>
                 
                 <div class="advanced-filters">
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label>PRICE RANGE</label>
-                            <div class="range-slider" id="priceRange">
-                                <div class="range-track"></div>
-                                <div class="range-fill"></div>
-                                <input type="range" min="0" max="5000000" value="0" class="range-input min">
-                                <input type="range" min="0" max="5000000" value="5000000" class="range-input max">
+                            <label for="priceRange">PRICE RANGE</label>
+                            <div class="range-slider" id="priceRange" role="group" aria-label="Price range selection">
+                                <div class="range-track" aria-hidden="true"></div>
+                                <div class="range-fill" aria-hidden="true"></div>
+                                <input type="range" min="0" max="5000000" value="0" class="range-input min" id="priceMin" aria-label="Minimum price" aria-describedby="priceMinValue">
+                                <input type="range" min="0" max="5000000" value="5000000" class="range-input max" id="priceMax" aria-label="Maximum price" aria-describedby="priceMaxValue">
                             </div>
                             <div class="range-values">
-                                <span class="min-value">£0</span>
-                                <span class="max-value">£5M+</span>
+                                <span class="min-value" id="priceMinValue" aria-live="polite">£0</span>
+                                <span class="max-value" id="priceMaxValue" aria-live="polite">£5M+</span>
                             </div>
                         </div>
                         
                         <div class="filter-group">
-                            <label>LOCATION</label>
-                            <select class="filter-select">
+                            <label for="locationSelect">LOCATION</label>
+                            <select class="filter-select" id="locationSelect" aria-label="Select property location">
                                 <option value="">All Locations</option>
                                 <option value="manchester">Manchester</option>
                                 <option value="liverpool">Liverpool</option>
@@ -222,8 +356,8 @@
                         </div>
                         
                         <div class="filter-group">
-                            <label>PROPERTY TYPE</label>
-                            <select class="filter-select">
+                            <label for="propertyTypeSelect">PROPERTY TYPE</label>
+                            <select class="filter-select" id="propertyTypeSelect" aria-label="Select property type">
                                 <option value="">All Types</option>
                                 <option value="house">House</option>
                                 <option value="apartment">Apartment</option>
@@ -250,14 +384,14 @@
             <div class="properties-showcase">
                 <div class="property-card featured" data-tilt>
                     <div class="property-image">
-                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9" alt="Luxury Penthouse">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9" alt="Luxury penthouse with modern interior design and city views" loading="lazy">
                         <div class="property-overlay">
                             <div class="overlay-content">
-                                <button class="view-3d-btn">VIEW IN 3D</button>
-                                <button class="tour-btn">VIRTUAL TOUR</button>
+                                <button class="view-3d-btn" aria-label="View Skyline Penthouse in 3D">VIEW IN 3D</button>
+                                <button class="tour-btn" aria-label="Take virtual tour of Skyline Penthouse">VIRTUAL TOUR</button>
                             </div>
                         </div>
-                        <div class="property-badge">EXCLUSIVE</div>
+                        <div class="property-badge" aria-label="Exclusive property">EXCLUSIVE</div>
                     </div>
                     <div class="property-info">
                         <div class="property-header">
@@ -294,16 +428,16 @@
                             </div>
                         </div>
                         <div class="property-actions">
-                            <button class="action-btn save-btn">
-                                <span class="btn-icon">💾</span>
+                            <button class="action-btn save-btn" aria-label="Save Skyline Penthouse to favorites">
+                                <span class="btn-icon" aria-hidden="true">💾</span>
                                 SAVE
                             </button>
-                            <button class="action-btn compare-btn">
-                                <span class="btn-icon">⚖️</span>
+                            <button class="action-btn compare-btn" aria-label="Add Skyline Penthouse to comparison">
+                                <span class="btn-icon" aria-hidden="true">⚖️</span>
                                 COMPARE
                             </button>
-                            <button class="action-btn enquire-btn">
-                                <span class="btn-icon">📧</span>
+                            <button class="action-btn enquire-btn" aria-label="Enquire about Skyline Penthouse">
+                                <span class="btn-icon" aria-hidden="true">📧</span>
                                 ENQUIRE
                             </button>
                         </div>
@@ -313,11 +447,11 @@
                 <!-- Additional property cards -->
                 <div class="property-card" data-tilt>
                     <div class="property-image">
-                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750" alt="Modern Villa">
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750" alt="Contemporary villa with modern architecture and spacious interior" loading="lazy">
                         <div class="property-overlay">
                             <div class="overlay-content">
-                                <button class="view-3d-btn">VIEW IN 3D</button>
-                                <button class="tour-btn">VIRTUAL TOUR</button>
+                                <button class="view-3d-btn" aria-label="View Contemporary Villa in 3D">VIEW IN 3D</button>
+                                <button class="tour-btn" aria-label="Take virtual tour of Contemporary Villa">VIRTUAL TOUR</button>
                             </div>
                         </div>
                     </div>
@@ -355,14 +489,14 @@
                 
                 <div class="property-card" data-tilt>
                     <div class="property-image">
-                        <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811" alt="Waterfront Property">
+                        <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811" alt="Waterfront residence with modern design and water views" loading="lazy">
                         <div class="property-overlay">
                             <div class="overlay-content">
-                                <button class="view-3d-btn">VIEW IN 3D</button>
-                                <button class="tour-btn">VIRTUAL TOUR</button>
+                                <button class="view-3d-btn" aria-label="View Waterfront Residence in 3D">VIEW IN 3D</button>
+                                <button class="tour-btn" aria-label="Take virtual tour of Waterfront Residence">VIRTUAL TOUR</button>
                             </div>
                         </div>
-                        <div class="property-badge">NEW</div>
+                        <div class="property-badge" aria-label="New property">NEW</div>
                     </div>
                     <div class="property-info">
                         <div class="property-header">
@@ -438,7 +572,7 @@
                     <div class="tour-items">
                         <div class="tour-item active">
                             <div class="tour-thumb">
-                                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c" alt="Tour 1">
+                                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c" alt="Manchester Penthouse virtual tour thumbnail" loading="lazy">
                             </div>
                             <div class="tour-info">
                                 <h4>Manchester Penthouse</h4>
@@ -447,7 +581,7 @@
                         </div>
                         <div class="tour-item">
                             <div class="tour-thumb">
-                                <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b" alt="Tour 2">
+                                <img src="https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b" alt="Liverpool Waterfront virtual tour thumbnail" loading="lazy">
                             </div>
                             <div class="tour-info">
                                 <h4>Liverpool Waterfront</h4>
@@ -456,7 +590,7 @@
                         </div>
                         <div class="tour-item">
                             <div class="tour-thumb">
-                                <img src="https://images.unsplash.com/photo-1600573472550-8090b5e0745e" alt="Tour 3">
+                                <img src="https://images.unsplash.com/photo-1600573472550-8090b5e0745e" alt="Cheshire Estate virtual tour thumbnail" loading="lazy">
                             </div>
                             <div class="tour-info">
                                 <h4>Cheshire Estate</h4>
@@ -509,8 +643,8 @@
             <div class="land-opportunities">
                 <div class="opportunity-card">
                     <div class="opportunity-image">
-                        <img src="https://images.unsplash.com/photo-1448630360428-65456885c650" alt="Development Site">
-                        <div class="opportunity-badge">HOT OPPORTUNITY</div>
+                        <img src="https://images.unsplash.com/photo-1448630360428-65456885c650" alt="Manchester Gateway development site with planning approval" loading="lazy">
+                        <div class="opportunity-badge" aria-label="Hot investment opportunity">HOT OPPORTUNITY</div>
                     </div>
                     <div class="opportunity-content">
                         <h3>MANCHESTER GATEWAY SITE</h3>
@@ -553,8 +687,8 @@
                 
                 <div class="opportunity-card">
                     <div class="opportunity-image">
-                        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef" alt="Commercial Land">
-                        <div class="opportunity-badge">PRIME LOCATION</div>
+                        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef" alt="Liverpool Commercial Hub development site" loading="lazy">
+                        <div class="opportunity-badge" aria-label="Prime location opportunity">PRIME LOCATION</div>
                     </div>
                     <div class="opportunity-content">
                         <h3>LIVERPOOL COMMERCIAL HUB</h3>
@@ -594,26 +728,27 @@
             <div class="calculator-interface">
                 <div class="calculator-inputs">
                     <div class="input-group">
-                        <label>PROPERTY VALUE</label>
-                        <input type="number" id="propertyValue" value="500000" class="calc-input">
+                        <label for="propertyValue">PROPERTY VALUE</label>
+                        <input type="number" id="propertyValue" value="500000" class="calc-input" aria-label="Property value in pounds" aria-describedby="propertyValueDesc">
+                        <div id="propertyValueDesc" class="sr-only">Enter the total value of the property in pounds</div>
                     </div>
                     <div class="input-group">
-                        <label>DEPOSIT (%)</label>
-                        <input type="range" id="deposit" min="10" max="50" value="25" class="calc-range">
-                        <span class="range-value">25%</span>
+                        <label for="deposit">DEPOSIT (%)</label>
+                        <input type="range" id="deposit" min="10" max="50" value="25" class="calc-range" aria-label="Deposit percentage" aria-describedby="depositValue">
+                        <span class="range-value" id="depositValue" aria-live="polite">25%</span>
                     </div>
                     <div class="input-group">
-                        <label>MORTGAGE RATE (%)</label>
-                        <input type="number" id="mortgageRate" value="4.5" step="0.1" class="calc-input">
+                        <label for="mortgageRate">MORTGAGE RATE (%)</label>
+                        <input type="number" id="mortgageRate" value="4.5" step="0.1" class="calc-input" aria-label="Annual mortgage interest rate percentage">
                     </div>
                     <div class="input-group">
-                        <label>RENTAL INCOME (PM)</label>
-                        <input type="number" id="rentalIncome" value="2500" class="calc-input">
+                        <label for="rentalIncome">RENTAL INCOME (PM)</label>
+                        <input type="number" id="rentalIncome" value="2500" class="calc-input" aria-label="Monthly rental income in pounds">
                     </div>
                     <div class="input-group">
-                        <label>INVESTMENT PERIOD (YEARS)</label>
-                        <input type="range" id="investmentPeriod" min="1" max="30" value="10" class="calc-range">
-                        <span class="range-value">10 years</span>
+                        <label for="investmentPeriod">INVESTMENT PERIOD (YEARS)</label>
+                        <input type="range" id="investmentPeriod" min="1" max="30" value="10" class="calc-range" aria-label="Investment period in years" aria-describedby="investmentPeriodValue">
+                        <span class="range-value" id="investmentPeriodValue" aria-live="polite">10 years</span>
                     </div>
                 </div>
                 
@@ -759,25 +894,26 @@
                 </div>
                 
                 <div class="contact-form-wrapper">
-                    <form class="contact-form" id="contactForm">
+                    <form class="contact-form" id="contactForm" action="process-form.php" method="POST">
                         <div class="form-grid">
                             <div class="form-group">
-                                <input type="text" name="name" required>
-                                <label>YOUR NAME</label>
+                                <input type="text" name="name" id="contactName" required aria-required="true">
+                                <label for="contactName">YOUR NAME</label>
                             </div>
                             
                             <div class="form-group">
-                                <input type="email" name="email" required>
-                                <label>EMAIL ADDRESS</label>
+                                <input type="email" name="email" id="contactEmail" required aria-required="true">
+                                <label for="contactEmail">EMAIL ADDRESS</label>
                             </div>
                             
                             <div class="form-group">
-                                <input type="tel" name="phone">
-                                <label>PHONE NUMBER</label>
+                                <input type="tel" name="phone" id="contactPhone" aria-describedby="phoneHint">
+                                <label for="contactPhone">PHONE NUMBER</label>
+                                <div id="phoneHint" class="sr-only">Optional - for faster response</div>
                             </div>
                             
                             <div class="form-group">
-                                <select name="interest" required>
+                                <select name="interest" id="contactInterest" required aria-required="true">
                                     <option value="">SELECT INTEREST</option>
                                     <option value="buy">BUYING PROPERTY</option>
                                     <option value="sell">SELLING PROPERTY</option>
@@ -785,23 +921,24 @@
                                     <option value="develop">DEVELOPMENT LAND</option>
                                     <option value="other">OTHER</option>
                                 </select>
-                                <label>INTEREST</label>
+                                <label for="contactInterest">INTEREST</label>
                             </div>
                         </div>
                         
                         <div class="form-group full-width">
-                            <textarea name="message" rows="5" required></textarea>
-                            <label>YOUR MESSAGE</label>
+                            <textarea name="message" id="contactMessage" rows="5" required aria-required="true" aria-describedby="messageHint"></textarea>
+                            <label for="contactMessage">YOUR MESSAGE</label>
+                            <div id="messageHint" class="sr-only">Please provide details about your enquiry</div>
                         </div>
                         
                         <div class="form-footer">
                             <label class="checkbox-wrapper">
-                                <input type="checkbox" name="newsletter">
-                                <span class="checkbox-custom"></span>
+                                <input type="checkbox" name="newsletter" id="newsletterOpt">
+                                <span class="checkbox-custom" aria-hidden="true"></span>
                                 <span>Subscribe to market insights</span>
                             </label>
                             
-                            <button type="submit" class="btn-futuristic btn-primary">
+                            <button type="submit" class="btn-futuristic btn-primary" aria-label="Send contact form">
                                 <span>SEND MESSAGE</span>
                             </button>
                         </div>
