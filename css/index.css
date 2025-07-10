@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #000;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+    cursor: none;
+}
+
+.container {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.background-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: grid-move 20s linear infinite;
+    z-index: 1;
+}
+
+@keyframes grid-move {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+.main-text {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    user-select: none;
+}
+
+.website {
+    font-size: clamp(3rem, 8vw, 8rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2em;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slide-up 1s ease-out 0.5s forwards;
+}
+
+.coming-soon {
+    font-size: clamp(1.5rem, 4vw, 4rem);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slide-up 1s ease-out 1s forwards;
+}
+
+.redirect-message {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    font-weight: 400;
+    margin-top: 2rem;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slide-up 1s ease-out 1.5s forwards;
+}
+
+@keyframes slide-up {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cursor {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: difference;
+    transition: transform 0.2s ease;
+}
+
+.cursor.hover {
+    transform: scale(2);
+}
+
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.particle {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.1; }
+    50% { transform: translateY(-100px) rotate(180deg); opacity: 0.3; }
+}
+
+.glitch {
+    position: relative;
+}
+
+.glitch::before,
+.glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+.glitch::before {
+    animation: glitch-1 2s infinite;
+    color: #fff;
+    z-index: -1;
+}
+
+.glitch::after {
+    animation: glitch-2 2s infinite;
+    color: #fff;
+    z-index: -2;
+}
+
+@keyframes glitch-1 {
+    0%, 14%, 15%, 49%, 50%, 99%, 100% {
+        transform: translate(0);
+    }
+    15%, 49% {
+        transform: translate(-2px, 2px);
+    }
+}
+
+@keyframes glitch-2 {
+    0%, 20%, 21%, 62%, 63%, 99%, 100% {
+        transform: translate(0);
+    }
+    21%, 62% {
+        transform: translate(2px, -2px);
+    }
+}
+
+.loading-bar {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: rgba(255,255,255,0.2);
+    z-index: 3;
+}
+
+.loading-progress {
+    height: 100%;
+    background: #fff;
+    width: 0;
+    animation: loading 3s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% { width: 0; }
+    50% { width: 100%; }
+    100% { width: 0; }
+}
+
+@media (max-width: 768px) {
+    .background-grid {
+        background-size: 30px 30px;
+    }
+    @keyframes grid-move {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(30px, 30px); }
+    }
+}
+
+@media (hover: none) {
+    .cursor {
+        display: none;
+    }
+    body {
+        cursor: auto;
+    }
+}

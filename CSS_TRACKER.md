@@ -216,6 +216,21 @@ css/
 - **NEW**: Added mobile-first responsive design with touch optimizations
 - **NEW**: Enhanced accessibility with reduced motion support and touch targets
 
+### Recent Fixes (January 2025)
+- All inline and embedded CSS in HTML files has been moved to dedicated .css files.
+- Created `css/index.css` for styles previously embedded in `index.html`.
+- Moved accessibility and skip-link styles from `home.html` to `css/critical.css`.
+- All HTML files now reference only external CSS files; no <style> or style="..." remains in HTML.
+
+### Continuous Improvement Process
+- Regularly audit HTML files for any new inline or embedded CSS and move it to the appropriate .css file.
+- Document any new CSS files or major changes in this tracker.
+- Prioritize performance, accessibility, and maintainability in all CSS changes.
+- Coordinate with other agents to ensure CSS-only changes and avoid conflicts with HTML/JS branches.
+
+### New CSS File:
+- **css/index.css**: Contains all styles for the index (redirect/landing) page, previously in a <style> block in `index.html`.
+
 ## Next Steps
 
 ### Immediate Actions (This Week):
