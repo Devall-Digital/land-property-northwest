@@ -1,11 +1,11 @@
 /* ===================================
    NORTHWEST PROPERTY & LAND SALES
-   Index Page JavaScript
+   Index Page JavaScript - Coming Soon
    =================================== */
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Index page loaded - initializing animations');
+    console.log('Coming soon page loaded - initializing animations');
     
     // Initialize all index page functionality
     initCustomCursor();
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initKeyboardInteractions();
     initClickEffects();
     initGridAnimation();
-    initAutoRedirect();
+    initPreviewButton();
 });
 
 /* ===================================
@@ -116,6 +116,11 @@ function initKeyboardInteractions() {
                 document.body.style.filter = 'none';
             }, 100);
         }
+        
+        // Press 'P' to preview the work-in-progress site
+        if (e.code === 'KeyP') {
+            window.location.href = 'home.html';
+        }
     });
 }
 
@@ -177,11 +182,54 @@ function initGridAnimation() {
 }
 
 /* ===================================
-   AUTO REDIRECT
+   PREVIEW BUTTON
    =================================== */
-function initAutoRedirect() {
-    // Manual redirect option
+function initPreviewButton() {
+    const previewButton = document.getElementById('previewButton');
+    if (!previewButton) return;
+    
+    // Add hover effect
+    previewButton.addEventListener('mouseenter', () => {
+        previewButton.style.transform = 'translateY(-2px) scale(1.05)';
+    });
+    
+    previewButton.addEventListener('mouseleave', () => {
+        previewButton.style.transform = 'translateY(0) scale(1)';
+    });
+    
+    // Add click confirmation
+    previewButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        const confirmed = confirm('You are about to view our work-in-progress site. This page is still under development and may contain incomplete features. Continue?');
+        
+        if (confirmed) {
+            window.location.href = 'home.html';
+        }
+    });
+    
+    // Add keyboard shortcut hint
+    const hint = document.createElement('div');
+    hint.style.position = 'fixed';
+    hint.style.top = '10px';
+    hint.style.right = '10px';
+    hint.style.background = 'rgba(0,0,0,0.8)';
+    hint.style.color = '#fff';
+    hint.style.padding = '8px 12px';
+    hint.style.borderRadius = '4px';
+    hint.style.fontSize = '12px';
+    hint.style.fontFamily = 'Inter, sans-serif';
+    hint.style.zIndex = '1000';
+    hint.style.opacity = '0.7';
+    hint.textContent = 'Press "P" to preview site';
+    
+    document.body.appendChild(hint);
+    
+    // Hide hint after 5 seconds
     setTimeout(() => {
-        window.location.href = 'home.html';
-    }, 3000);
+        hint.style.opacity = '0';
+        setTimeout(() => {
+            hint.remove();
+        }, 1000);
+    }, 5000);
 }

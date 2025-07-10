@@ -22,6 +22,7 @@ body {
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    padding: 2rem;
 }
 
 .background-grid {
@@ -48,6 +49,7 @@ body {
     z-index: 3;
     text-align: center;
     user-select: none;
+    max-width: 800px;
 }
 
 .website {
@@ -69,13 +71,114 @@ body {
     animation: slide-up 1s ease-out 1s forwards;
 }
 
-.redirect-message {
-    font-size: clamp(1rem, 2vw, 1.5rem);
+.tagline {
+    font-size: clamp(1rem, 2.5vw, 1.8rem);
     font-weight: 400;
-    margin-top: 2rem;
+    margin-top: 1rem;
     opacity: 0;
     transform: translateY(50px);
-    animation: slide-up 1s ease-out 1.5s forwards;
+    animation: slide-up 1s ease-out 1.2s forwards;
+    color: rgba(255,255,255,0.8);
+}
+
+.status {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-weight: 700;
+    margin-top: 0.5rem;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slide-up 1s ease-out 1.4s forwards;
+    color: #00ff88;
+}
+
+.contact-info {
+    margin-top: 3rem;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slide-up 1s ease-out 1.6s forwards;
+}
+
+.contact-text {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 400;
+    margin-bottom: 1rem;
+    color: rgba(255,255,255,0.7);
+}
+
+.contact-phone, .contact-email {
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    font-weight: 500;
+    margin: 0.5rem 0;
+    color: #fff;
+}
+
+.cta-section {
+    margin-top: 3rem;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: slide-up 1s ease-out 1.8s forwards;
+}
+
+.cta-text {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+    color: rgba(255,255,255,0.7);
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #00ff88, #00ccff);
+    color: #000;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+    border-color: #fff;
+}
+
+.cta-button:active {
+    transform: translateY(0);
+}
+
+.button-text {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.button-warning {
+    display: block;
+    font-size: 0.7em;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.footer-info {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    opacity: 0;
+    animation: slide-up 1s ease-out 2s forwards;
+    z-index: 3;
+}
+
+.footer-text, .footer-location {
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    font-weight: 300;
+    margin: 0.3rem 0;
+    color: rgba(255,255,255,0.6);
 }
 
 @keyframes slide-up {
@@ -171,7 +274,7 @@ body {
 
 .loading-bar {
     position: absolute;
-    bottom: 50px;
+    bottom: 120px;
     left: 50%;
     transform: translateX(-50%);
     width: 200px;
@@ -201,12 +304,29 @@ body {
         0% { transform: translate(0, 0); }
         100% { transform: translate(30px, 30px); }
     }
+    
+    .container {
+        padding: 1rem;
+    }
+    
+    .contact-info {
+        margin-top: 2rem;
+    }
+    
+    .cta-section {
+        margin-top: 2rem;
+    }
+    
+    .footer-info {
+        bottom: 1rem;
+    }
 }
 
 @media (hover: none) {
     .cursor {
         display: none;
     }
+    
     body {
         cursor: auto;
     }

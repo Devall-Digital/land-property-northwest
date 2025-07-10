@@ -9,12 +9,34 @@ Create a high-converting website that captures leads and funnels them to our bus
 - **Strategy**: Scoop up all business opportunities before competitors
 - **Revenue Model**: Lead distribution to business partners
 
+## Website Structure
+The website is organized with a barrier approach to protect work-in-progress content:
+
+### Public-Facing Pages:
+- **`index.html`** - Coming Soon page with contact information
+  - Serves as a barrier to the public
+  - Contains contact details for immediate inquiries
+  - Has a preview button to access work-in-progress site
+  - Blocked from search engine indexing
+
+### Development Pages:
+- **`home.html`** - Main work-in-progress website
+  - Full website with all features and content
+  - Safe to update and develop without public exposure
+  - Accessible via preview button or direct URL
+
+### SEO Strategy:
+- Coming soon page prevents premature indexing
+- Work-in-progress site can be developed safely
+- When ready for launch, simply swap the files
+
 ## Current Status
 - Website exists with basic structure
 - Multiple JavaScript files for interactive features
 - PHP backend for form processing
 - CSS styling with futuristic design elements
-- Need to assess current performance and optimize
+- Coming soon page implemented as public barrier
+- Work-in-progress site protected from premature indexing
 
 ## Project Structure
 This project uses a modular documentation approach with separate files for each aspect:

@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /index.html
 
 # Sitemap location
 Sitemap: https://landpropertynorthwest.co.uk/sitemap.xml
@@ -10,15 +11,19 @@ Crawl-delay: 1
 # Allow all major search engines
 User-agent: Googlebot
 Allow: /
+Disallow: /index.html
 
 User-agent: Bingbot
 Allow: /
+Disallow: /index.html
 
 User-agent: Slurp
 Allow: /
+Disallow: /index.html
 
 User-agent: DuckDuckBot
 Allow: /
+Disallow: /index.html
 
 # Disallow admin or sensitive areas (add if needed)
 # Disallow: /admin/
