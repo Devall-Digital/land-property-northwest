@@ -64,41 +64,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Critical CSS for accessibility -->
-    <style>
-        .sr-only {
-            position: absolute !important;
-            width: 1px !important;
-            height: 1px !important;
-            padding: 0 !important;
-            margin: -1px !important;
-            overflow: hidden !important;
-            clip: rect(0, 0, 0, 0) !important;
-            white-space: nowrap !important;
-            border: 0 !important;
-        }
-        
-        /* Focus indicators for accessibility */
-        *:focus {
-            outline: 2px solid #00ffff !important;
-            outline-offset: 2px !important;
-        }
-        
-        /* Skip to main content link */
-        .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 6px;
-            background: #000;
-            color: #fff;
-            padding: 8px;
-            text-decoration: none;
-            z-index: 10000;
-        }
-        
-        .skip-link:focus {
-            top: 6px;
-        }
-    </style>
+    <!-- Styles moved to css/critical.css -->
     
     <!-- Mapbox GL JS for interactive maps -->
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
