@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Northwest Property & Land - Test Page</title>
+    <link rel="stylesheet" href="css/futuristic-styles.css">
+    <link rel="stylesheet" href="css/futuristic-animations.css">
+    <link rel="stylesheet" href="css/futuristic-responsive.css">
+    <style>
+        .test-section {
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    
+    <div class="background-effects">
+        <div class="grid-background"></div>
+        <div class="particle-system" id="particles"></div>
+        <div class="gradient-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1 class="glitch" data-text="TEST PAGE">TEST PAGE</h1>
+        <p>Testing all enhanced features of Northwest Property & Land website</p>
+        
+        <div class="test-section">
+            <h2>Animation Tests</h2>
+            <div class="test-grid">
+                <div class="test-card animate-on-load">
+                    <h3>Fade In Animation</h3>
+                    <p>This card should fade in when the page loads.</p>
+                </div>
+                <div class="test-card hover-lift">
+                    <h3>Hover Lift Effect</h3>
+                    <p>Hover over this card to see the lift effect.</p>
+                </div>
+                <div class="test-card hover-glow">
+                    <h3>Hover Glow Effect</h3>
+                    <p>Hover over this card to see the glow effect.</p>
+                </div>
+                <div class="test-card pulse">
+                    <h3>Pulse Animation</h3>
+                    <p>This card should pulse continuously.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Button Tests</h2>
+            <div class="test-grid">
+                <button class="btn-futuristic btn-primary hover-lift">Primary Button</button>
+                <button class="btn-futuristic btn-secondary hover-lift">Secondary Button</button>
+                <button class="btn-futuristic hover-glow">Glow Button</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Text Effects</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3 class="glitch" data-text="GLITCH TEXT">GLITCH TEXT</h3>
+                    <p>This text should have a glitch effect.</p>
+                </div>
+                <div class="test-card">
+                    <h3 class="neon-glow">NEON GLOW</h3>
+                    <p>This text should have a neon glow effect.</p>
+                </div>
+                <div class="test-card">
+                    <h3 class="shimmer">SHIMMER EFFECT</h3>
+                    <p>This text should have a shimmer effect.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Interactive Elements</h2>
+            <div class="test-grid">
+                <div class="test-card ripple">
+                    <h3>Ripple Effect</h3>
+                    <p>Click this card to see the ripple effect.</p>
+                </div>
+                <div class="test-card magnetic">
+                    <h3>Magnetic Effect</h3>
+                    <p>Hover over this card to see the magnetic effect.</p>
+                </div>
+                <div class="test-card float">
+                    <h3>Float Animation</h3>
+                    <p>This card should float up and down.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Loading States</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <div class="spinner"></div>
+                    <p>Loading spinner</p>
+                </div>
+                <button class="btn-futuristic loading">Loading Button</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Status States</h2>
+            <div class="test-grid">
+                <button class="btn-futuristic success">Success</button>
+                <button class="btn-futuristic error">Error</button>
+                <button class="btn-futuristic warning">Warning</button>
+                <button class="btn-futuristic info">Info</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/futuristic-main.js"></script>
+    <script>
+        // Test notification system
+        setTimeout(() => {
+            if (typeof showNotification === 'function') {
+                showNotification('Test notification working!');
+            }
+        }, 2000);
+        
+        // Test counter animations
+        setTimeout(() => {
+            const counters = document.querySelectorAll('[data-count]');
+            counters.forEach(counter => {
+                if (typeof animateCounter === 'function') {
+                    animateCounter(counter);
+                }
+            });
+        }, 1000);
+    </script>
+</body>
+</html>
