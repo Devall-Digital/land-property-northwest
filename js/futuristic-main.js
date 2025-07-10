@@ -345,21 +345,55 @@ function initFormHandling() {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="loader"></span> SENDING...';
         
-        // Simulate form submission
-        setTimeout(() => {
-            submitBtn.innerHTML = '✓ SENT';
-            submitBtn.classList.add('success');
+        try {
+            // Get form data
+            const formData = new FormData(form);
             
-            showNotification('Message sent successfully! We\'ll contact you within 24 hours.');
+            // Send to PHP backend
+            const response = await fetch('process-form.php', {
+                method: 'POST',
+                body: formData
+            });
             
-            // Reset form
-            setTimeout(() => {
-                form.reset();
+            const data = await response.json();
+            
+            if (data.success) {
+                // Success
+                submitBtn.innerHTML = '✓ SENT';
+                submitBtn.classList.add('success');
+                
+                showNotification(`Thank you! We will contact you within 2 hours to discuss your free quote.\n\nNeed immediate assistance? Call ${data.phone} now!`);
+                
+                // Track conversion
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'conversion', {
+                        'event_category': 'lead_generation',
+                        'event_label': 'form_submission'
+                    });
+                }
+                
+                // Reset form
+                setTimeout(() => {
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.classList.remove('success');
+                }, 3000);
+            } else {
+                // Error
+                const errorMsg = data.errors ? data.errors.join('\n') : 'Something went wrong. Please try again.';
+                showNotification(`Please correct the following:\n\n${errorMsg}\n\nOr call us directly: ${data.phone}`);
+                
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
-                submitBtn.classList.remove('success');
-            }, 3000);
-        }, 2000);
+            }
+        } catch (error) {
+            console.error('Form submission error:', error);
+            showNotification('There was a problem submitting your form. Please call us directly at 07561724095 or try again.');
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
     });
     
     // Dynamic label positioning

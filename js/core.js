@@ -197,6 +197,12 @@ const FormUtils = {
      * Initialize form validation and submission
      */
     initFormHandling() {
+        // Skip if futuristic-main.js is loaded (it handles forms with better UI)
+        if (typeof window.showNotification === 'function') {
+            console.log('Form handling skipped - futuristic-main.js detected');
+            return;
+        }
+        
         const contactForm = document.querySelector(CONFIG.SELECTORS.contactForm);
         const submitBtn = document.querySelector(CONFIG.SELECTORS.submitBtn);
         
