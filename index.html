@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon</title>
+    <meta http-equiv="refresh" content="3;url=home.html">
+    <title>Redirecting to Northwest Property & Land</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
         
@@ -74,6 +75,15 @@
             opacity: 0;
             transform: translateY(50px);
             animation: slide-up 1s ease-out 1s forwards;
+        }
+        
+        .redirect-message {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            font-weight: 400;
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: slide-up 1s ease-out 1.5s forwards;
         }
         
         @keyframes slide-up {
@@ -222,8 +232,9 @@
         <div class="particles" id="particles"></div>
         
         <div class="main-text">
-            <h1 class="website glitch" data-text="WEBSITE">WEBSITE</h1>
-            <h2 class="coming-soon">COMING SOON</h2>
+            <h1 class="website glitch" data-text="NORTHWEST">NORTHWEST</h1>
+            <h2 class="coming-soon">PROPERTY & LAND</h2>
+            <p class="redirect-message">Redirecting to main site...</p>
         </div>
         
         <div class="loading-bar">
@@ -356,6 +367,11 @@
             const speed = Math.random() * 10 + 15;
             grid.style.animationDuration = speed + 's';
         }, 5000);
+        
+        // Manual redirect option
+        setTimeout(() => {
+            window.location.href = 'home.html';
+        }, 3000);
     </script>
 </body>
 </html> 
