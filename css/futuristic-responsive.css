@@ -168,32 +168,79 @@
         padding: var(--spacing-xl) 0;
     }
     
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        text-align: center;
+        padding: 0 var(--spacing-sm);
+    }
+    
     .hero-title .title-word {
         font-size: clamp(2.5rem, 10vw, 4rem);
     }
     
     .hero-description {
         font-size: 1rem;
+        margin: 0 auto var(--spacing-lg);
     }
     
     .hero-actions {
         flex-direction: column;
         width: 100%;
+        gap: var(--spacing-sm);
     }
     
     .btn-futuristic {
         width: 100%;
         padding: var(--spacing-md);
+        font-size: 0.85rem;
     }
     
     .hero-stats {
         flex-direction: column;
         gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-sm);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+        text-align: right;
+    }
+    
+    .property-hologram {
+        height: 300px;
+        margin-top: var(--spacing-lg);
+    }
+    
+    .hologram-base {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .hologram-property {
+        width: 150px;
+        height: 150px;
     }
     
     /* Search Section */
     .search-filters {
         justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
     }
     
     .filter-chip {
@@ -203,49 +250,106 @@
     
     .advanced-filters .filter-row {
         flex-direction: column;
+        gap: var(--spacing-md);
     }
     
     /* Properties */
     .properties-showcase {
         grid-template-columns: 1fr;
-        gap: var(--spacing-md);
+        gap: var(--spacing-lg);
+    }
+    
+    .property-card.featured {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+    }
+    
+    .property-card.featured .property-image {
+        height: 250px;
     }
     
     .property-features {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xs);
     }
     
     .property-actions {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        gap: var(--spacing-xs);
     }
     
     .action-btn {
         padding: var(--spacing-sm);
+        font-size: 0.75rem;
     }
     
     /* Virtual Tours */
     .tour-showcase {
         grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
     }
     
     .tour-viewer {
-        height: 300px;
+        height: 400px;
     }
     
     .tour-controls {
-        flex-direction: column;
-        bottom: var(--spacing-sm);
-        right: var(--spacing-sm);
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: var(--spacing-md);
+        justify-content: center;
+    }
+    
+    .control-btn {
+        padding: var(--spacing-sm);
+        font-size: 0.75rem;
+    }
+    
+    .tour-list {
+        order: -1;
+    }
+    
+    .tour-items {
+        gap: var(--spacing-sm);
+    }
+    
+    .tour-item {
+        padding: var(--spacing-sm);
+    }
+    
+    .tour-thumb {
+        width: 60px;
+        height: 45px;
+    }
+    
+    .tour-info h4 {
+        font-size: 0.8rem;
+    }
+    
+    .tour-info p {
+        font-size: 0.65rem;
     }
     
     /* Land Section */
     .land-map-interface {
-        height: 350px;
+        flex-direction: column;
+        gap: var(--spacing-lg);
     }
     
     .map-stats {
         flex-direction: column;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-md);
+    }
+    
+    .stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .stat-number {
@@ -253,73 +357,125 @@
     }
     
     .land-filters {
-        flex-wrap: wrap;
-        width: calc(100% - var(--spacing-md) * 2);
-        left: var(--spacing-md);
-        transform: none;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .land-filter {
+        padding: var(--spacing-sm);
+        font-size: 0.8rem;
     }
     
     .land-opportunities {
         grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
     }
     
     .opportunity-details {
         grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
     }
     
-    /* Investment Calculator */
+    /* Calculator */
+    .calculator-interface {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
     .calculator-inputs {
         gap: var(--spacing-md);
     }
     
+    .input-group {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .calc-input,
+    .calc-range {
+        padding: var(--spacing-sm);
+        font-size: 1rem;
+    }
+    
     .result-metrics {
         grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .result-metrics .metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     /* Testimonials */
     .testimonials-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-md);
+        gap: var(--spacing-lg);
     }
     
-    /* Contact Form */
+    /* Contact */
+    .contact-wrapper {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xl);
+    }
+    
+    .contact-details {
+        order: 2;
+    }
+    
+    .contact-form {
+        order: 1;
+    }
+    
     .form-grid {
         grid-template-columns: 1fr;
         gap: var(--spacing-md);
     }
     
+    .form-group.full-width {
+        grid-column: span 1;
+    }
+    
     .form-footer {
         flex-direction: column;
         gap: var(--spacing-md);
+        align-items: stretch;
     }
     
     .btn-futuristic {
         width: 100%;
+        padding: var(--spacing-md);
+        font-size: 0.85rem;
     }
     
     /* Footer */
     .footer-links {
         grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
         text-align: center;
     }
     
     .footer-bottom {
         flex-direction: column;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-md);
         text-align: center;
     }
     
-    /* Back to Top Button */
     .back-to-top {
-        width: 40px;
-        height: 40px;
-        font-size: 1.25rem;
+        position: fixed;
         bottom: var(--spacing-md);
         right: var(--spacing-md);
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
     }
 }
 
-/* Ultra Small Devices (below 320px) */
+/* Extra Small Mobile (320px and below) */
 @media (max-width: 319px) {
     .container {
         padding: 0 var(--spacing-xs);
@@ -332,11 +488,20 @@
     .section-title {
         font-size: 1.5rem;
     }
+    
+    .btn-futuristic {
+        padding: var(--spacing-sm);
+        font-size: 0.75rem;
+        min-width: auto;
+    }
+    
+    .property-card {
+        margin: 0 var(--spacing-xs);
+    }
 }
 
 /* Touch Device Optimizations */
 @media (hover: none) and (pointer: coarse) {
-    /* Remove hover effects on touch devices */
     .cursor,
     .cursor-follower {
         display: none;
@@ -346,146 +511,164 @@
         cursor: auto;
     }
     
-    /* Increase tap targets */
     .nav-link,
     .btn-futuristic,
-    .filter-chip,
-    .action-btn {
+    .action-btn,
+    .control-btn,
+    .filter-chip {
         min-height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        min-width: 44px;
     }
     
-    /* Remove complex hover animations */
     .property-card:hover,
-    .opportunity-card:hover,
-    .testimonial-card:hover {
+    .tour-item:hover,
+    .land-filter:hover {
         transform: none;
     }
     
-    /* Simplify interactions */
     [data-tilt]:hover {
         transform: none;
     }
+    
+    /* Add touch feedback */
+    .property-card:active,
+    .tour-item:active,
+    .btn-futuristic:active,
+    .action-btn:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
 }
 
-/* Landscape Orientation Adjustments */
+/* Landscape Mobile */
 @media (orientation: landscape) and (max-height: 600px) {
     .hero {
-        min-height: auto;
-        padding: var(--spacing-xl) 0;
+        min-height: 100vh;
+        padding: var(--spacing-lg) 0;
     }
     
     .hero-content {
-        margin-top: 80px;
+        gap: var(--spacing-md);
     }
     
     .nav-menu {
-        flex-direction: row;
-        height: 100vh;
-        overflow-y: auto;
+        padding: var(--spacing-md);
+    }
+    
+    .nav-menu .nav-item {
+        margin: var(--spacing-xs) 0;
+    }
+    
+    .tour-viewer {
+        height: 300px;
+    }
+    
+    .property-hologram {
+        height: 200px;
     }
 }
 
-/* High Resolution Displays */
+/* High DPI Displays */
 @media (-webkit-min-device-pixel-ratio: 2),
        (min-resolution: 192dpi) {
-    /* Sharper borders */
     .property-card,
-    .opportunity-card,
-    .testimonial-card {
+    .tour-item,
+    .land-opportunity {
         border-width: 0.5px;
     }
     
-    /* Thinner grid lines */
     .grid-background {
-        background-image: 
-            linear-gradient(rgba(255,255,255,0.05) 0.5px, transparent 0.5px),
-            linear-gradient(90deg, rgba(255,255,255,0.05) 0.5px, transparent 0.5px);
+        background-size: 25px 25px;
+    }
+    
+    .btn-futuristic {
+        border-width: 1px;
     }
 }
 
 /* Print Styles */
 @media print {
-    /* Hide non-essential elements */
     .nav-toggle,
-    .hero-video,
-    .background-effects,
-    .scroll-indicator,
-    .back-to-top,
+    .loading-screen,
     .cursor,
-    .cursor-follower {
+    .cursor-follower,
+    .back-to-top,
+    .tour-controls,
+    .property-overlay {
+        display: none !important;
+    }
+    
+    .hero-video {
         display: none;
     }
     
-    /* Reset colors for print */
     body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .property-card,
+    .tour-item {
+        break-inside: avoid;
+        border: 1px solid #ccc;
         background: white;
         color: black;
     }
-    
-    /* Ensure content is visible */
-    .property-card,
-    .opportunity-card {
-        break-inside: avoid;
-        border: 1px solid #000;
-    }
 }
 
-/* Accessibility - Reduced Motion */
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-    /* Disable all animations */
     *,
     *::before,
     *::after {
-        animation: none !important;
-        transition: none !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
     
-    /* Remove parallax effects */
     .parallax-layer {
         transform: none !important;
     }
     
-    /* Static grid background */
     .grid-background {
+        animation: none;
+    }
+    
+    .hologram-base,
+    .hologram-property {
         animation: none;
     }
 }
 
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
-    /* Already dark by default, but ensure consistency */
     :root {
         --primary-black: #000000;
         --primary-white: #ffffff;
+        --accent-gold: #ffcc00;
     }
 }
 
-/* Fold Detection (for foldable devices) */
+/* Foldable Device Support */
 @media (screen-spanning: single-fold-vertical) {
     .properties-showcase {
         grid-template-columns: repeat(2, 1fr);
     }
     
     .hero-content {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+        max-width: 100%;
     }
-}
-
-/* Safe Area Insets (for devices with notches) */
-@supports (padding: max(0px)) {
+    
     .navbar {
-        padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+        padding: 0 var(--spacing-md);
     }
     
     .footer {
-        padding-bottom: max(var(--spacing-lg), env(safe-area-inset-bottom));
+        padding: var(--spacing-lg) var(--spacing-md);
     }
     
     .back-to-top {
-        bottom: max(var(--spacing-xl), calc(env(safe-area-inset-bottom) + var(--spacing-md)));
-        right: max(var(--spacing-xl), calc(env(safe-area-inset-right) + var(--spacing-md)));
+        right: calc(var(--spacing-md) + env(safe-area-inset-right));
     }
 }
