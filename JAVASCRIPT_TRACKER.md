@@ -8,14 +8,16 @@ This document tracks the JavaScript development progress for the Northwest Prope
 ### File Structure
 ```
 ├── js/
-│   ├── core.js (584 lines) - Consolidated and optimized core functionality
+│   ├── core.js (590 lines) - Consolidated and optimized core functionality
 │   ├── config.js (243 lines) - Centralized configuration management
 │   ├── error-handler.js (456 lines) - Comprehensive error handling and logging
-│   ├── main.js (574 lines) - Enhanced main functionality (not loaded - consolidated into core.js)
+│   ├── index.js (187 lines) - Index page animations and effects
+│   ├── thank-you.js (86 lines) - Thank you page tracking and effects
+│   ├── 404.js (39 lines) - 404 error page tracking
 │   ├── property-showcase.js (729 lines) - Property display features
 │   ├── virtual-tours.js (576 lines) - Virtual tour functionality
 │   ├── investment-calculator.js (424 lines) - Financial calculators
-│   ├── futuristic-main.js (702 lines) - Advanced UI features
+│   ├── futuristic-main.js (736 lines) - Advanced UI features
 │   └── interactive-map.js (408 lines) - Map interactions
 ```
 
@@ -90,17 +92,19 @@ This document tracks the JavaScript development progress for the Northwest Prope
 ## Performance Metrics
 
 ### Current Performance Status
-- **Total JavaScript Files**: 9 files (script.js removed - consolidated)
-- **Total Lines of Code**: ~4,000+ lines
+- **Total JavaScript Files**: 11 files (main.js removed - consolidated)
+- **Total Lines of Code**: ~4,200+ lines
 - **File Sizes**: 
   - js/core.js: ~19KB (consolidated and optimized)
   - js/config.js: ~7.3KB
   - js/error-handler.js: ~13KB
-  - js/main.js: ~19KB (not loaded - consolidated into core.js)
+  - js/index.js: ~5.3KB (new - extracted from index.html)
+  - js/thank-you.js: ~2.9KB (new - extracted from thank-you.html)
+  - js/404.js: ~1.2KB (new - extracted from 404.html)
   - js/property-showcase.js: ~22KB
   - js/virtual-tours.js: ~16KB
   - js/investment-calculator.js: ~16KB
-  - js/futuristic-main.js: ~21KB
+  - js/futuristic-main.js: ~23KB
   - js/interactive-map.js: ~15KB
 
 ### Performance Optimizations Implemented
@@ -190,12 +194,13 @@ This document tracks the JavaScript development progress for the Northwest Prope
 
 ### Current Issues
 1. **Duplicate Functionality**: ✅ RESOLVED - Consolidated into js/core.js
-2. **Orphaned Files**: ✅ RESOLVED - Removed script.js, main.js not loaded
-3. **Form Handling Conflicts**: ✅ RESOLVED - Fixed conflicts between core.js and futuristic-main.js
-4. **Large File Sizes**: Some files are quite large and could benefit from splitting
-5. **Mixed Patterns**: Some files use older JavaScript patterns
-6. **Limited Error Handling**: ✅ RESOLVED - Comprehensive error handling implemented
-7. **No Testing**: No automated tests currently implemented
+2. **Orphaned Files**: ✅ RESOLVED - Removed script.js and main.js
+3. **Inline JavaScript**: ✅ RESOLVED - Moved all inline JS to separate files
+4. **Form Handling Conflicts**: ✅ RESOLVED - Fixed conflicts between core.js and futuristic-main.js
+5. **Large File Sizes**: Some files are quite large and could benefit from splitting
+6. **Mixed Patterns**: Some files use older JavaScript patterns
+7. **Limited Error Handling**: ✅ RESOLVED - Comprehensive error handling implemented
+8. **No Testing**: No automated tests currently implemented
 
 ### Code Quality Issues
 1. **Inconsistent Naming**: Mixed naming conventions across files
@@ -325,18 +330,24 @@ This document tracks the JavaScript development progress for the Northwest Prope
 
 ### ✅ Critical Issues Fixed
 1. **Orphaned script.js file removed** - Functionality consolidated into js/core.js
-2. **HTML files updated** - Now properly load core.js, config.js, and error-handler.js
-3. **Form handling conflicts resolved** - Fixed conflicts between core.js and futuristic-main.js
-4. **Real form submission implemented** - Updated futuristic-main.js to use actual PHP backend instead of simulation
-5. **JavaScript loading order optimized** - Proper dependency loading sequence
+2. **Orphaned main.js file removed** - Functionality already covered by js/core.js
+3. **Inline JavaScript extracted** - Moved all inline JS from HTML files to separate .js files
+4. **HTML files updated** - Now properly load external JavaScript files instead of inline code
+5. **Form handling conflicts resolved** - Fixed conflicts between core.js and futuristic-main.js
+6. **Real form submission implemented** - Updated futuristic-main.js to use actual PHP backend instead of simulation
+7. **JavaScript loading order optimized** - Proper dependency loading sequence
+8. **New modular files created** - js/index.js, js/thank-you.js, js/404.js for page-specific functionality
 
 ### ✅ Current State
 - All JavaScript files have valid syntax (no errors)
+- All inline JavaScript has been moved to external files
 - Form handling works correctly with PHP backend
 - Error handling is comprehensive and active
 - Configuration is centralized and accessible
 - Modular architecture is properly implemented
 - No duplicate functionality or conflicts
+- Page-specific JavaScript is properly separated
+- Clean separation of concerns maintained
 
 ### 🎯 Ready for Continuous Improvement
 The JavaScript codebase is now in excellent condition and ready for the next phase of development. All critical issues have been resolved and the foundation is solid for future enhancements.

@@ -249,22 +249,6 @@
         </div>
     </div>
 
-    <script>
-        // Track 404 errors for analytics
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'page_view', {
-                'page_title': '404 Error',
-                'page_location': window.location.href,
-                'custom_map': {'custom_parameter_1': 'error_page'}
-            });
-        }
-
-        // Auto-redirect to home page after 30 seconds (optional)
-        // setTimeout(() => {
-        //     if (confirm('Would you like to go to our homepage?')) {
-        //         window.location.href = '/';
-        //     }
-        // }, 30000);
-    </script>
+    <script src="js/404.js"></script>
 </body>
 </html>
