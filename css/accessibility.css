@@ -1,0 +1,164 @@
+/* ===================================
+   ACCESSIBILITY STYLES
+   Extracted from home.html inline styles
+   =================================== */
+
+/* Screen Reader Only Content */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Focus indicators for accessibility */
+*:focus {
+    outline: 2px solid #00ffff !important;
+    outline-offset: 2px !important;
+}
+
+/* Skip to main content link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 10000;
+    transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+/* Enhanced focus indicators for interactive elements */
+.btn-futuristic:focus,
+.nav-link:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: 3px solid var(--accent-gold);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-black: #000000;
+        --primary-white: #ffffff;
+        --accent-gold: #ffff00;
+    }
+    
+    .btn-futuristic {
+        border: 2px solid var(--primary-white);
+    }
+    
+    .nav-link {
+        text-decoration: underline;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .loading-progress {
+        animation: none !important;
+        width: 100% !important;
+    }
+    
+    .title-word {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    .hero-description {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+    
+    .particle {
+        animation: none !important;
+    }
+    
+    .grid-background {
+        animation: none !important;
+    }
+    
+    .orb {
+        animation: none !important;
+    }
+    
+    .glitch::before,
+    .glitch::after {
+        animation: none !important;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .cursor,
+    .cursor-follower {
+        display: none !important;
+    }
+    
+    body {
+        cursor: auto !important;
+    }
+    
+    /* Ensure touch targets are at least 44px */
+    .btn-futuristic,
+    .nav-link,
+    .nav-cta {
+        min-height: 44px;
+        min-width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Prevent zoom on iOS for form inputs */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .loading-screen,
+    .background-effects,
+    .cursor,
+    .cursor-follower {
+        display: none !important;
+    }
+    
+    .hero {
+        background: none !important;
+        color: #000 !important;
+    }
+    
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+    
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+}
