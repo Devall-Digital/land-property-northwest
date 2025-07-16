@@ -28,7 +28,8 @@ class InteractiveMap {
 
     createMap() {
         // Initialize Mapbox map
-        mapboxgl.accessToken = 'pk.eyJ1Ijoibm9ydGh3ZXN0LXByb3BlcnR5IiwiYSI6ImNrZXhhbXBsZSJ9.example';
+        // Mapbox access token - Replace with your actual token
+mapboxgl.accessToken = 'pk.eyJ1Ijoibm9ydGh3ZXN0LXByb3BlcnR5IiwiYSI6ImNrZXhhbXBsZSJ9.example';
         
         this.map = new mapboxgl.Map({
             container: 'landMap',

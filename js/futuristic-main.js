@@ -587,10 +587,10 @@ function initInvestmentCalculator() {
 
 // Contact Form
 function initContactForm() {
-    const contactForm = document.querySelector('.contact-form form');
+    const contactForm = document.getElementById('contactForm');
     
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             // Get form data
@@ -601,28 +601,55 @@ function initContactForm() {
             if (validateForm(data)) {
                 // Show loading state
                 const submitBtn = contactForm.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = 'Sending...';
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span>SENDING...</span>';
                 submitBtn.disabled = true;
                 
-                // Simulate form submission
-                setTimeout(() => {
-                    showNotification('Message sent successfully!');
-                    contactForm.reset();
-                    submitBtn.textContent = originalText;
+                try {
+                    // Submit form to PHP backend
+                    const response = await fetch('process-form.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showNotification(result.message);
+                        contactForm.reset();
+                        
+                        // Redirect to thank you page after successful submission
+                        setTimeout(() => {
+                            window.location.href = 'thank-you.html';
+                        }, 2000);
+                    } else {
+                        showNotification(result.errors ? result.errors.join(', ') : 'Failed to send message. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Form submission error:', error);
+                    showNotification('Network error. Please try again or call us directly.');
+                } finally {
+                    submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
-                }, 2000);
+                }
             }
         });
     }
 }
 
 function validateForm(data) {
-    const required = ['name', 'email', 'message'];
+    const required = ['name', 'email', 'interest', 'message'];
     const missing = required.filter(field => !data[field]);
     
     if (missing.length > 0) {
-        showNotification(`Please fill in: ${missing.join(', ')}`);
+        const fieldNames = {
+            'name': 'your name',
+            'email': 'email address',
+            'interest': 'area of interest',
+            'message': 'message details'
+        };
+        const missingFields = missing.map(field => fieldNames[field] || field);
+        showNotification(`Please fill in: ${missingFields.join(', ')}`);
         return false;
     }
     
@@ -630,6 +657,12 @@ function validateForm(data) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
         showNotification('Please enter a valid email address');
+        return false;
+    }
+    
+    // Phone validation (if provided)
+    if (data.phone && !/^[\d\s\+\-\(\)]+$/.test(data.phone)) {
+        showNotification('Please enter a valid phone number');
         return false;
     }
     
