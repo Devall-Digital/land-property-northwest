@@ -68,10 +68,6 @@ function initializePropertyField() {
         const brightness = 100 + (Math.random() - 0.5) * 15; // 92.5 to 107.5
         building.style.filter = `hue-rotate(${hueOffset}deg) brightness(${brightness}%)`;
         
-        // Add slight rotation for depth (very subtle)
-        const rotation = (Math.random() - 0.5) * 2; // -1 to 1 degrees
-        building.style.transform += ` rotate(${rotation}deg)`;
-        
         buildings.push(building);
         propertyField.appendChild(building);
     }
