@@ -71,50 +71,176 @@ body {
     50% { opacity: 0.8; }
 }
 
-/* Property Field Background Animation */
+/* Cityscape Background Animation */
 .property-field {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 50vh;
+    height: 60vh;
     z-index: -1;
     pointer-events: none;
     overflow: hidden;
-    background: linear-gradient(to top, rgba(37, 99, 235, 0.1) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(37, 99, 235, 0.15) 0%, transparent 100%);
+    perspective: 1000px;
 }
 
-.property-element {
+.property-building {
     position: absolute;
     bottom: 0;
-    width: 3px;
-    height: 80px;
-    background: linear-gradient(to top, var(--accent-blue-dark), var(--accent-blue-light));
+    background: linear-gradient(to top, var(--accent-blue-dark) 0%, var(--accent-blue-light) 100%);
+    border-left: 1px solid rgba(212, 175, 55, 0.3);
+    border-right: 1px solid rgba(212, 175, 55, 0.3);
     transform-origin: bottom center;
-    animation: propertySway 4s ease-in-out infinite;
-    opacity: 0.6;
-    filter: blur(0.5px);
+    opacity: 0;
+    animation: buildingGrow 2s ease-out forwards;
     will-change: transform, opacity;
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
 }
 
-.property-element.layer-1 { height: 60px; opacity: 0.4; filter: blur(1px); }
-.property-element.layer-2 { height: 75px; opacity: 0.5; filter: blur(0.8px); }
-.property-element.layer-3 { height: 90px; opacity: 0.6; filter: blur(0.5px); }
-.property-element.layer-4 { height: 105px; opacity: 0.7; filter: blur(0.3px); }
-.property-element.layer-5 { height: 120px; opacity: 0.8; filter: blur(0px); }
-
-@keyframes propertySway {
-    0%, 100% { transform: rotateZ(0deg) translateY(0px); }
-    25% { transform: rotateZ(2deg) translateY(-1px); }
-    50% { transform: rotateZ(0deg) translateY(0px); }
-    75% { transform: rotateZ(-2deg) translateY(-1px); }
+/* Building windows */
+.property-building::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 15px,
+            rgba(212, 175, 55, 0.1) 15px,
+            rgba(212, 175, 55, 0.1) 20px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 15px,
+            rgba(212, 175, 55, 0.1) 15px,
+            rgba(212, 175, 55, 0.1) 20px
+        );
+    opacity: 0.6;
+    pointer-events: none;
 }
 
-@keyframes propertyGust {
-    0%, 100% { transform: rotateZ(0deg) translateY(0px); }
-    25% { transform: rotateZ(5deg) translateY(-3px); }
-    50% { transform: rotateZ(0deg) translateY(0px); }
-    75% { transform: rotateZ(-5deg) translateY(-3px); }
+/* Some buildings have lit windows */
+.property-building.lit::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 18px,
+            rgba(212, 175, 55, 0.3) 18px,
+            rgba(212, 175, 55, 0.3) 22px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 18px,
+            rgba(212, 175, 55, 0.3) 18px,
+            rgba(212, 175, 55, 0.3) 22px
+        );
+    opacity: 0.4;
+    animation: windowFlicker 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Different building sizes and layers */
+.property-building.layer-1 { 
+    width: 40px; 
+    height: 80px; 
+    opacity: 0.5; 
+    filter: blur(1px);
+}
+.property-building.layer-2 { 
+    width: 50px; 
+    height: 120px; 
+    opacity: 0.6; 
+    filter: blur(0.8px);
+}
+.property-building.layer-3 { 
+    width: 60px; 
+    height: 160px; 
+    opacity: 0.7; 
+    filter: blur(0.5px);
+}
+.property-building.layer-4 { 
+    width: 70px; 
+    height: 200px; 
+    opacity: 0.8; 
+    filter: blur(0.3px);
+}
+.property-building.layer-5 { 
+    width: 80px; 
+    height: 240px; 
+    opacity: 0.9; 
+    filter: blur(0px);
+}
+
+/* Tall buildings */
+.property-building.tall {
+    height: 280px;
+    width: 60px;
+}
+
+.property-building.tall.layer-1 { height: 200px; }
+.property-building.tall.layer-2 { height: 240px; }
+.property-building.tall.layer-3 { height: 280px; }
+.property-building.tall.layer-4 { height: 320px; }
+.property-building.tall.layer-5 { height: 360px; }
+
+/* Wide buildings */
+.property-building.wide {
+    width: 100px;
+}
+
+.property-building.wide.layer-1 { width: 60px; }
+.property-building.wide.layer-2 { width: 80px; }
+.property-building.wide.layer-3 { width: 100px; }
+.property-building.wide.layer-4 { width: 120px; }
+.property-building.wide.layer-5 { width: 140px; }
+
+@keyframes buildingGrow {
+    0% {
+        opacity: 0;
+        transform: scaleY(0) translateY(100%);
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 1;
+        transform: scaleY(1) translateY(0);
+    }
+}
+
+@keyframes windowFlicker {
+    0%, 100% { opacity: 0.4; }
+    25% { opacity: 0.6; }
+    50% { opacity: 0.3; }
+    75% { opacity: 0.5; }
+}
+
+/* Subtle building pulse animation */
+@keyframes buildingPulse {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+    }
+}
+
+.property-building.pulse {
+    animation: buildingGrow 2s ease-out forwards, buildingPulse 6s ease-in-out infinite 2s;
 }
 
 /* Navigation */

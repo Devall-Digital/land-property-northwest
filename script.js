@@ -9,49 +9,114 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeSmoothScroll();
 });
 
-// Initialize Property Field Background Animation
+// Initialize Cityscape Background Animation
 function initializePropertyField() {
     const propertyField = document.getElementById('propertyField');
     if (!propertyField) return;
     
-    // Create property-themed elements (representing property lines/boundaries)
-    const elementCount = 120;
+    // Create cityscape with buildings
+    const buildingCount = 25; // Fewer buildings but larger
     const layers = 5;
+    const buildings = [];
     
-    for (let i = 0; i < elementCount; i++) {
-        const element = document.createElement('div');
+    // Track positions to avoid overlap
+    const usedPositions = [];
+    const minSpacing = 60; // Minimum spacing between buildings
+    
+    for (let i = 0; i < buildingCount; i++) {
+        const building = document.createElement('div');
         const layer = Math.floor(Math.random() * layers) + 1;
-        element.classList.add('property-element', `layer-${layer}`);
+        building.classList.add('property-building', `layer-${layer}`);
         
-        // Random horizontal position
-        element.style.left = `${Math.random() * 100}%`;
-        
-        // Random animation delay and duration for natural movement
-        element.style.animationDelay = `${Math.random() * 5}s`;
-        element.style.animationDuration = `${3 + Math.random() * 2}s`; // 3s to 5s
-        
-        // 15% chance for a stronger gust animation
-        if (Math.random() < 0.15) {
-            element.style.animationName = 'propertyGust';
-            element.style.animationDuration = `${2.5 + Math.random() * 1.5}s`; // 2.5s to 4s
+        // Determine building type (regular, tall, or wide)
+        const buildingType = Math.random();
+        if (buildingType < 0.3) {
+            building.classList.add('tall');
+        } else if (buildingType < 0.5) {
+            building.classList.add('wide');
         }
         
-        // Slight color variation (blue tones)
-        const hueOffset = (Math.random() - 0.5) * 15; // -7.5 to 7.5
-        const saturationOffset = (Math.random() - 0.5) * 20; // -10 to 10
-        element.style.filter = `hue-rotate(${hueOffset}deg) saturate(${100 + saturationOffset}%)`;
+        // 30% chance for lit windows
+        if (Math.random() < 0.3) {
+            building.classList.add('lit');
+        }
         
-        propertyField.appendChild(element);
+        // 20% chance for pulse effect
+        if (Math.random() < 0.2) {
+            building.classList.add('pulse');
+        }
+        
+        // Find a position that doesn't overlap
+        let position;
+        let attempts = 0;
+        do {
+            position = Math.random() * (100 - 5); // Leave some margin
+            attempts++;
+        } while (
+            usedPositions.some(used => Math.abs(position - used) < minSpacing / window.innerWidth * 100) &&
+            attempts < 50
+        );
+        
+        usedPositions.push(position);
+        building.style.left = `${position}%`;
+        
+        // Staggered animation delays for sequential building appearance
+        building.style.animationDelay = `${i * 0.1 + Math.random() * 0.5}s`;
+        
+        // Slight color variation (blue/gold tones)
+        const hueOffset = (Math.random() - 0.5) * 10; // -5 to 5
+        const brightness = 100 + (Math.random() - 0.5) * 15; // 92.5 to 107.5
+        building.style.filter = `hue-rotate(${hueOffset}deg) brightness(${brightness}%)`;
+        
+        // Add slight rotation for depth (very subtle)
+        const rotation = (Math.random() - 0.5) * 2; // -1 to 1 degrees
+        building.style.transform += ` rotate(${rotation}deg)`;
+        
+        buildings.push(building);
+        propertyField.appendChild(building);
     }
     
     // Add subtle parallax effect on scroll
     let lastScrollTop = 0;
     window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const parallax = scrollTop * 0.08; // Adjust parallax strength
+        const parallax = scrollTop * 0.05; // Subtle parallax for buildings
         propertyField.style.transform = `translateY(${parallax}px)`;
         lastScrollTop = scrollTop;
     }, { passive: true });
+    
+    // Add some buildings that appear later (for dynamic effect)
+    setTimeout(() => {
+        for (let i = 0; i < 5; i++) {
+            const building = document.createElement('div');
+            const layer = Math.floor(Math.random() * 3) + 1; // Smaller buildings
+            building.classList.add('property-building', `layer-${layer}`);
+            
+            if (Math.random() < 0.4) {
+                building.classList.add('lit');
+            }
+            
+            let position;
+            let attempts = 0;
+            do {
+                position = Math.random() * (100 - 5);
+                attempts++;
+            } while (
+                usedPositions.some(used => Math.abs(position - used) < minSpacing / window.innerWidth * 100) &&
+                attempts < 50
+            );
+            
+            usedPositions.push(position);
+            building.style.left = `${position}%`;
+            building.style.animationDelay = `${Math.random() * 0.5}s`;
+            
+            const hueOffset = (Math.random() - 0.5) * 10;
+            const brightness = 100 + (Math.random() - 0.5) * 15;
+            building.style.filter = `hue-rotate(${hueOffset}deg) brightness(${brightness}%)`;
+            
+            propertyField.appendChild(building);
+        }
+    }, 3000);
 }
 
 // Initialize Mobile Menu
