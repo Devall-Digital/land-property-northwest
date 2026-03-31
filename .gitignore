@@ -1,30 +1,37 @@
-# Deployment logs
-deploy.log
+# Dependencies
+vendor/
+node_modules/
 
-# Webhook configuration (contains sensitive secrets)
-webhook-config.php
-
-# Common files to ignore
-.DS_Store
-Thumbs.db
-*.log
+# Environment & secrets
 .env
 .env.local
 .env.*.local
+*.env
 
-# Editor directories and files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
-# Dependency directories
-node_modules/
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Build outputs
+# Composer
+composer.phar
+
+# PHP
+*.log
+*.cache
+
+# Build artifacts
+*.zip
+*.tar.gz
 dist/
-build/
 
-# Cache directories
-.cache/
-.temp/ 
+# Debug
+debug.log
+error_log

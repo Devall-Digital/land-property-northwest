@@ -1,0 +1,42 @@
+---
+description: Core project context for Land & Property Northwest platform
+alwaysApply: true
+---
+
+# Land & Property Northwest
+
+Property intelligence and alert platform for Northwest England at land-property-northwest.co.uk.
+
+## What This Is
+
+A WordPress-based platform that pulls property data from free public APIs (planning applications, EPC register, Land Registry, auction houses) and sends paid alerts to subscribers (investors, developers, property professionals). Revenue comes from subscription tiers (Free/Pro/VIP), a professional directory, advertising, and hosting resale.
+
+## Repo Structure
+
+- `plugin/lpnw-property-alerts/` - Custom WordPress plugin (the core product). Handles data ingestion, subscriber matching, alert dispatch, admin panel, and frontend dashboard.
+- `theme/lpnw-theme/` - GeneratePress child theme with custom branding, templates, and styles.
+- `docs/` - Setup, deployment, and data source documentation.
+
+## Tech Stack
+
+- WordPress on 20i shared hosting (PHP 8.0+)
+- WooCommerce + Subscriptions for billing (Stripe gateway)
+- Mautic (self-hosted on subdomain) for email delivery
+- Server cron for scheduled data pulls
+- Leaflet.js for interactive maps
+- No JavaScript framework on frontend (vanilla JS + WordPress block editor)
+
+## Coding Standards
+
+- Follow WordPress PHP Coding Standards (WPCS)
+- Use WordPress hooks and filters, never modify core
+- Prefix all functions, classes, and DB tables with `lpnw_`
+- Use prepared statements for all database queries ($wpdb->prepare())
+- Escape all output (esc_html(), esc_attr(), esc_url(), wp_kses_post())
+- Sanitize all input (sanitize_text_field(), absint(), etc.)
+- Use WordPress HTTP API (wp_remote_get()) not raw cURL
+- Component-based architecture: one class per concern
+
+## Content Guidelines
+
+All user-facing copy must be written in natural, direct English. No em dashes. No filler phrases like "in today's fast-paced world" or "navigating the complex landscape." Write like a knowledgeable person who works in NW property, not like a marketing brochure.

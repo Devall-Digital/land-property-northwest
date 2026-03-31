@@ -1,0 +1,128 @@
+<?php
+/**
+ * Subscriber preferences model.
+ *
+ * Handles CRUD for alert preferences stored in lpnw_subscriber_preferences.
+ * Each WordPress user can have one set of preferences.
+ *
+ * @package LPNW_Property_Alerts
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+class LPNW_Subscriber {
+
+	/**
+	 * Get preferences for a user.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return object|null
+	 */
+	public static function get_preferences( int $user_id ): ?object {
+		global $wpdb;
+		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
+
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT * FROM {$table} WHERE user_id = %d",
+			$user_id
+		) );
+
+		if ( $row ) {
+			$row->areas          = json_decode( $row->areas, true ) ?: array();
+			$row->property_types = json_decode( $row->property_types, true ) ?: array();
+			$row->alert_types    = json_decode( $row->alert_types, true ) ?: array();
+		}
+
+		return $row;
+	}
+
+	/**
+	 * Save preferences for a user (insert or update).
+	 *
+	 * @param int                  $user_id WordPress user ID.
+	 * @param array<string, mixed> $prefs   Preference data.
+	 * @return bool
+	 */
+	public static function save_preferences( int $user_id, array $prefs ): bool {
+		global $wpdb;
+		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
+
+		$row = array(
+			'user_id'        => $user_id,
+			'areas'          => wp_json_encode( $prefs['areas'] ?? array() ),
+			'min_price'      => isset( $prefs['min_price'] ) ? absint( $prefs['min_price'] ) : null,
+			'max_price'      => isset( $prefs['max_price'] ) ? absint( $prefs['max_price'] ) : null,
+			'property_types' => wp_json_encode( $prefs['property_types'] ?? array() ),
+			'alert_types'    => wp_json_encode( $prefs['alert_types'] ?? array() ),
+			'frequency'      => sanitize_text_field( $prefs['frequency'] ?? 'daily' ),
+			'is_active'      => 1,
+		);
+
+		$existing = $wpdb->get_var( $wpdb->prepare(
+			"SELECT id FROM {$table} WHERE user_id = %d",
+			$user_id
+		) );
+
+		if ( $existing ) {
+			return (bool) $wpdb->update( $table, $row, array( 'id' => $existing ) );
+		}
+
+		return (bool) $wpdb->insert( $table, $row );
+	}
+
+	/**
+	 * Get all active subscribers, optionally filtered by frequency.
+	 *
+	 * @param string|null $frequency Filter by frequency (instant, daily, weekly) or null for all.
+	 * @return array<int, object>
+	 */
+	public static function get_active( ?string $frequency = null ): array {
+		global $wpdb;
+		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
+
+		if ( $frequency ) {
+			return $wpdb->get_results( $wpdb->prepare(
+				"SELECT * FROM {$table} WHERE is_active = 1 AND frequency = %s",
+				$frequency
+			) );
+		}
+
+		return $wpdb->get_results(
+			"SELECT * FROM {$table} WHERE is_active = 1"
+		);
+	}
+
+	/**
+	 * Determine a user's subscription tier based on WooCommerce subscriptions.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return string One of: free, pro, vip
+	 */
+	public static function get_tier( int $user_id ): string {
+		if ( ! function_exists( 'wcs_get_users_subscriptions' ) ) {
+			return 'free';
+		}
+
+		$subscriptions = wcs_get_users_subscriptions( $user_id );
+
+		foreach ( $subscriptions as $subscription ) {
+			if ( 'active' !== $subscription->get_status() ) {
+				continue;
+			}
+
+			foreach ( $subscription->get_items() as $item ) {
+				$product_id = $item->get_product_id();
+				$slug       = get_post_field( 'post_name', $product_id );
+
+				if ( str_contains( $slug, 'vip' ) ) {
+					return 'vip';
+				}
+				if ( str_contains( $slug, 'pro' ) ) {
+					return 'pro';
+				}
+			}
+		}
+
+		return 'free';
+	}
+}

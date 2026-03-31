@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /leads/
-Disallow: /process-form.php
-
-Sitemap: https://landpropertynorthwest.co.uk/sitemap.xml
-

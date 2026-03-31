@@ -1,0 +1,211 @@
+/*
+Theme Name: LPNW Theme
+Theme URI: https://land-property-northwest.co.uk
+Description: GeneratePress child theme for Land & Property Northwest. Property intelligence and alert platform.
+Author: Land & Property Northwest
+Author URI: https://land-property-northwest.co.uk
+Template: generatepress
+Version: 1.0.0
+License: Proprietary
+Text Domain: lpnw-theme
+*/
+
+:root {
+	--lpnw-navy: #1B2A4A;
+	--lpnw-navy-light: #2D4470;
+	--lpnw-amber: #E8A317;
+	--lpnw-amber-light: #F5C04A;
+	--lpnw-white: #FFFFFF;
+	--lpnw-offwhite: #F7F8FA;
+	--lpnw-grey-light: #E5E7EB;
+	--lpnw-grey: #6B7280;
+	--lpnw-grey-dark: #374151;
+	--lpnw-success: #059669;
+	--lpnw-danger: #DC2626;
+
+	--lpnw-font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--lpnw-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+	font-family: var(--lpnw-font-body);
+	color: var(--lpnw-grey-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--lpnw-font-heading);
+	color: var(--lpnw-navy);
+	font-weight: 700;
+}
+
+a {
+	color: var(--lpnw-navy);
+}
+
+a:hover {
+	color: var(--lpnw-amber);
+}
+
+/* Header */
+.site-header {
+	background: var(--lpnw-navy) !important;
+}
+
+.site-header a {
+	color: var(--lpnw-white) !important;
+}
+
+.main-navigation .main-nav ul li a:hover {
+	color: var(--lpnw-amber) !important;
+}
+
+/* Hero section (used on home page) */
+.lpnw-hero {
+	background: linear-gradient(135deg, var(--lpnw-navy) 0%, var(--lpnw-navy-light) 100%);
+	color: var(--lpnw-white);
+	padding: 80px 20px;
+	text-align: center;
+}
+
+.lpnw-hero h1 {
+	color: var(--lpnw-white);
+	font-size: 2.5rem;
+	margin-bottom: 16px;
+	line-height: 1.2;
+}
+
+.lpnw-hero p {
+	font-size: 1.25rem;
+	opacity: 0.9;
+	max-width: 600px;
+	margin: 0 auto 32px;
+}
+
+.lpnw-hero .lpnw-btn--primary {
+	font-size: 1.125rem;
+	padding: 14px 32px;
+}
+
+/* Pricing table */
+.lpnw-pricing {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 24px;
+	max-width: 960px;
+	margin: 40px auto;
+}
+
+.lpnw-pricing-card {
+	border: 2px solid var(--lpnw-grey-light);
+	border-radius: 12px;
+	padding: 32px 24px;
+	text-align: center;
+	position: relative;
+}
+
+.lpnw-pricing-card--featured {
+	border-color: var(--lpnw-amber);
+	box-shadow: 0 4px 24px rgba(232, 163, 23, 0.15);
+}
+
+.lpnw-pricing-card--featured::before {
+	content: 'Most Popular';
+	position: absolute;
+	top: -12px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: var(--lpnw-amber);
+	color: var(--lpnw-white);
+	padding: 4px 16px;
+	border-radius: 20px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.lpnw-pricing-card__name {
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--lpnw-navy);
+	margin-bottom: 8px;
+}
+
+.lpnw-pricing-card__price {
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: var(--lpnw-navy);
+	line-height: 1;
+	margin-bottom: 4px;
+}
+
+.lpnw-pricing-card__period {
+	font-size: 0.875rem;
+	color: var(--lpnw-grey);
+	margin-bottom: 24px;
+}
+
+.lpnw-pricing-card__features {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 24px;
+	text-align: left;
+}
+
+.lpnw-pricing-card__features li {
+	padding: 8px 0;
+	border-bottom: 1px solid var(--lpnw-grey-light);
+	font-size: 0.875rem;
+}
+
+.lpnw-pricing-card__features li::before {
+	content: '\2713';
+	color: var(--lpnw-success);
+	font-weight: 700;
+	margin-right: 8px;
+}
+
+/* How it works */
+.lpnw-steps {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 32px;
+	max-width: 960px;
+	margin: 40px auto;
+	text-align: center;
+}
+
+.lpnw-step__number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	background: var(--lpnw-amber);
+	color: var(--lpnw-white);
+	font-weight: 700;
+	font-size: 1.25rem;
+	margin-bottom: 16px;
+}
+
+/* Footer */
+.site-footer {
+	background: var(--lpnw-navy) !important;
+	color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.site-footer a {
+	color: var(--lpnw-white) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.lpnw-hero h1 {
+		font-size: 1.75rem;
+	}
+
+	.lpnw-hero p {
+		font-size: 1rem;
+	}
+}

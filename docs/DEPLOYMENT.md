@@ -1,0 +1,73 @@
+# Deployment Guide
+
+How to deploy changes from this repo to the live 20i hosting.
+
+## FTP Deployment
+
+### Connection Details
+
+Get these from 20i panel > Manage Hosting > FTP Users:
+
+- **Host:** (your 20i FTP host)
+- **Port:** 21 (FTP) or 22 (SFTP)
+- **Username:** (your FTP username)
+- **Password:** (your FTP password)
+- **Root directory:** Usually `/` or `/public_html/`
+
+### What Goes Where
+
+| Repo Path | Server Path |
+|-----------|-------------|
+| `plugin/lpnw-property-alerts/` | `wp-content/plugins/lpnw-property-alerts/` |
+| `theme/lpnw-theme/` | `wp-content/themes/lpnw-theme/` |
+
+### Deploying Plugin Updates
+
+1. Connect via FTP
+2. Navigate to `wp-content/plugins/`
+3. Upload the entire `lpnw-property-alerts/` folder (overwrite existing)
+4. If database schema has changed, deactivate and reactivate the plugin in WP admin to trigger the activator
+
+### Deploying Theme Updates
+
+1. Connect via FTP
+2. Navigate to `wp-content/themes/`
+3. Upload the entire `lpnw-theme/` folder (overwrite existing)
+4. No further action needed; changes take effect immediately
+
+## Quick Deploy Script
+
+If you have `lftp` or `ncftp` installed, you can script the deployment:
+
+```bash
+# Set your credentials
+FTP_HOST="your-ftp-host"
+FTP_USER="your-ftp-user"
+FTP_PASS="your-ftp-pass"
+
+# Deploy plugin
+lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" -e "
+mirror -R --delete plugin/lpnw-property-alerts/ wp-content/plugins/lpnw-property-alerts/
+quit
+"
+
+# Deploy theme
+lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" -e "
+mirror -R --delete theme/lpnw-theme/ wp-content/themes/lpnw-theme/
+quit
+"
+```
+
+## Version Bumping
+
+When making a release:
+
+1. Update `LPNW_VERSION` in `plugin/lpnw-property-alerts/lpnw-property-alerts.php`
+2. Update `Version:` in `plugin/lpnw-property-alerts/lpnw-property-alerts.php` header
+3. Update `Version:` in `theme/lpnw-theme/style.css` header
+4. Commit, tag, and push
+
+## Environment Differences
+
+- **Local/dev:** No WordPress environment; this repo contains only the plugin and theme source code. For local WordPress development, use Local by Flywheel or similar.
+- **Production:** Full WordPress installation on 20i. The plugin and theme are uploaded into the existing WordPress `wp-content` directory.

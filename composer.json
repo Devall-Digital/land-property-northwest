@@ -1,0 +1,23 @@
+{
+    "name": "lpnw/land-property-northwest",
+    "description": "Property intelligence and alert platform for Northwest England. Custom WordPress plugin and theme.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "lint": "phpcs --standard=WordPress plugin/ theme/ --extensions=php",
+        "lint:fix": "phpcbf --standard=WordPress plugin/ theme/ --extensions=php"
+    }
+}

@@ -1,0 +1,52 @@
+---
+description: WordPress plugin development standards for the LPNW alert plugin
+globs: plugin/**/*.php
+alwaysApply: false
+---
+
+# LPNW Plugin Development
+
+## Plugin Architecture
+
+Class-based modular architecture:
+
+- `includes/` - Core classes (activator, deactivator, cron, models, matching engine, dispatcher)
+- `feeds/` - Data feed classes, one per source. All extend LPNW_Feed_Base.
+- `admin/` - WordPress admin panel pages and settings
+- `public/` - Frontend shortcodes, dashboard, map integration
+- `templates/` - Email HTML templates for Mautic
+
+## Database Tables
+
+Custom tables use $wpdb->prefix . 'lpnw_' prefix:
+- lpnw_properties - Normalised property data from all sources
+- lpnw_subscriber_preferences - User alert preferences (areas, price, types)
+- lpnw_alert_queue - Queued and sent alerts
+- lpnw_saved_properties - User bookmarks
+- lpnw_feed_log - Feed run history and error tracking
+
+## Feed Classes
+
+Every data feed extends LPNW_Feed_Base and implements:
+- fetch() - Pull raw data from API/source
+- parse($raw_data) - Normalise into property schema
+- get_source_name() - Return source identifier string
+
+## Key Patterns
+
+```php
+// Always use prepare for queries
+$wpdb->get_results($wpdb->prepare(
+    "SELECT * FROM {$wpdb->prefix}lpnw_properties WHERE postcode LIKE %s",
+    $postcode_prefix . '%'
+));
+
+// Always use WordPress HTTP API
+$response = wp_remote_get($url, ['timeout' => 30]);
+if (is_wp_error($response)) { /* handle */ }
+$body = wp_remote_retrieve_body($response);
+```
+
+## NW Postcode Prefixes
+
+For filtering data to Northwest England: M, L, PR, BB, LA, BL, OL, SK, WA, WN, CW, CH, CA, FY

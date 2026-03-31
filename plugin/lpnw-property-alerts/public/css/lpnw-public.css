@@ -1,0 +1,212 @@
+/**
+ * LPNW Property Alerts - Frontend Styles
+ */
+
+.lpnw-property-card {
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 12px;
+	background: var(--lpnw-white, #FFFFFF);
+	transition: box-shadow 0.2s ease;
+}
+
+.lpnw-property-card:hover {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.lpnw-property-card__address {
+	font-weight: 600;
+	font-size: 1rem;
+	margin: 0 0 4px;
+	color: var(--lpnw-navy, #1B2A4A);
+}
+
+.lpnw-property-card__meta {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	font-size: 0.875rem;
+	color: var(--lpnw-grey, #6B7280);
+	margin-bottom: 8px;
+}
+
+.lpnw-property-card__description {
+	font-size: 0.875rem;
+	color: var(--lpnw-grey-dark, #374151);
+	margin-bottom: 8px;
+}
+
+.lpnw-property-card__actions {
+	display: flex;
+	gap: 8px;
+}
+
+.lpnw-source-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.025em;
+}
+
+.lpnw-source-badge--planning {
+	background: #DBEAFE;
+	color: #1E40AF;
+}
+
+.lpnw-source-badge--epc {
+	background: #D1FAE5;
+	color: #065F46;
+}
+
+.lpnw-source-badge--landregistry {
+	background: #EDE9FE;
+	color: #5B21B6;
+}
+
+.lpnw-source-badge--auction {
+	background: #FEE2E2;
+	color: #991B1B;
+}
+
+.lpnw-btn {
+	display: inline-block;
+	padding: 8px 16px;
+	border-radius: 6px;
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+	border: none;
+	transition: background 0.15s ease;
+}
+
+.lpnw-btn--primary {
+	background: var(--lpnw-amber, #E8A317);
+	color: #FFFFFF;
+}
+
+.lpnw-btn--primary:hover {
+	background: var(--lpnw-amber-light, #F5C04A);
+	color: #FFFFFF;
+}
+
+.lpnw-btn--secondary {
+	background: var(--lpnw-navy, #1B2A4A);
+	color: #FFFFFF;
+}
+
+.lpnw-btn--secondary:hover {
+	background: var(--lpnw-navy-light, #2D4470);
+	color: #FFFFFF;
+}
+
+.lpnw-btn--outline {
+	background: transparent;
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	color: var(--lpnw-grey-dark, #374151);
+}
+
+.lpnw-btn--outline:hover {
+	background: var(--lpnw-offwhite, #F7F8FA);
+}
+
+.lpnw-dashboard-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.lpnw-stat-card {
+	background: var(--lpnw-white, #FFFFFF);
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	border-radius: 8px;
+	padding: 20px;
+	text-align: center;
+}
+
+.lpnw-stat-card__number {
+	font-size: 2rem;
+	font-weight: 700;
+	color: var(--lpnw-navy, #1B2A4A);
+	line-height: 1;
+	margin-bottom: 4px;
+}
+
+.lpnw-stat-card__label {
+	font-size: 0.875rem;
+	color: var(--lpnw-grey, #6B7280);
+}
+
+.lpnw-preferences-form {
+	max-width: 600px;
+}
+
+.lpnw-preferences-form .lpnw-field {
+	margin-bottom: 20px;
+}
+
+.lpnw-preferences-form label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 6px;
+	color: var(--lpnw-navy, #1B2A4A);
+}
+
+.lpnw-preferences-form select,
+.lpnw-preferences-form input[type="number"] {
+	width: 100%;
+	padding: 8px 12px;
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	border-radius: 6px;
+	font-size: 0.875rem;
+}
+
+.lpnw-checkbox-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.lpnw-checkbox-group label {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-weight: 400;
+	padding: 4px 8px;
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	border-radius: 4px;
+	font-size: 0.875rem;
+	cursor: pointer;
+}
+
+.lpnw-checkbox-group input:checked + span {
+	font-weight: 600;
+}
+
+.lpnw-login-prompt {
+	text-align: center;
+	padding: 40px 20px;
+	background: var(--lpnw-offwhite, #F7F8FA);
+	border-radius: 8px;
+}
+
+.lpnw-marker {
+	background: transparent !important;
+	border: none !important;
+}
+
+@media (max-width: 640px) {
+	.lpnw-dashboard-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.lpnw-property-card__meta {
+		flex-direction: column;
+		gap: 4px;
+	}
+}
