@@ -6,7 +6,7 @@ Complete setup instructions for the Land & Property Northwest platform.
 
 - 20i hosting account with a package for `land-property-northwest.co.uk`
 - WordPress installed via 20i one-click install
-- Mautic installed via 20i one-click on `mail.land-property-northwest.co.uk`
+- Mautic installed via 20i one-click on `marketing.land-property-northwest.co.uk`
 - Stripe account with API keys
 - FTP/SFTP access to the hosting package
 
@@ -86,7 +86,7 @@ Go to WP Admin > LPNW Alerts > Settings.
 - Enable Auction House feeds: checked
 
 ### Mautic Integration
-- Mautic URL: `https://mail.land-property-northwest.co.uk`
+- Mautic URL: `https://marketing.land-property-northwest.co.uk`
 - Mautic API Username: (your Mautic admin username)
 - Mautic API Password: (your Mautic admin password)
 - VIP/Pro/Free Email IDs: (create email templates in Mautic first, then enter their IDs here)
