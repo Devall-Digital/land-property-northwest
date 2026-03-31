@@ -1,42 +1,51 @@
 ---
-description: Core project context for Land & Property Northwest platform
+description: Core project context and strict rules for all agents working on LPNW
 alwaysApply: true
 ---
 
 # Land & Property Northwest
 
-Property intelligence and alert platform for Northwest England at land-property-northwest.co.uk.
+READ BRIEF.md AND STATUS.md BEFORE DOING ANYTHING. Those files are the single source of truth.
 
 ## What This Is
 
-A WordPress-based platform that pulls property data from free public APIs (planning applications, EPC register, Land Registry, auction houses) and sends paid alerts to subscribers (investors, developers, property professionals). Revenue comes from subscription tiers (Free/Pro/VIP), a professional directory, advertising, and hosting resale.
+A paid subscription service that instantly alerts users when properties appear on the market in Northwest England. The USP is speed: subscribers find out first, before the general public. This gives investors and developers a competitive edge worth paying for.
+
+## Priority
+
+Revenue first. Every task should be judged by: "Does this get us closer to charging users?" The alert engine, payment flow, and subscriber dashboard are the critical path. Everything else is secondary.
 
 ## Repo Structure
 
-- `plugin/lpnw-property-alerts/` - Custom WordPress plugin (the core product). Handles data ingestion, subscriber matching, alert dispatch, admin panel, and frontend dashboard.
-- `theme/lpnw-theme/` - GeneratePress child theme with custom branding, templates, and styles.
+- `BRIEF.md` - Product brief, USP, priorities, architecture rules, content rules. READ THIS FIRST.
+- `STATUS.md` - Current project state, what is deployed, what still needs doing (prioritised).
+- `plugin/lpnw-property-alerts/` - Custom WordPress plugin (the core product).
+- `theme/lpnw-theme/` - GeneratePress child theme.
 - `docs/` - Setup, deployment, and data source documentation.
 
-## Tech Stack
+## Tech Stack (do NOT change)
 
 - WordPress on 20i shared hosting (PHP 8.0+)
-- WooCommerce + Subscriptions for billing (Stripe gateway)
-- Mautic (self-hosted on subdomain) for email delivery
+- WooCommerce for billing (Stripe gateway)
+- Mautic at marketing.land-property-northwest.co.uk for email delivery
 - Server cron for scheduled data pulls
-- Leaflet.js for interactive maps
-- No JavaScript framework on frontend (vanilla JS + WordPress block editor)
+- Leaflet.js for maps
+- Vanilla JS on frontend (no React, no Vue, no frameworks)
 
-## Coding Standards
+## Strict Rules
 
+- Component-based architecture. One class per concern. No god classes.
 - Follow WordPress PHP Coding Standards (WPCS)
-- Use WordPress hooks and filters, never modify core
-- Prefix all functions, classes, and DB tables with `lpnw_`
-- Use prepared statements for all database queries ($wpdb->prepare())
-- Escape all output (esc_html(), esc_attr(), esc_url(), wp_kses_post())
-- Sanitize all input (sanitize_text_field(), absint(), etc.)
-- Use WordPress HTTP API (wp_remote_get()) not raw cURL
-- Component-based architecture: one class per concern
+- Prefix everything with `lpnw_`
+- Use WordPress APIs only ($wpdb->prepare, wp_remote_get, wp_enqueue_scripts, etc.)
+- Sanitize all input, escape all output, prepare all queries
+- Never modify WordPress core
+- Do NOT switch tech stacks or suggest alternatives
+- Do NOT refactor working code for aesthetic reasons
+- Do NOT install unapproved plugins or tools
+- Do NOT write content that sounds AI-generated (no em dashes, no filler)
+- Deploy via FTP to 20i hosting. See docs/DEPLOYMENT.md.
 
-## Content Guidelines
+## Deployment Workaround
 
-All user-facing copy must be written in natural, direct English. No em dashes. No filler phrases like "in today's fast-paced world" or "navigating the complex landscape." Write like a knowledgeable person who works in NW property, not like a marketing brochure.
+20i blocks automated access to wp-admin. Workaround: create temporary PHP scripts, upload via FTP, run via browser URL, then delete. The REST API at /wp-json/ IS accessible.
