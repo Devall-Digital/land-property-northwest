@@ -218,6 +218,9 @@ body.login #login {
 	background-image: none !important;
 	font-size: 1.35rem;
 	font-weight: 700;
+	font-size: 0;
+	color: transparent;
+}
 	font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
 	color: #1B2A4A;
 	text-indent: 0;
@@ -237,6 +240,9 @@ body.login #login {
 }
 #login h1 a::after {
 	content: "Land & Property Northwest";
+	font-size: 1.35rem;
+	color: #1B2A4A;
+	display: block;
 }
 .login form,
 .login form.shake {
