@@ -293,7 +293,7 @@ class LPNW_Property {
 		if ( self::db_supports_window_functions() ) {
 			$pc            = 'UPPER(TRIM(p.postcode))';
 			$bucket_case   = self::get_nw_postcode_bucket_case_sql( $pc );
-			$sql           = "SELECT ranked.id, ranked.source, ranked.source_ref, ranked.address, ranked.postcode, ranked.latitude, ranked.longitude, ranked.price, ranked.property_type, ranked.description, ranked.application_type, ranked.auction_date, ranked.source_url, ranked.raw_data, ranked.created_at, ranked.updated_at
+			$sql           = "SELECT ranked.id, ranked.source, ranked.source_ref, ranked.address, ranked.postcode, ranked.latitude, ranked.longitude, ranked.price, ranked.property_type, ranked.bedrooms, ranked.bathrooms, ranked.tenure_type, ranked.price_frequency, ranked.floor_area_sqft, ranked.first_listed_date, ranked.agent_name, ranked.key_features_text, ranked.description, ranked.application_type, ranked.auction_date, ranked.source_url, ranked.raw_data, ranked.created_at, ranked.updated_at
 				FROM (
 					SELECT p.*, ROW_NUMBER() OVER (
 						PARTITION BY {$bucket_case}
