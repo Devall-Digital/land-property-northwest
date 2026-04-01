@@ -16,6 +16,7 @@ class LPNW_Deactivator {
 		wp_clear_scheduled_hook( 'lpnw_cron_epc' );
 		wp_clear_scheduled_hook( 'lpnw_cron_landregistry' );
 		wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
+		wp_clear_scheduled_hook( 'lpnw_cron_portals' );
 		wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
 
 		flush_rewrite_rules();

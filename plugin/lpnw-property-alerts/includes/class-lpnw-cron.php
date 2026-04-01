@@ -18,6 +18,7 @@ class LPNW_Cron {
 		add_action( 'lpnw_cron_epc', array( __CLASS__, 'run_epc_feed' ) );
 		add_action( 'lpnw_cron_landregistry', array( __CLASS__, 'run_landregistry_feed' ) );
 		add_action( 'lpnw_cron_auctions', array( __CLASS__, 'run_auction_feeds' ) );
+		add_action( 'lpnw_cron_portals', array( __CLASS__, 'run_portal_feeds' ) );
 		add_action( 'lpnw_cron_dispatch_alerts', array( __CLASS__, 'dispatch_alerts' ) );
 	}
 
@@ -82,6 +83,26 @@ class LPNW_Cron {
 
 		foreach ( $feeds as $feed ) {
 			$feed->run();
+		}
+	}
+
+	/**
+	 * Run property portal feeds (Rightmove, Zoopla).
+	 * These are the primary "new to market" data sources.
+	 */
+	public static function run_portal_feeds(): void {
+		$settings = get_option( 'lpnw_settings', array() );
+
+		if ( ! isset( $settings['portals_enabled'] ) || $settings['portals_enabled'] ) {
+			$feeds = array(
+				new LPNW_Feed_Portal_Rightmove(),
+				new LPNW_Feed_Portal_Zoopla(),
+			);
+
+			foreach ( $feeds as $feed ) {
+				$feed->run();
+				sleep( 2 );
+			}
 		}
 	}
 

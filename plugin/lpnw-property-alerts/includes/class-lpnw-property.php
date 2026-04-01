@@ -34,6 +34,10 @@ class LPNW_Property {
 			$ref
 		) );
 
+		if ( ! $existing ) {
+			$existing = self::find_cross_portal_duplicate( $data, $table );
+		}
+
 		$row = array(
 			'source'           => $source,
 			'source_ref'       => $ref,
@@ -146,6 +150,55 @@ class LPNW_Property {
 		) );
 
 		return array_map( 'intval', $results );
+	}
+
+	/**
+	 * Check if the same property already exists from a different portal source.
+	 *
+	 * Matches by normalised postcode + price + address similarity.
+	 * Prevents the same property listed on both Rightmove and Zoopla
+	 * from generating duplicate alerts.
+	 *
+	 * @param array<string, mixed> $data  Property data being inserted.
+	 * @param string               $table Table name.
+	 * @return int|null Existing property ID if duplicate found.
+	 */
+	private static function find_cross_portal_duplicate( array $data, string $table ): ?int {
+		global $wpdb;
+
+		$portal_sources = array( 'rightmove', 'zoopla' );
+		$source         = $data['source'] ?? '';
+
+		if ( ! in_array( $source, $portal_sources, true ) ) {
+			return null;
+		}
+
+		$postcode = self::clean_postcode( $data['postcode'] ?? '' );
+		$price    = isset( $data['price'] ) ? absint( $data['price'] ) : 0;
+
+		if ( empty( $postcode ) || 0 === $price ) {
+			return null;
+		}
+
+		$other_sources = array_diff( $portal_sources, array( $source ) );
+		if ( empty( $other_sources ) ) {
+			return null;
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $other_sources ), '%s' ) );
+		$args         = array_merge( $other_sources, array( $postcode, $price ) );
+
+		$match = $wpdb->get_var( $wpdb->prepare(
+			"SELECT id FROM {$table}
+			 WHERE source IN ({$placeholders})
+			 AND postcode = %s
+			 AND price = %d
+			 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+			 LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			...$args
+		) );
+
+		return $match ? (int) $match : null;
 	}
 
 	private static function clean_postcode( string $postcode ): string {

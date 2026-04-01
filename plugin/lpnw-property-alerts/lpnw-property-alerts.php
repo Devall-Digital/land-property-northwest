@@ -75,6 +75,8 @@ final class LPNW_Property_Alerts {
 		require_once $feeds . 'class-lpnw-feed-auction-sdl.php';
 		require_once $feeds . 'class-lpnw-feed-auction-ahnw.php';
 		require_once $feeds . 'class-lpnw-feed-auction-allsop.php';
+		require_once $feeds . 'class-lpnw-feed-portal-rightmove.php';
+		require_once $feeds . 'class-lpnw-feed-portal-zoopla.php';
 
 		if ( is_admin() ) {
 			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin.php';

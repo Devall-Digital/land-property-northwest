@@ -145,6 +145,9 @@ class LPNW_Activator {
 		if ( ! wp_next_scheduled( 'lpnw_cron_auctions' ) ) {
 			wp_schedule_event( time(), 'daily', 'lpnw_cron_auctions' );
 		}
+		if ( ! wp_next_scheduled( 'lpnw_cron_portals' ) ) {
+			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_portals' );
+		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_dispatch_alerts' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
 		}
