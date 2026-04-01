@@ -302,3 +302,337 @@ add_filter(
 	}
 );
 
+/**
+ * Whether Rank Math SEO is active (outputs its own Article/NewsArticle JSON-LD for posts).
+ *
+ * @return bool
+ */
+function lpnw_schema_rank_math_active(): bool {
+	return defined( 'RANK_MATH_VERSION' );
+}
+
+/**
+ * Base site URL for schema (trailing slash).
+ *
+ * @return string
+ */
+function lpnw_schema_site_url(): string {
+	return trailingslashit( home_url( '/' ) );
+}
+
+/**
+ * Encode and print one JSON-LD object inside a script tag.
+ *
+ * @param array<string, mixed> $data Schema.org document.
+ */
+function lpnw_schema_print_ld_json( array $data ): void {
+	$flags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+	$json  = wp_json_encode( $data, $flags );
+	if ( false === $json ) {
+		return;
+	}
+	printf(
+		'<script type="application/ld+json">%s</script>' . "\n",
+		$json // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON-LD; wp_json_encode with JSON_HEX_* for script safety.
+	);
+}
+
+/**
+ * Organization schema (all public views).
+ *
+ * @return array<string, mixed>
+ */
+function lpnw_schema_get_organization(): array {
+	return array(
+		'@context'    => 'https://schema.org',
+		'@type'       => 'Organization',
+		'name'        => 'Land & Property Northwest',
+		'url'         => lpnw_schema_site_url(),
+		'description' => 'Property intelligence and instant alert service for Northwest England',
+		'areaServed'  => array(
+			'@type' => 'Place',
+			'name'  => 'Northwest England',
+		),
+	);
+}
+
+/**
+ * WebSite with SearchAction (front page only).
+ *
+ * @return array<string, mixed>
+ */
+function lpnw_schema_get_website_with_search(): array {
+	$home = lpnw_schema_site_url();
+	return array(
+		'@context' => 'https://schema.org',
+		'@type'    => 'WebSite',
+		'name'     => 'Land & Property Northwest',
+		'url'      => $home,
+		'potentialAction' => array(
+			'@type'       => 'SearchAction',
+			'target'      => array(
+				'@type'       => 'EntryPoint',
+				'urlTemplate' => $home . '?s={search_term_string}',
+			),
+			'query-input' => 'required name=search_term_string',
+		),
+	);
+}
+
+/**
+ * SoftwareApplication for the alert service (front page only).
+ *
+ * @return array<string, mixed>
+ */
+function lpnw_schema_get_software_application(): array {
+	return array(
+		'@context'            => 'https://schema.org',
+		'@type'               => 'SoftwareApplication',
+		'name'                => 'Land & Property Northwest',
+		'applicationCategory' => 'BusinessApplication',
+		'operatingSystem'     => 'Web',
+		'url'                 => lpnw_schema_site_url(),
+		'description'         => 'Paid subscription service with instant property and land alerts for Northwest England: listings, planning, auctions, EPC signals, and Land Registry data in one place.',
+		'offers'              => array(
+			'@type'         => 'AggregateOffer',
+			'lowPrice'      => '0',
+			'highPrice'     => '79.99',
+			'priceCurrency' => 'GBP',
+			'offerCount'    => 3,
+			'url'           => esc_url_raw( home_url( '/pricing/' ) ),
+		),
+	);
+}
+
+/**
+ * Product schemas for pricing tiers (pricing page).
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function lpnw_schema_get_pricing_products(): array {
+	$pricing_url = esc_url_raw( home_url( '/pricing/' ) );
+	$brand       = array(
+		'@type' => 'Brand',
+		'name'  => 'Land & Property Northwest',
+	);
+
+	return array(
+		array(
+			'@context'    => 'https://schema.org',
+			'@type'       => 'Product',
+			'name'        => 'Land & Property Northwest - Free',
+			'description' => 'Weekly digest email for Northwest England property intelligence. Build your watch list before upgrading.',
+			'brand'       => $brand,
+			'url'         => $pricing_url,
+			'offers'      => array(
+				'@type'         => 'Offer',
+				'url'           => $pricing_url,
+				'price'         => '0',
+				'priceCurrency' => 'GBP',
+				'availability'  => 'https://schema.org/InStock',
+			),
+		),
+		array(
+			'@context'    => 'https://schema.org',
+			'@type'       => 'Product',
+			'name'        => 'Land & Property Northwest - Pro',
+			'description' => 'Instant alerts, full filtering, and all data sources for Northwest England.',
+			'brand'       => $brand,
+			'url'         => $pricing_url,
+			'offers'      => array(
+				'@type'              => 'Offer',
+				'url'                => $pricing_url,
+				'price'              => '19.99',
+				'priceCurrency'      => 'GBP',
+				'availability'       => 'https://schema.org/InStock',
+				'priceSpecification' => array(
+					'@type'           => 'UnitPriceSpecification',
+					'price'           => '19.99',
+					'priceCurrency'   => 'GBP',
+					'billingDuration' => 'P1M',
+				),
+			),
+		),
+		array(
+			'@context'    => 'https://schema.org',
+			'@type'       => 'Product',
+			'name'        => 'Land & Property Northwest - Investor VIP',
+			'description' => 'Priority alerts, off-market deals, and direct introductions for serious Northwest investors.',
+			'brand'       => $brand,
+			'url'         => $pricing_url,
+			'offers'      => array(
+				'@type'              => 'Offer',
+				'url'                => $pricing_url,
+				'price'              => '79.99',
+				'priceCurrency'      => 'GBP',
+				'availability'       => 'https://schema.org/InStock',
+				'priceSpecification' => array(
+					'@type'           => 'UnitPriceSpecification',
+					'price'           => '79.99',
+					'priceCurrency'   => 'GBP',
+					'billingDuration' => 'P1M',
+				),
+			),
+		),
+	);
+}
+
+/**
+ * Article schema for single posts when Rank Math is not providing it.
+ *
+ * @return array<string, mixed>|null
+ */
+function lpnw_schema_get_article(): ?array {
+	if ( ! is_singular( 'post' ) ) {
+		return null;
+	}
+
+	$post = get_queried_object();
+	if ( ! $post instanceof WP_Post ) {
+		return null;
+	}
+
+	$data = array(
+		'@context'         => 'https://schema.org',
+		'@type'            => 'Article',
+		'headline'         => get_the_title( $post ),
+		'datePublished'    => get_post_time( 'c', true, $post ),
+		'dateModified'     => get_post_modified_time( 'c', true, $post ),
+		'mainEntityOfPage' => array(
+			'@type' => 'WebPage',
+			'@id'   => esc_url_raw( get_permalink( $post ) ),
+		),
+		'publisher'        => array(
+			'@type' => 'Organization',
+			'name'  => 'Land & Property Northwest',
+			'url'   => lpnw_schema_site_url(),
+		),
+	);
+
+	$excerpt = get_the_excerpt( $post );
+	if ( is_string( $excerpt ) && '' !== trim( $excerpt ) ) {
+		$data['description'] = wp_strip_all_tags( $excerpt );
+	}
+
+	if ( has_post_thumbnail( $post ) ) {
+		$img = wp_get_attachment_image_url( (int) get_post_thumbnail_id( $post ), 'full' );
+		if ( is_string( $img ) && '' !== $img ) {
+			$data['image'] = array( esc_url_raw( $img ) );
+		}
+	}
+
+	$author_id = (int) $post->post_author;
+	if ( $author_id > 0 ) {
+		$data['author'] = array(
+			'@type' => 'Person',
+			'name'  => get_the_author_meta( 'display_name', $author_id ),
+		);
+	}
+
+	return $data;
+}
+
+/**
+ * Whether the current page is an area landing page for LocalBusiness schema.
+ *
+ * Default: child of a page with slug `areas`. Extend via `lpnw_theme_is_schema_area_page`.
+ *
+ * @param WP_Post $page Current page object.
+ * @return bool
+ */
+function lpnw_schema_is_area_page( WP_Post $page ): bool {
+	if ( $page->post_parent > 0 ) {
+		$parent = get_post( $page->post_parent );
+		if ( $parent instanceof WP_Post && 'areas' === $parent->post_name ) {
+			return true;
+		}
+	}
+
+	/**
+	 * Filters whether the current page should receive LocalBusiness area schema.
+	 *
+	 * @param bool    $is_area False by default (unless parent slug is `areas`).
+	 * @param WP_Post $page    Queried page.
+	 */
+	return (bool) apply_filters( 'lpnw_theme_is_schema_area_page', false, $page );
+}
+
+/**
+ * LocalBusiness-style schema for area landing pages (if used).
+ *
+ * @return array<string, mixed>|null
+ */
+function lpnw_schema_get_area_local_business(): ?array {
+	if ( ! is_page() ) {
+		return null;
+	}
+
+	$page = get_queried_object();
+	if ( ! $page instanceof WP_Post ) {
+		return null;
+	}
+
+	if ( ! lpnw_schema_is_area_page( $page ) ) {
+		return null;
+	}
+
+	$area_name = get_the_title( $page );
+	$page_url  = get_permalink( $page );
+
+	return array(
+		'@context'    => 'https://schema.org',
+		'@type'       => 'LocalBusiness',
+		'name'        => 'Land & Property Northwest - ' . $area_name,
+		'url'         => $page_url ? esc_url_raw( $page_url ) : lpnw_schema_site_url(),
+		'description' => sprintf(
+			/* translators: %s: geographic area name (e.g. city or region). */
+			__( 'Property intelligence and instant alerts for %s and the wider Northwest England market.', 'lpnw-theme' ),
+			$area_name
+		),
+		'areaServed' => array(
+			'@type' => 'Place',
+			'name'  => $area_name,
+		),
+		'parentOrganization' => array(
+			'@type' => 'Organization',
+			'name'  => 'Land & Property Northwest',
+			'url'   => lpnw_schema_site_url(),
+		),
+	);
+}
+
+/**
+ * Output JSON-LD in the head for Organization (global), plus page-specific graphs.
+ */
+function lpnw_output_json_ld_schema(): void {
+	if ( is_admin() || wp_is_json_request() || is_feed() || is_embed() ) {
+		return;
+	}
+
+	lpnw_schema_print_ld_json( lpnw_schema_get_organization() );
+
+	if ( is_front_page() ) {
+		lpnw_schema_print_ld_json( lpnw_schema_get_website_with_search() );
+		lpnw_schema_print_ld_json( lpnw_schema_get_software_application() );
+	}
+
+	if ( is_page( 'pricing' ) ) {
+		foreach ( lpnw_schema_get_pricing_products() as $product ) {
+			lpnw_schema_print_ld_json( $product );
+		}
+	}
+
+	if ( is_singular( 'post' ) && ! lpnw_schema_rank_math_active() ) {
+		$article = lpnw_schema_get_article();
+		if ( is_array( $article ) ) {
+			lpnw_schema_print_ld_json( $article );
+		}
+	}
+
+	$area_ld = lpnw_schema_get_area_local_business();
+	if ( is_array( $area_ld ) ) {
+		lpnw_schema_print_ld_json( $area_ld );
+	}
+}
+add_action( 'wp_head', 'lpnw_output_json_ld_schema', 5 );
+

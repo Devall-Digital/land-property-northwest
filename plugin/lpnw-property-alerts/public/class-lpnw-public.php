@@ -164,21 +164,35 @@ class LPNW_Public {
 
 	/**
 	 * [lpnw_latest_properties] - Shows recent properties (teaser for non-subscribers).
+	 *
+	 * Attributes: limit, source, postcode_prefix (NW outward code, e.g. M, CH).
 	 */
 	public static function render_latest_properties( array $atts = array() ): string {
 		defined( 'DONOTCACHEPAGE' ) || define( 'DONOTCACHEPAGE', true );
 
 		$atts = shortcode_atts( array(
-			'limit'  => 5,
-			'source' => '',
+			'limit'             => 5,
+			'source'            => '',
+			'postcode_prefix'   => '',
 		), $atts );
 
 		$filters = array();
 		if ( ! empty( $atts['source'] ) ) {
 			$filters['source'] = $atts['source'];
 		}
+		if ( ! empty( $atts['postcode_prefix'] ) ) {
+			$pp = strtoupper( trim( sanitize_text_field( $atts['postcode_prefix'] ) ) );
+			if ( in_array( $pp, LPNW_NW_POSTCODES, true ) ) {
+				$filters['postcode_prefix'] = $pp;
+			}
+		}
 
-		$properties = LPNW_Property::query_diverse( $filters, (int) $atts['limit'] );
+		$limit = (int) $atts['limit'];
+		if ( ! empty( $filters['postcode_prefix'] ) ) {
+			$properties = LPNW_Property::query( $filters, $limit, 0 );
+		} else {
+			$properties = LPNW_Property::query_diverse( $filters, $limit );
+		}
 
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/latest-properties.php';

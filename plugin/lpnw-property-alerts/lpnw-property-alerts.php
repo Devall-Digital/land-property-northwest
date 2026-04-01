@@ -66,6 +66,7 @@ final class LPNW_Property_Alerts {
 		require_once $includes . 'class-lpnw-dispatcher.php';
 		require_once $includes . 'class-lpnw-mautic.php';
 		require_once $includes . 'class-lpnw-geocoder.php';
+		require_once $includes . 'class-lpnw-area-pages.php';
 
 		require_once $feeds . 'class-lpnw-feed-base.php';
 		require_once $feeds . 'class-lpnw-feed-planning.php';

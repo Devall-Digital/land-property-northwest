@@ -89,12 +89,13 @@ class LPNW_Map {
 	/**
 	 * Query properties that have coordinates, ordered by newest first.
 	 *
-	 * @param string $source_key Filter: '' or exact source, or 'auction' for all auction feeds.
-	 * @param int    $limit      Max rows.
-	 * @param int    $offset     Offset.
+	 * @param string $source_key      Filter: '' or exact source, or 'auction' for all auction feeds.
+	 * @param int    $limit           Max rows.
+	 * @param int    $offset          Offset.
+	 * @param string $postcode_prefix NW outward code, or '' for all.
 	 * @return array<int, object>
 	 */
-	private static function query_properties_with_coordinates( string $source_key, int $limit, int $offset ): array {
+	private static function query_properties_with_coordinates( string $source_key, int $limit, int $offset, string $postcode_prefix = '' ): array {
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'lpnw_properties';
@@ -116,6 +117,10 @@ class LPNW_Map {
 			$args[]  = $source_key;
 		}
 
+		if ( '' !== $postcode_prefix ) {
+			LPNW_Property::append_postcode_prefix_sql( 'UPPER(TRIM(postcode))', $postcode_prefix, $where, $args );
+		}
+
 		$where_sql = implode( ' AND ', $where );
 		$args[]    = $limit;
 		$args[]    = $offset;
@@ -130,10 +135,11 @@ class LPNW_Map {
 	/**
 	 * Fetch up to $limit rows; reports whether more rows exist.
 	 *
+	 * @param string $postcode_prefix NW outward code or ''.
 	 * @return array{0: array<int, object>, 1: bool}
 	 */
-	private static function fetch_map_page( string $source_key, int $limit, int $offset ): array {
-		$rows = self::query_properties_with_coordinates( $source_key, $limit + 1, $offset );
+	private static function fetch_map_page( string $source_key, int $limit, int $offset, string $postcode_prefix = '' ): array {
+		$rows = self::query_properties_with_coordinates( $source_key, $limit + 1, $offset, $postcode_prefix );
 		$more = count( $rows ) > $limit;
 		if ( $more ) {
 			$rows = array_slice( $rows, 0, $limit );
@@ -222,7 +228,12 @@ class LPNW_Map {
 		$limit  = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 500;
 		$limit  = min( 500, max( 1, $limit ) );
 
-		list( $rows, $has_more ) = self::fetch_map_page( $source, $limit, $offset );
+		$pc_prefix = isset( $_POST['postcode_prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['postcode_prefix'] ) ) : '';
+		if ( '' !== $pc_prefix && ! in_array( strtoupper( $pc_prefix ), LPNW_NW_POSTCODES, true ) ) {
+			$pc_prefix = '';
+		}
+
+		list( $rows, $has_more ) = self::fetch_map_page( $source, $limit, $offset, $pc_prefix );
 		$markers                  = self::rows_to_markers( $rows );
 
 		wp_send_json_success(
@@ -317,6 +328,9 @@ class LPNW_Map {
 		body.set('source', source);
 		body.set('offset', String(offset));
 		body.set('limit', String(cfg.batchSize));
+		if (cfg.postcodePrefix) {
+			body.set('postcode_prefix', cfg.postcodePrefix);
+		}
 		fetch(cfg.ajaxUrl, {
 			method: 'POST',
 			credentials: 'same-origin',
@@ -339,7 +353,10 @@ class LPNW_Map {
 		var cfg = JSON.parse(root.getAttribute('data-lpnw-map-config'));
 		if (!cfg || !cfg.mapId) { return; }
 		if (!document.getElementById(cfg.mapId)) { return; }
-		var map = L.map(cfg.mapId).setView([53.48, -2.24], 9);
+		var initLat = typeof cfg.initialLat === 'number' ? cfg.initialLat : 53.48;
+		var initLng = typeof cfg.initialLng === 'number' ? cfg.initialLng : -2.24;
+		var initZoom = typeof cfg.initialZoom === 'number' ? cfg.initialZoom : 9;
+		var map = L.map(cfg.mapId).setView([initLat, initLng], initZoom);
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; OpenStreetMap contributors',
 			maxZoom: 18
@@ -384,10 +401,14 @@ JS;
 	public static function render_map( array $atts = array() ): string {
 		$atts = shortcode_atts(
 			array(
-				'height'     => '500px',
-				'source'     => '',
-				'limit'      => 500,
-				'batch_size' => 500,
+				'height'           => '500px',
+				'source'           => '',
+				'limit'            => 500,
+				'batch_size'       => 500,
+				'lat'              => '',
+				'lng'              => '',
+				'zoom'             => '',
+				'postcode_prefix'  => '',
 			),
 			$atts,
 			'lpnw_property_map'
@@ -401,9 +422,25 @@ JS;
 			$source_filter = '';
 		}
 
+		$postcode_prefix = (string) $atts['postcode_prefix'];
+		if ( '' !== $postcode_prefix && ! in_array( strtoupper( $postcode_prefix ), LPNW_NW_POSTCODES, true ) ) {
+			$postcode_prefix = '';
+		}
+
+		$initial_lat = null;
+		$initial_lng = null;
+		$initial_zoom = null;
+		if ( '' !== $atts['lat'] && '' !== $atts['lng'] && is_numeric( $atts['lat'] ) && is_numeric( $atts['lng'] ) ) {
+			$initial_lat  = round( (float) $atts['lat'], 6 );
+			$initial_lng  = round( (float) $atts['lng'], 6 );
+			$initial_zoom = ( '' !== $atts['zoom'] && is_numeric( $atts['zoom'] ) )
+				? max( 4, min( 16, (int) $atts['zoom'] ) )
+				: 11;
+		}
+
 		self::enqueue_map_assets();
 
-		list( $rows, $has_more ) = self::fetch_map_page( $source_filter, $batch, 0 );
+		list( $rows, $has_more ) = self::fetch_map_page( $source_filter, $batch, 0, $postcode_prefix );
 		$markers                  = self::rows_to_markers( $rows );
 
 		$map_id = 'lpnw-map-' . wp_rand( 10000, 99999 );
@@ -416,6 +453,10 @@ JS;
 			'initialSource'   => $source_filter,
 			'initialMarkers'  => $markers,
 			'initialHasMore'  => $has_more,
+			'postcodePrefix'  => $postcode_prefix,
+			'initialLat'      => $initial_lat,
+			'initialLng'      => $initial_lng,
+			'initialZoom'     => $initial_zoom,
 		);
 
 		$legend_items = array(

@@ -10,6 +10,13 @@
 defined( 'ABSPATH' ) || exit;
 
 $areas          = $prefs ? $prefs->areas : array();
+$areas          = is_array( $areas ) ? $areas : array();
+if ( isset( $_GET['lpnw_area'] ) ) {
+	$hint = strtoupper( sanitize_text_field( wp_unslash( $_GET['lpnw_area'] ) ) );
+	if ( in_array( $hint, LPNW_NW_POSTCODES, true ) && ! in_array( $hint, $areas, true ) ) {
+		$areas[] = $hint;
+	}
+}
 $property_types = $prefs ? $prefs->property_types : array();
 $alert_types    = $prefs ? $prefs->alert_types : array();
 $frequency      = $prefs ? $prefs->frequency : 'daily';

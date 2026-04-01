@@ -84,8 +84,7 @@ class LPNW_Property {
 		}
 
 		if ( ! empty( $filters['postcode_prefix'] ) ) {
-			$where[] = 'postcode LIKE %s';
-			$args[]  = sanitize_text_field( $filters['postcode_prefix'] ) . '%';
+			self::append_postcode_prefix_sql( 'UPPER(TRIM(postcode))', $filters['postcode_prefix'], $where, $args );
 		}
 
 		if ( ! empty( $filters['min_price'] ) ) {
@@ -412,6 +411,31 @@ class LPNW_Property {
 		) );
 
 		return $match ? (int) $match : null;
+	}
+
+	/**
+	 * Restrict a WHERE clause to an NW outward code (M/L use regex so LA does not match L).
+	 *
+	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
+	 * @param string              $prefix        Outward code: M, L, PR, BB, etc.
+	 * @param array<int, string>  $where         WHERE fragments (modified).
+	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
+	 */
+	public static function append_postcode_prefix_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
+		$p = strtoupper( trim( sanitize_text_field( $prefix ) ) );
+		if ( '' === $p || ! in_array( $p, LPNW_NW_POSTCODES, true ) ) {
+			return;
+		}
+		if ( 'M' === $p ) {
+			$where[] = "{$postcode_expr} REGEXP '^M[0-9]'";
+			return;
+		}
+		if ( 'L' === $p ) {
+			$where[] = "{$postcode_expr} REGEXP '^L[0-9]'";
+			return;
+		}
+		$where[] = "{$postcode_expr} LIKE %s";
+		$args[]  = $p . '%';
 	}
 
 	private static function clean_postcode( string $postcode ): string {
