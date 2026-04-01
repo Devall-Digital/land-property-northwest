@@ -293,6 +293,16 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 
 		$data = $this->extract_properties_from_html( $body, $area_name, $channel, $region_id );
 
+		if ( ! is_array( $data ) ) {
+			return array();
+		}
+		if ( isset( $data['properties'] ) ) {
+			if ( ! is_array( $data['properties'] ) ) {
+				return array();
+			}
+			$data = $data['properties'];
+		}
+
 		foreach ( $data as &$item ) {
 			if ( empty( $item['channel'] ) ) {
 				$item['channel'] = $channel;

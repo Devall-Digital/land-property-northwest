@@ -31,19 +31,19 @@ class LPNW_Page_Content {
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
 	<h1 id="lpnw-hero-heading">Get NW property alerts before anyone else</h1>
-	<p>We monitor planning, portals, auctions, EPCs, and Land Registry releases across Northwest England. When something matches your criteria, you get alerted fast so you can act while others are still searching manually.</p>
+	<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
 	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
 </section>
 
-<section class="lpnw-trust-bar" aria-label="Data sources we monitor">
-	<p class="lpnw-trust-bar__text">Monitoring Rightmove, Zoopla, OnTheMarket, planning portals, auction houses, the EPC register, and HM Land Registry.</p>
+<section class="lpnw-trust-bar" aria-label="How often listings are refreshed">
+	<p class="lpnw-trust-bar__text">Pulling the latest property listings from across the Northwest every 15 minutes.</p>
 </section>
 
 <section class="lpnw-stats-bar" aria-labelledby="lpnw-stats-bar-title">
 	<h2 id="lpnw-stats-bar-title" class="screen-reader-text">Coverage and update frequency</h2>
 	<ul class="lpnw-stats-bar__list" role="list">
 		<li><span class="lpnw-stats-bar__value">[lpnw_property_count]</span> properties tracked</li>
-		<li><span class="lpnw-stats-bar__value">14</span> NW postcode prefixes covered</li>
+		<li><span class="lpnw-stats-bar__value">Entire Northwest England</span> covered</li>
 		<li>Listing checks and alert runs every <span class="lpnw-stats-bar__value">15 minutes</span></li>
 	</ul>
 </section>
@@ -54,7 +54,7 @@ class LPNW_Page_Content {
 		<div class="lpnw-step">
 			<div class="lpnw-step__number" aria-hidden="true">1</div>
 			<h3 id="lpnw-how-it-works-step-1" class="lpnw-step__title">We watch the whole region</h3>
-			<p class="lpnw-step__text">Our systems pull from planning data, auction catalogues, the EPC register, and HM Land Registry releases, focused on Northwest England only. You get one pipeline instead of a dozen browser tabs.</p>
+			<p class="lpnw-step__text">Our systems continuously scan property listings across the Northwest, checking for new properties every 15 minutes so nothing gets past you.</p>
 		</div>
 		<div class="lpnw-step">
 			<div class="lpnw-step__number" aria-hidden="true">2</div>

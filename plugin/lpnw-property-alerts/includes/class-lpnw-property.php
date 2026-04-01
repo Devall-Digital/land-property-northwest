@@ -525,7 +525,7 @@ class LPNW_Property {
 	private static function find_cross_portal_duplicate( array $data, string $table ): ?int {
 		global $wpdb;
 
-		$portal_sources = array( 'rightmove', 'zoopla' );
+		$portal_sources = array( 'rightmove', 'zoopla', 'onthemarket' );
 		$source         = $data['source'] ?? '';
 
 		if ( ! in_array( $source, $portal_sources, true ) ) {
@@ -600,7 +600,8 @@ class LPNW_Property {
 		if ( '' !== $postcode ) {
 			$rows = $wpdb->get_results( $wpdb->prepare(
 				"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
-				WHERE postcode = %s AND price = %d AND COALESCE(application_type, '') = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				WHERE postcode = %s AND price = %d AND COALESCE(application_type, '') = %s
+				LIMIT 50", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$postcode,
 				$price,
 				$app_type
@@ -617,7 +618,8 @@ class LPNW_Property {
 				"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
 				WHERE price = %d AND COALESCE(application_type, '') = %s
 				AND latitude IS NOT NULL AND longitude IS NOT NULL
-				AND ABS(latitude - %f) <= 0.001 AND ABS(longitude - %f) <= 0.001", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				AND ABS(latitude - %f) <= 0.001 AND ABS(longitude - %f) <= 0.001
+				LIMIT 50", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$price,
 				$app_type,
 				$lat,

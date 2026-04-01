@@ -57,11 +57,32 @@ a:hover {
 }
 
 /* Header: full-width bar, title + nav one row (flex), GP mobile toggle */
+.site-header .header-widget,
+.site-header .header-image,
+.site-header .site-logo:empty,
+.site-header img[src=""],
+.site-header .custom-logo-link:empty {
+	display: none !important;
+}
+
+/* Inner chrome transparent so GP/parent white defaults do not show as boxes */
+.site-header,
+.site-header .inside-header,
+.site-header * {
+	background-color: transparent;
+}
+
 .site-header {
-	background: var(--lpnw-navy) !important;
+	background-color: var(--lpnw-navy) !important;
 	width: 100%;
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	box-sizing: border-box;
+}
+
+/* Mobile / dropdown panels: readable over page content after transparent reset */
+.site-header .main-navigation.toggled .main-nav ul,
+.site-header .main-navigation .main-nav ul ul {
+	background-color: var(--lpnw-navy) !important;
 }
 
 .site-header .inside-header {
@@ -119,8 +140,12 @@ a:hover {
 	color: var(--lpnw-amber) !important;
 }
 
+.site-header .menu-toggle,
+.site-header .menu-toggle .menu-bars {
+	color: #FFFFFF !important;
+}
+
 .site-header .menu-toggle {
-	color: var(--lpnw-white) !important;
 	border-color: rgba(255, 255, 255, 0.35);
 	font-family: var(--lpnw-font-heading);
 	font-weight: 600;

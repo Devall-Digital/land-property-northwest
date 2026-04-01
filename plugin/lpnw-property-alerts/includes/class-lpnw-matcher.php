@@ -192,9 +192,10 @@ class LPNW_Matcher {
 			return true;
 		}
 
-		$tenure_lc = strtolower( $tenure );
+		$tenure_cmp = strtolower( str_replace( '_', ' ', $tenure ) );
 		foreach ( $prefs as $pref ) {
-			if ( strtolower( trim( (string) $pref ) ) === $tenure_lc ) {
+			$pref_cmp = strtolower( trim( str_replace( '_', ' ', (string) $pref ) ) );
+			if ( $pref_cmp === $tenure_cmp ) {
 				return true;
 			}
 		}
@@ -235,7 +236,10 @@ class LPNW_Matcher {
 	}
 
 	private function matches_area( object $property, object $subscriber ): bool {
-		$areas = json_decode( $subscriber->areas, true );
+		$raw_areas = $subscriber->areas ?? null;
+		$areas     = is_array( $raw_areas )
+			? $raw_areas
+			: ( is_string( $raw_areas ) ? ( json_decode( $raw_areas, true ) ?: array() ) : array() );
 		if ( empty( $areas ) ) {
 			return true;
 		}
@@ -278,7 +282,10 @@ class LPNW_Matcher {
 	}
 
 	private function matches_type( object $property, object $subscriber ): bool {
-		$types = json_decode( $subscriber->property_types, true );
+		$raw_types = $subscriber->property_types ?? null;
+		$types     = is_array( $raw_types )
+			? $raw_types
+			: ( is_string( $raw_types ) ? ( json_decode( $raw_types, true ) ?: array() ) : array() );
 		if ( empty( $types ) ) {
 			return true;
 		}
@@ -364,7 +371,10 @@ class LPNW_Matcher {
 	}
 
 	private function matches_alert_type( object $property, object $subscriber ): bool {
-		$alert_types = json_decode( $subscriber->alert_types, true );
+		$raw_alert_types = $subscriber->alert_types ?? null;
+		$alert_types     = is_array( $raw_alert_types )
+			? $raw_alert_types
+			: ( is_string( $raw_alert_types ) ? ( json_decode( $raw_alert_types, true ) ?: array() ) : array() );
 		if ( empty( $alert_types ) ) {
 			return true;
 		}

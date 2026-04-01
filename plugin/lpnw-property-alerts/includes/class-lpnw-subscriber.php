@@ -117,7 +117,9 @@ class LPNW_Subscriber {
 			array(
 				'customer_id' => $user_id,
 				'status'      => array( 'completed', 'processing' ),
-				'limit'       => -1,
+				'limit'       => 10,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
 				'return'      => 'objects',
 			)
 		);

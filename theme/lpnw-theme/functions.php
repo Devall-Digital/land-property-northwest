@@ -215,7 +215,7 @@ add_filter(
 			return $order;
 		}
 
-		return array_values( array_diff( $order, array( 'logo' ) ) );
+		return array_values( array_diff( $order, array( 'logo', 'header-widget' ) ) );
 	}
 );
 

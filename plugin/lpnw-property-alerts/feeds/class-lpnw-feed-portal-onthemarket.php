@@ -554,6 +554,22 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 		}
 
 		$postcode = $this->extract_postcode_from_address( $address );
+
+		$lat = null;
+		$lng = null;
+		if ( isset( $raw_item['location'] ) && is_array( $raw_item['location'] ) ) {
+			if ( isset( $raw_item['location']['lat'] ) ) {
+				$lat = floatval( $raw_item['location']['lat'] );
+			}
+			if ( isset( $raw_item['location']['lon'] ) ) {
+				$lng = floatval( $raw_item['location']['lon'] );
+			}
+		}
+
+		if ( '' === $postcode && ( null === $lat || null === $lng || ! is_finite( $lat ) || ! is_finite( $lng ) ) ) {
+			return array();
+		}
+
 		if ( '' !== $postcode && ! $this->is_nw_postcode( $postcode ) ) {
 			return array();
 		}
@@ -584,17 +600,6 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 		$prop_type = '';
 		if ( isset( $raw_item['humanised-property-type'] ) && is_string( $raw_item['humanised-property-type'] ) ) {
 			$prop_type = sanitize_text_field( $raw_item['humanised-property-type'] );
-		}
-
-		$lat = null;
-		$lng = null;
-		if ( isset( $raw_item['location'] ) && is_array( $raw_item['location'] ) ) {
-			if ( isset( $raw_item['location']['lat'] ) ) {
-				$lat = floatval( $raw_item['location']['lat'] );
-			}
-			if ( isset( $raw_item['location']['lon'] ) ) {
-				$lng = floatval( $raw_item['location']['lon'] );
-			}
 		}
 
 		$beds  = isset( $raw_item['bedrooms'] ) ? absint( $raw_item['bedrooms'] ) : null;

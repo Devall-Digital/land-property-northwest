@@ -607,6 +607,11 @@ class LPNW_Public {
 
 		$properties = LPNW_Property::query( $filters, $limit, $offset );
 
+		foreach ( $properties as &$p ) {
+			unset( $p->raw_data );
+		}
+		unset( $p );
+
 		wp_send_json_success( $properties );
 	}
 
