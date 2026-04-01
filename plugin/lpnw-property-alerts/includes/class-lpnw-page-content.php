@@ -127,7 +127,7 @@ HTML;
 	}
 
 	/**
-	 * About page (~400 words).
+	 * About page: product explanation, honest coverage, area stats, CTA.
 	 *
 	 * @return string HTML.
 	 */
@@ -135,36 +135,42 @@ HTML;
 		$site     = esc_html( get_bloginfo( 'name' ) );
 		$pricing  = esc_url( home_url( '/pricing/' ) );
 		$contact  = esc_url( home_url( '/contact/' ) );
+		$register = esc_url( wp_registration_url() );
 
 		return <<<HTML
 <div class="lpnw-page-about">
 
 <h1>About {$site}</h1>
 
-<p>The Northwest property market rewards people who spot signals early. A planning application in Warrington, a new EPC on a refurbishment in Liverpool, a lot in an auction catalogue covering Manchester stock, a Land Registry completion on a parcel you have been tracking. Each piece is public, but almost nobody has time to check every source every morning.</p>
+<p>{$site} is a property alert service for Northwest England. We monitor listings, match them to the areas and criteria you choose, and email you when something new fits. You get one place to watch the region instead of hopping between sites and spreadsheets.</p>
 
-<p>Across Greater Manchester, Merseyside, Lancashire, Cheshire, and Cumbria, rental demand in the core cities, industrial and logistics appetite along key corridors, and residential infill where consent is the bottleneck still produce workable deals. The question is rarely whether opportunity exists, but whether you hear about it in time to act.</p>
+<h2>The problem</h2>
 
-<p>{$site} exists to close that gap. We aggregate data that serious buyers usually chase across separate websites: planning applications (national planning data and local portals), Energy Performance Certificate filings, HM Land Registry Price Paid Data, and auction houses that regularly catalogue Northwest lots. We normalise addresses, postcodes, and source metadata into one feed, then match records to the rules you set.</p>
+<p>If you invest or source deals in the Northwest, you already know the drill: open Rightmove, Zoopla, and whatever else you use, filter by postcode and price, and hope you did not miss a listing that went live while you were in a meeting. Speed matters, and manual checking does not scale.</p>
 
-<p>Nobody else packages that combination for subscribers who only care about Northwest England. National dashboards dilute the signal. Single-source tools miss the joins between planning, auctions, EPCs, and completions. We built this because investors and developers asked for speed and coverage in one place, not another generic property email.</p>
+<h2>How we help</h2>
 
-<h2>Who it is for</h2>
+<p>Our systems scan on a fixed schedule (every fifteen minutes) and normalise what we find into a single database. When a property matches your rules, we can alert you straight away on paid plans, or include it in a weekly digest on the free tier. Your account dashboard pulls the same feed together so you are not reconciling half a dozen tabs.</p>
 
-<p><strong>Investors and developers</strong> who want the earliest legitimate lead on land, lots, and conversions. <strong>Estate and letting agents</strong> tracking instructions and comparables before competitors pitch the same vendor. <strong>Surveyors, architects, contractors, and other professionals</strong> who already use planning and transaction flow in their work. If your edge is getting to the phone first, you are the audience.</p>
+<h2>What we cover</h2>
 
-<h2>How we work</h2>
+<p>We focus on Northwest England: Greater Manchester, Merseyside, Lancashire, Cheshire, Cumbria, and the surrounding postcode areas we treat as the region (for example M, L, CH, WA, and the other prefixes we include in our filters). The market here still offers solid rental demand, development angles, and land opportunities if you see stock early enough.</p>
 
-<p>We focus on data we can ingest reliably from public or open sources, surface the original reference where possible, and improve parsers when councils or providers change format. We are not a substitute for solicitors, surveyors, or your own underwriting. We speed up discovery; due diligence stays with you.</p>
+<p>Live numbers from our database:</p>
 
-<p>You can start on a free weekly digest, then move to paid plans when you want instant alerts and full filters. Questions about coverage or accounts? Use our contact form.</p>
-
-<p><a class="lpnw-btn lpnw-btn--primary" href="{$pricing}">View pricing</a> <a class="lpnw-btn lpnw-btn--secondary" href="{$contact}">Contact us</a></p>
-
-<h2>Coverage in numbers</h2>
-<p>We track live listings and records across Northwest postcode areas. More portal and official feeds join the pipeline over time.</p>
-[lpnw_total_sources]
 [lpnw_area_stats]
+
+<h2>Our approach</h2>
+
+<p>Today we monitor <strong>Rightmove</strong> listings for the Northwest. That is the core of what runs in production. We are adding more portal and data sources over time so the same alert rules can cover a wider picture without you doing the legwork twice.</p>
+
+<p>We are careful about what we claim: alerts are based on what we have ingested and matched, not on every possible website. We improve parsers and coverage as we go. We are not solicitors or surveyors; we help you find leads faster, not replace your own checks.</p>
+
+<h2>Try it</h2>
+
+<p>Open a free account, set your areas and alert types, and see what lands in your digest. When the feed proves useful, upgrade for instant alerts and full filters.</p>
+
+<p><a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a> <a class="lpnw-btn lpnw-btn--secondary" href="{$pricing}">View pricing</a> <a class="lpnw-btn lpnw-btn--secondary" href="{$contact}">Contact us</a></p>
 
 </div>
 HTML;
@@ -188,7 +194,7 @@ HTML;
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-pricing-hero-heading">
 	<h1 id="lpnw-pricing-hero-heading">Pricing</h1>
-	<p>Free for a taste of the feed, Pro for full automation, VIP when you want priority delivery and extra intelligence on top.</p>
+	<p>We scan Rightmove listings for Northwest England every 15 minutes, match them to your criteria where your plan allows, and email you. Three plans: a free weekly digest, Pro for full filters and alerts as listings are found, and Investor VIP if you want your alerts processed about half an hour before Pro subscribers.</p>
 </section>
 
 <section class="lpnw-pricing-section" id="lpnw-pricing-compare" aria-labelledby="lpnw-pricing-compare-title">
@@ -199,58 +205,46 @@ HTML;
 				<tr>
 					<th scope="col">Feature</th>
 					<th scope="col">Free</th>
-					<th scope="col">Pro (£19.99/mo)</th>
-					<th scope="col">VIP (£79.99/mo)</th>
+					<th scope="col">Pro</th>
+					<th scope="col">VIP</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
-					<th scope="row">Alerts</th>
+					<th scope="row">Property alerts</th>
 					<td>Weekly digest</td>
-					<td>Instant alerts</td>
-					<td>Instant alerts, about 30 minutes before Pro on new matches</td>
+					<td>Instant or daily</td>
+					<td>Priority (30 min ahead)</td>
 				</tr>
 				<tr>
-					<th scope="row">History</th>
-					<td>Limited history</td>
-					<td>Full history in the dashboard</td>
-					<td>Full history</td>
-				</tr>
-				<tr>
-					<th scope="row">Email</th>
-					<td>Basic email</td>
-					<td>Full alert detail</td>
-					<td>Full alert detail, priority queue</td>
-				</tr>
-				<tr>
-					<th scope="row">Filtering</th>
-					<td>Basic</td>
-					<td>Full filtering by area, price, and type</td>
-					<td>Same as Pro</td>
-				</tr>
-				<tr>
-					<th scope="row">Data sources</th>
-					<td>Sample across sources in the digest</td>
-					<td>Planning, auction, EPC, and Land Registry alerts</td>
-					<td>Everything in Pro, plus off-market deal alerts where we surface them</td>
-				</tr>
-				<tr>
-					<th scope="row">Dashboard and saves</th>
+					<th scope="row">Area filtering</th>
 					<td>No</td>
-					<td>Dashboard, saved properties</td>
-					<td>Dashboard, saved properties</td>
+					<td>Yes</td>
+					<td>Yes</td>
 				</tr>
 				<tr>
-					<th scope="row">Frequency</th>
-					<td>Weekly only</td>
-					<td>Daily or instant</td>
-					<td>Daily or instant</td>
+					<th scope="row">Bedroom/price/type filters</th>
+					<td>No</td>
+					<td>Yes</td>
+					<td>Yes</td>
 				</tr>
 				<tr>
-					<th scope="row">Extras</th>
-					<td>Upgrade any time</td>
-					<td>Standard support</td>
-					<td>Monthly market report, direct introductions where we can make them</td>
+					<th scope="row">Subscriber dashboard</th>
+					<td>No</td>
+					<td>Yes</td>
+					<td>Yes</td>
+				</tr>
+				<tr>
+					<th scope="row">Saved properties</th>
+					<td>No</td>
+					<td>Yes</td>
+					<td>Yes</td>
+				</tr>
+				<tr>
+					<th scope="row">Property map</th>
+					<td>No</td>
+					<td>Yes</td>
+					<td>Yes</td>
 				</tr>
 			</tbody>
 		</table>
@@ -259,11 +253,11 @@ HTML;
 		<article class="lpnw-pricing-card" aria-labelledby="lpnw-pricing-tier-free">
 			<h3 id="lpnw-pricing-tier-free" class="lpnw-pricing-card__name">Free</h3>
 			<p class="lpnw-pricing-card__price">£0</p>
-			<p class="lpnw-pricing-card__period">forever</p>
+			<p class="lpnw-pricing-card__period">no charge</p>
 			<ul class="lpnw-pricing-card__features" role="list">
-				<li>Weekly digest</li>
-				<li>Limited history</li>
-				<li>Basic email</li>
+				<li>Weekly email digest of Northwest property listings</li>
+				<li>No dashboard, no filters, no instant alerts</li>
+				<li>Useful if you want to see what we cover before paying</li>
 			</ul>
 			<a class="lpnw-btn lpnw-btn--secondary" href="{$register}">Sign up free</a>
 		</article>
@@ -272,26 +266,21 @@ HTML;
 			<p class="lpnw-pricing-card__price">£19.99</p>
 			<p class="lpnw-pricing-card__period">per month</p>
 			<ul class="lpnw-pricing-card__features" role="list">
-				<li>Instant alerts</li>
-				<li>Full filtering by area, price, and type</li>
-				<li>Planning, auction, EPC, and Land Registry alerts</li>
-				<li>Dashboard and saved properties</li>
-				<li>Daily or instant frequency</li>
+				<li>Instant email alerts when properties match your criteria (or daily, your choice)</li>
+				<li>Filter by area, bedrooms, price, property type, tenure, and features</li>
+				<li>Dashboard for preferences and saved properties, including the property map</li>
 			</ul>
 			<a class="lpnw-btn lpnw-btn--primary" href="{$shop_url}">Get Pro</a>
 		</article>
 		<article class="lpnw-pricing-card" aria-labelledby="lpnw-pricing-tier-vip">
-			<h3 id="lpnw-pricing-tier-vip" class="lpnw-pricing-card__name">VIP</h3>
+			<h3 id="lpnw-pricing-tier-vip" class="lpnw-pricing-card__name">Investor VIP</h3>
 			<p class="lpnw-pricing-card__price">£79.99</p>
 			<p class="lpnw-pricing-card__period">per month</p>
 			<ul class="lpnw-pricing-card__features" role="list">
 				<li>Everything in Pro</li>
-				<li>About 30 minutes priority over Pro users on new matches</li>
-				<li>Off-market deal alerts</li>
-				<li>Monthly market report</li>
-				<li>Direct introductions</li>
+				<li>Your alerts are processed about 30 minutes ahead of Pro when speed matters on competitive listings</li>
 			</ul>
-			<a class="lpnw-btn lpnw-btn--secondary" href="{$shop_url}">Get VIP</a>
+			<a class="lpnw-btn lpnw-btn--secondary" href="{$shop_url}">Get Investor VIP</a>
 		</article>
 	</div>
 </section>
@@ -299,18 +288,18 @@ HTML;
 <section class="lpnw-how-it-works" id="lpnw-pricing-faq" aria-labelledby="lpnw-pricing-faq-title">
 	<h2 id="lpnw-pricing-faq-title" class="lpnw-how-it-works__title">Frequently asked questions</h2>
 	<div class="lpnw-faq">
-		<h3 class="lpnw-step__title">What is the difference between Pro and VIP?</h3>
-		<p class="lpnw-step__text">Both get instant alerts, full filters, and all four data sources. VIP goes out first on the queue (about 30 minutes ahead of Pro), and adds off-market style alerts, a monthly market report, and direct introductions where we can make them.</p>
-		<h3 class="lpnw-step__title">Can I cancel any time?</h3>
-		<p class="lpnw-step__text">Yes. Cancel from your account or via the link in your subscription emails. You keep access until the end of the period you already paid for.</p>
-		<h3 class="lpnw-step__title">How does billing work?</h3>
-		<p class="lpnw-step__text">Paid plans renew automatically each month until you cancel. Card payments run through Stripe via WooCommerce. We do not store your full card number on our server.</p>
-		<h3 class="lpnw-step__title">Is the underlying data the same on every tier?</h3>
-		<p class="lpnw-step__text">The same pipeline powers every tier. Free gives you a weekly digest with limited history. Pro and VIP unlock instant delivery, full history in the dashboard, saved properties, and tighter filters.</p>
-		<h3 class="lpnw-step__title">Do you offer refunds?</h3>
-		<p class="lpnw-step__text">Subscription terms at checkout apply. If something fails on our side, contact us and we will put it right or offer a fair credit.</p>
-		<h3 class="lpnw-step__title">Can my team share one login?</h3>
-		<p class="lpnw-step__text">Accounts are per subscriber. If you need several seats for a firm, email us and we will suggest the cleanest setup.</p>
+		<h3 class="lpnw-step__title">What exactly does this service do?</h3>
+		<p class="lpnw-step__text">We run an automated check on Rightmove listings for Northwest England roughly every 15 minutes. When a listing matches a paying subscriber&rsquo;s criteria, we send an email. Free accounts get a single weekly digest instead of instant or daily alerts, and they cannot narrow listings with our filters or use the dashboard.</p>
+		<h3 class="lpnw-step__title">How quickly will I get alerts?</h3>
+		<p class="lpnw-step__text">We scan every 15 minutes. On Pro and Investor VIP, you can get an email as soon as we detect a match (or choose a daily summary). Free tier is weekly only. Investor VIP alerts are queued about 30 minutes before the same matches go to Pro.</p>
+		<h3 class="lpnw-step__title">Can I cancel anytime?</h3>
+		<p class="lpnw-step__text">Yes. Cancel whenever you like, no questions asked. You keep access until the end of the billing period you have already paid for.</p>
+		<h3 class="lpnw-step__title">What areas do you cover?</h3>
+		<p class="lpnw-step__text">Northwest England: broadly Manchester, Liverpool, Lancashire, Cheshire, and Cumbria, using the postcode areas we support across the region.</p>
+		<h3 class="lpnw-step__title">Do I need a Rightmove account?</h3>
+		<p class="lpnw-step__text">No. We run the scans; you do not need to log in to Rightmove for this service.</p>
+		<h3 class="lpnw-step__title">Is my payment secure?</h3>
+		<p class="lpnw-step__text">Yes. Card payments go through Stripe. We never see or store your full card details on our site.</p>
 	</div>
 </section>
 HTML;

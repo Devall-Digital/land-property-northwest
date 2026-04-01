@@ -145,27 +145,280 @@ add_filter( 'body_class', function ( array $classes ): array {
 } );
 
 /**
- * Customise the login logo to show LPNW branding.
+ * Login / register screen: LPNW brand fonts and layout (matches site hero and CTAs).
  */
-add_action( 'login_enqueue_scripts', function () {
-	?>
-	<style>
-		#login h1 a {
-			background-image: none;
-			font-size: 24px;
-			font-weight: 700;
-			font-family: 'Plus Jakarta Sans', sans-serif;
-			color: #1B2A4A;
-			text-indent: 0;
-			width: auto;
-			height: auto;
-		}
-		#login h1 a::after {
-			content: 'Land & Property Northwest';
-		}
-	</style>
-	<?php
-} );
+add_action(
+	'login_enqueue_scripts',
+	function () {
+		wp_enqueue_style(
+			'lpnw-login-fonts',
+			'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
+			array(),
+			null
+		);
+
+		$css = '
+body.login {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	background-color: #1B2A4A;
+	min-height: 100vh;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	position: relative;
+}
+body.login::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background-image:
+		repeating-linear-gradient(
+			-32deg,
+			rgba(255, 255, 255, 0.03) 0px,
+			rgba(255, 255, 255, 0.03) 1px,
+			transparent 1px,
+			transparent 10px
+		),
+		repeating-linear-gradient(
+			122deg,
+			rgba(255, 255, 255, 0.02) 0px,
+			rgba(255, 255, 255, 0.02) 1px,
+			transparent 1px,
+			transparent 14px
+		),
+		radial-gradient(ellipse 90% 55% at 50% -10%, rgba(245, 192, 74, 0.12), transparent 55%),
+		linear-gradient(135deg, #1B2A4A 0%, #2D4470 55%, #1B2A4A 100%);
+}
+body.login #login {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: 400px;
+	margin: 0 auto;
+	padding: 2rem 2rem 1.75rem;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow:
+		0 16px 48px rgba(27, 42, 74, 0.35),
+		0 4px 16px rgba(0, 0, 0, 0.12);
+	box-sizing: border-box;
+}
+#login h1 {
+	margin: 0 0 1.5rem;
+	padding: 0;
+	text-align: center;
+}
+#login h1 a {
+	background-image: none !important;
+	font-size: 1.35rem;
+	font-weight: 700;
+	font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+	color: #1B2A4A;
+	text-indent: 0;
+	width: auto;
+	height: auto;
+	display: inline-block;
+	line-height: 1.25;
+	text-align: center;
+	text-decoration: none;
+	padding: 0;
+	outline: none;
+	box-shadow: none;
+}
+#login h1 a:focus-visible {
+	outline: 2px solid #E8A317;
+	outline-offset: 4px;
+}
+#login h1 a::after {
+	content: "Land & Property Northwest";
+}
+.login form,
+.login form.shake {
+	margin-top: 0;
+	padding: 0;
+	border: none;
+	background: transparent;
+	box-shadow: none !important;
+}
+.login form p {
+	margin-bottom: 1rem;
+}
+.login form p.submit {
+	margin-bottom: 0;
+	margin-top: 1.25rem;
+}
+.login label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: #374151;
+}
+.login form .input,
+.login input[type="text"],
+.login input[type="password"],
+.login input[type="email"] {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	border: 1px solid #E5E7EB;
+	border-radius: 8px;
+	padding: 12px 14px;
+	font-size: 16px;
+	line-height: 1.4;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.login form .input:focus,
+.login input[type="text"]:focus,
+.login input[type="password"]:focus,
+.login input[type="email"]:focus {
+	border-color: #E8A317;
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(232, 163, 23, 0.22);
+}
+.login .user-pass-wrap {
+	position: relative;
+}
+.wp-core-ui .button.wp-hide-pw {
+	color: #1B2A4A;
+	border-radius: 6px;
+}
+.wp-core-ui .button.wp-hide-pw:hover {
+	color: #E8A317;
+}
+.login .forgetmenot {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 0 !important;
+}
+.login .forgetmenot input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	accent-color: #E8A317;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+.login .forgetmenot label {
+	font-weight: 500;
+	cursor: pointer;
+	margin: 0;
+	line-height: 1.3;
+}
+.wp-core-ui .button.button-primary.button-large,
+.wp-core-ui .button.button-primary,
+#wp-submit {
+	width: 100%;
+	box-sizing: border-box;
+	background: #E8A317 !important;
+	border: none !important;
+	border-radius: 8px !important;
+	color: #fff !important;
+	padding: 12px 16px !important;
+	font-size: 1rem !important;
+	font-weight: 700 !important;
+	font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif !important;
+	line-height: 1.4 !important;
+	height: auto !important;
+	min-height: 0 !important;
+	text-shadow: none !important;
+	box-shadow: none !important;
+	transition: background 0.15s ease, filter 0.15s ease;
+}
+.wp-core-ui .button.button-primary.button-large:hover,
+.wp-core-ui .button.button-primary:hover,
+#wp-submit:hover,
+#wp-submit:focus {
+	background: #cf900f !important;
+	color: #fff !important;
+	filter: none;
+}
+.wp-core-ui .button.button-primary.button-large:focus,
+#wp-submit:focus {
+	box-shadow: 0 0 0 3px rgba(232, 163, 23, 0.35) !important;
+}
+#login #nav,
+#login #backtoblog {
+	margin: 1.125rem 0 0;
+	padding: 0;
+	text-align: center;
+	font-size: 0.9375rem;
+}
+#login #backtoblog {
+	margin-top: 0.75rem;
+}
+.login #nav a,
+.login #backtoblog a,
+.login .privacy-policy-page-link a {
+	color: #1B2A4A;
+	font-weight: 600;
+	text-decoration: none;
+	transition: color 0.15s ease;
+}
+.login #nav a:hover,
+.login #nav a:focus,
+.login #backtoblog a:hover,
+.login #backtoblog a:focus,
+.login .privacy-policy-page-link a:hover,
+.login .privacy-policy-page-link a:focus {
+	color: #E8A317;
+}
+.login #login_error,
+.login .notice-error {
+	border: none !important;
+	border-left: 4px solid #DC2626 !important;
+	background: #FEF2F2 !important;
+	color: #991B1B !important;
+	box-shadow: none !important;
+	padding: 12px 14px !important;
+	border-radius: 0 8px 8px 0 !important;
+	font-size: 0.9375rem;
+	line-height: 1.45;
+}
+.login #login_error p,
+.login .notice-error p {
+	margin: 0;
+	padding: 0;
+}
+.login .message:not(.notice-error),
+.login .notice-success,
+.login .notice-info {
+	border: none !important;
+	border-left: 4px solid #059669 !important;
+	background: #ECFDF5 !important;
+	color: #065F46 !important;
+	box-shadow: none !important;
+	padding: 12px 14px !important;
+	border-radius: 0 8px 8px 0 !important;
+	font-size: 0.9375rem;
+	line-height: 1.45;
+}
+.login .pw-weak,
+.login #pass-strength-result {
+	border-radius: 8px;
+}
+.login .language-switcher {
+	margin-top: 1.25rem;
+	text-align: center;
+	position: relative;
+	z-index: 1;
+}
+.login .language-switcher select {
+	border-radius: 8px;
+	border: 1px solid #E5E7EB;
+	padding: 8px 12px;
+	font-size: 0.875rem;
+}
+';
+
+		wp_add_inline_style( 'lpnw-login-fonts', $css );
+	}
+);
 
 add_filter( 'login_headerurl', function () {
 	return home_url();
