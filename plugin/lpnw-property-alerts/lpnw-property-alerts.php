@@ -99,6 +99,8 @@ final class LPNW_Property_Alerts {
 		}
 
 		LPNW_Public::init();
+		LPNW_Dashboard::init();
+		LPNW_Map::init();
 	}
 
 	public function on_init(): void {
