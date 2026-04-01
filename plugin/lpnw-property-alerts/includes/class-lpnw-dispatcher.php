@@ -92,7 +92,10 @@ class LPNW_Dispatcher {
 
 		$sent = false;
 
-		if ( $this->mautic->is_configured() ) {
+		$prefs               = LPNW_Subscriber::get_preferences( $user_id );
+		$effective_frequency = $this->get_effective_alert_frequency( $tier, $prefs );
+
+		if ( $this->mautic->is_configured() && $this->mautic->has_email_template_for_tier( $tier ) ) {
 			$sent = $this->mautic->send_alert(
 				$user->user_email,
 				$properties,
@@ -101,7 +104,7 @@ class LPNW_Dispatcher {
 		}
 
 		if ( ! $sent ) {
-			$sent = $this->send_via_wp_mail( $user, $properties, $tier );
+			$sent = $this->send_via_wp_mail( $user, $properties, $tier, $effective_frequency );
 		}
 
 		$status = $sent ? 'sent' : 'failed';
@@ -119,17 +122,40 @@ class LPNW_Dispatcher {
 	}
 
 	/**
-	 * @param \WP_User      $user       WordPress user.
-	 * @param array<object> $properties Properties to include.
-	 * @param string        $tier       Subscription tier.
+	 * @param \WP_User      $user                 WordPress user.
+	 * @param array<object> $properties           Properties to include.
+	 * @param string        $tier                 Subscription tier.
+	 * @param string        $effective_frequency One of instant, daily, weekly.
 	 */
-	private function send_via_wp_mail( \WP_User $user, array $properties, string $tier ): bool {
-		$count   = count( $properties );
-		$subject = sprintf( '%d new NW property alerts', $count );
+	private function send_via_wp_mail( \WP_User $user, array $properties, string $tier, string $effective_frequency ): bool {
+		$count = count( $properties );
 
-		$template = 'instant' === $this->get_frequency_for_tier( $tier )
-			? 'email-instant-alert.html'
-			: 'email-daily-digest.html';
+		switch ( $effective_frequency ) {
+			case 'instant':
+				$template = 'email-instant-alert.html';
+				/* translators: %d: number of new alerts. */
+				$subject = sprintf( _n( '%d new NW property alert', '%d new NW property alerts', $count, 'lpnw-alerts' ), $count );
+				break;
+			case 'daily':
+				$template = 'email-daily-digest.html';
+				/* translators: 1: number of matches, 2: "Match" or "Matches". */
+				$subject = sprintf(
+					'Your Daily NW Property Digest - %1$d New %2$s',
+					$count,
+					_n( 'Match', 'Matches', $count, 'lpnw-alerts' )
+				);
+				break;
+			case 'weekly':
+			default:
+				$template = 'email-weekly-digest.html';
+				/* translators: 1: number of matches, 2: "Match" or "Matches". */
+				$subject = sprintf(
+					'Your Weekly NW Property Digest - %1$d New %2$s',
+					$count,
+					_n( 'Match', 'Matches', $count, 'lpnw-alerts' )
+				);
+				break;
+		}
 
 		$template_path = LPNW_PLUGIN_DIR . 'templates/' . $template;
 		$body          = '';
@@ -139,6 +165,7 @@ class LPNW_Dispatcher {
 			$alert_properties = $properties;
 			$subscriber_name  = $user->display_name;
 			$dashboard_url    = home_url( '/dashboard/' );
+			$unsubscribe_url  = add_query_arg( 'tab', 'preferences', $dashboard_url );
 			include $template_path;
 			$body = ob_get_clean();
 		} else {
@@ -175,12 +202,40 @@ class LPNW_Dispatcher {
 		return implode( "\n", $lines );
 	}
 
-	private function get_frequency_for_tier( string $tier ): string {
-		$map = array(
-			'vip'  => 'instant',
-			'pro'  => 'daily',
-			'free' => 'weekly',
-		);
-		return $map[ $tier ] ?? 'daily';
+	/**
+	 * Resolve alert email frequency from saved preferences, capped by subscription tier.
+	 *
+	 * Free: weekly only. Pro: daily or instant. VIP: instant only.
+	 *
+	 * @param string        $tier  Subscription tier.
+	 * @param object|null   $prefs Row from LPNW_Subscriber::get_preferences().
+	 * @return string One of instant, daily, weekly.
+	 */
+	private function get_effective_alert_frequency( string $tier, ?object $prefs ): string {
+		$saved = 'daily';
+		if ( $prefs && isset( $prefs->frequency ) && is_string( $prefs->frequency ) ) {
+			$saved = strtolower( $prefs->frequency );
+		}
+		$allowed_saved = array( 'instant', 'daily', 'weekly' );
+		if ( ! in_array( $saved, $allowed_saved, true ) ) {
+			$saved = 'daily';
+		}
+
+		if ( 'free' === $tier ) {
+			return 'weekly';
+		}
+
+		if ( 'vip' === $tier ) {
+			return 'instant';
+		}
+
+		if ( 'pro' === $tier ) {
+			if ( 'instant' === $saved ) {
+				return 'instant';
+			}
+			return 'daily';
+		}
+
+		return 'daily';
 	}
 }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>New Property Alert</title>
+<title>Your Daily NW Property Digest</title>
 </head>
 <body style="margin:0;padding:0;background:#F7F8FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8FA;padding:20px 0;">
@@ -13,7 +13,8 @@
 	<!-- Header -->
 	<tr>
 		<td style="background:#1B2A4A;padding:24px 32px;">
-			<h1 style="margin:0;color:#FFFFFF;font-size:20px;font-weight:700;">Land &amp; Property Northwest</h1>
+			<h1 style="margin:0;color:#FFFFFF;font-size:20px;font-weight:700;">Your Daily NW Property Digest</h1>
+			<p style="margin:8px 0 0;color:rgba(255,255,255,0.7);font-size:14px;"><?php echo esc_html( (string) count( $alert_properties ) ); ?> New Matches &bull; Land &amp; Property Northwest</p>
 		</td>
 	</tr>
 
@@ -24,7 +25,7 @@
 				Hi <?php echo esc_html( $subscriber_name ); ?>,
 			</p>
 			<p style="margin:8px 0 0;font-size:16px;color:#374151;">
-				We have found new properties matching your alert preferences:
+				Here are today's new properties matching your alert preferences:
 			</p>
 		</td>
 	</tr>

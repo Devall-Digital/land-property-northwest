@@ -110,7 +110,84 @@ class LPNW_Matcher {
 			return true;
 		}
 
-		return in_array( $property->property_type, $types, true );
+		$raw = trim( (string) ( $property->property_type ?? '' ) );
+		if ( '' === $raw ) {
+			return false;
+		}
+
+		$mapped = $this->map_portal_property_type_to_canonical( $raw );
+		$raw_lc = strtolower( $raw );
+
+		foreach ( $types as $pref ) {
+			$pref    = (string) $pref;
+			$pref_lc = strtolower( $pref );
+
+			foreach ( $mapped as $canon ) {
+				if ( strtolower( $canon ) === $pref_lc ) {
+					return true;
+				}
+			}
+
+			// Case-insensitive partial match between portal text and preference label.
+			if ( str_contains( $raw_lc, $pref_lc ) || str_contains( $pref_lc, $raw_lc ) ) {
+				return true;
+			}
+
+			// Preference value is "Other" (label Other/Land); match common portal synonyms.
+			if ( 'other' === $pref_lc ) {
+				if ( preg_match( '/\b(land|plot|farm|commercial|development|site)\b/i', $raw ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Map portal property type strings (e.g. Rightmove) to canonical preference checkbox values.
+	 *
+	 * @param string $raw Raw property type from the feed.
+	 * @return array<int, string> Canonical values: Detached, Semi-detached, Terraced, Flat/Maisonette, Auction lot, Other.
+	 */
+	private function map_portal_property_type_to_canonical( string $raw ): array {
+		$n = strtolower( trim( $raw ) );
+		if ( '' === $n ) {
+			return array();
+		}
+
+		if ( str_contains( $n, 'auction' ) ) {
+			return array( 'Auction lot' );
+		}
+
+		if ( str_contains( $n, 'flat' ) || str_contains( $n, 'apartment' ) || str_contains( $n, 'maisonette' )
+			|| str_contains( $n, 'penthouse' ) || str_contains( $n, 'studio' ) ) {
+			return array( 'Flat/Maisonette' );
+		}
+
+		if ( ( str_contains( $n, 'semi' ) && str_contains( $n, 'detached' ) )
+			|| str_contains( $n, 'semi-detached' ) || str_contains( $n, 'semi detached' ) ) {
+			return array( 'Semi-detached' );
+		}
+
+		if ( str_contains( $n, 'terraced' ) || str_contains( $n, 'terrace' )
+			|| str_contains( $n, 'end of terrace' ) || str_contains( $n, 'townhouse' )
+			|| str_contains( $n, 'town house' ) || str_contains( $n, 'mews' ) ) {
+			return array( 'Terraced' );
+		}
+
+		if ( str_contains( $n, 'detached' ) && ! str_contains( $n, 'semi' ) ) {
+			return array( 'Detached' );
+		}
+
+		if ( str_contains( $n, 'bungalow' ) || str_contains( $n, 'house share' )
+			|| str_contains( $n, 'hmo' ) || str_contains( $n, 'park home' )
+			|| str_contains( $n, 'mobile home' ) || str_contains( $n, 'cottage' )
+			|| str_contains( $n, 'character property' ) ) {
+			return array( 'Other' );
+		}
+
+		return array();
 	}
 
 	private function matches_alert_type( object $property, object $subscriber ): bool {

@@ -20,6 +20,7 @@ class LPNW_Public {
 
 		add_action( 'wp_ajax_lpnw_save_preferences', array( __CLASS__, 'ajax_save_preferences' ) );
 		add_action( 'wp_ajax_lpnw_save_property', array( __CLASS__, 'ajax_save_property' ) );
+		add_action( 'wp_ajax_lpnw_unsave_property', array( __CLASS__, 'ajax_unsave_property' ) );
 		add_action( 'wp_ajax_lpnw_load_properties', array( __CLASS__, 'ajax_load_properties' ) );
 	}
 
@@ -109,16 +110,22 @@ class LPNW_Public {
 			wp_send_json_error( 'Not logged in.' );
 		}
 
+		$user_id = get_current_user_id();
+		$tier    = LPNW_Subscriber::get_tier( $user_id );
+
 		$prefs = array(
 			'areas'          => array_map( 'sanitize_text_field', $_POST['areas'] ?? array() ),
 			'min_price'      => absint( $_POST['min_price'] ?? 0 ),
 			'max_price'      => absint( $_POST['max_price'] ?? 0 ),
 			'property_types' => array_map( 'sanitize_text_field', $_POST['property_types'] ?? array() ),
 			'alert_types'    => array_map( 'sanitize_text_field', $_POST['alert_types'] ?? array() ),
-			'frequency'      => sanitize_text_field( $_POST['frequency'] ?? 'daily' ),
+			'frequency'      => self::clamp_frequency_for_tier(
+				sanitize_text_field( $_POST['frequency'] ?? 'weekly' ),
+				$tier
+			),
 		);
 
-		$saved = LPNW_Subscriber::save_preferences( get_current_user_id(), $prefs );
+		$saved = LPNW_Subscriber::save_preferences( $user_id, $prefs );
 
 		if ( $saved ) {
 			wp_send_json_success( 'Preferences saved.' );
@@ -155,8 +162,43 @@ class LPNW_Public {
 		wp_send_json_success( 'Property saved.' );
 	}
 
+	public static function ajax_unsave_property(): void {
+		check_ajax_referer( 'lpnw_public', 'nonce' );
+
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( 'Not logged in.' );
+		}
+
+		global $wpdb;
+
+		$property_id = absint( $_POST['property_id'] ?? 0 );
+
+		if ( ! $property_id ) {
+			wp_send_json_error( 'Invalid property.' );
+		}
+
+		$deleted = $wpdb->delete(
+			$wpdb->prefix . 'lpnw_saved_properties',
+			array(
+				'user_id'     => get_current_user_id(),
+				'property_id' => $property_id,
+			),
+			array( '%d', '%d' )
+		);
+
+		if ( false === $deleted ) {
+			wp_send_json_error( 'Could not remove saved property.' );
+		}
+
+		wp_send_json_success( 'Property removed from saved list.' );
+	}
+
 	public static function ajax_load_properties(): void {
 		check_ajax_referer( 'lpnw_public', 'nonce' );
+
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( 'Login required.' );
+		}
 
 		$filters = array(
 			'source'          => sanitize_text_field( $_POST['source'] ?? '' ),
@@ -173,5 +215,30 @@ class LPNW_Public {
 		$properties = LPNW_Property::query( $filters, $limit, $offset );
 
 		wp_send_json_success( $properties );
+	}
+
+	/**
+	 * Restrict alert frequency to values allowed for the subscription tier.
+	 *
+	 * Free: weekly only. Pro: daily or instant (or weekly). VIP: any known value.
+	 *
+	 * @param string $frequency Requested frequency (instant, daily, weekly).
+	 * @param string $tier      One of free, pro, vip.
+	 * @return string Clamped frequency.
+	 */
+	private static function clamp_frequency_for_tier( string $frequency, string $tier ): string {
+		$valid = array( 'instant', 'daily', 'weekly' );
+		if ( ! in_array( $frequency, $valid, true ) ) {
+			$frequency = 'weekly';
+		}
+
+		$tier = strtolower( $tier );
+
+		if ( 'free' === $tier ) {
+			return 'weekly';
+		}
+
+		// Pro or VIP: any valid frequency (instant, daily, weekly).
+		return $frequency;
 	}
 }

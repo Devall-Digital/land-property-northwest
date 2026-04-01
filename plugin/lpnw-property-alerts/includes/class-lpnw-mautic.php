@@ -28,6 +28,20 @@ class LPNW_Mautic {
 	}
 
 	/**
+	 * Whether a Mautic email template ID is set for this tier (required for API send).
+	 *
+	 * @param string $tier Subscriber tier (free, pro, vip).
+	 * @return bool
+	 */
+	public function has_email_template_for_tier( string $tier ): bool {
+		$settings = get_option( 'lpnw_settings', array() );
+		$key      = "mautic_email_{$tier}";
+		$id       = isset( $settings[ $key ] ) ? (int) $settings[ $key ] : 0;
+
+		return $id > 0;
+	}
+
+	/**
 	 * Create or update a Mautic contact.
 	 *
 	 * @param string               $email Contact email.

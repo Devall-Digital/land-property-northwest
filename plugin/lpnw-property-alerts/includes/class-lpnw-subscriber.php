@@ -54,7 +54,7 @@ class LPNW_Subscriber {
 			'max_price'      => isset( $prefs['max_price'] ) ? absint( $prefs['max_price'] ) : null,
 			'property_types' => wp_json_encode( $prefs['property_types'] ?? array() ),
 			'alert_types'    => wp_json_encode( $prefs['alert_types'] ?? array() ),
-			'frequency'      => sanitize_text_field( $prefs['frequency'] ?? 'daily' ),
+			'frequency'      => sanitize_text_field( $prefs['frequency'] ?? 'weekly' ),
 			'is_active'      => 1,
 		);
 
@@ -93,7 +93,7 @@ class LPNW_Subscriber {
 	}
 
 	/**
-	 * Determine a user's tier from completed WooCommerce orders (simple products).
+	 * Determine a user's tier from paid WooCommerce orders (completed or processing).
 	 *
 	 * VIP wins over Pro if both appear in order history.
 	 *
@@ -108,7 +108,7 @@ class LPNW_Subscriber {
 		$orders = wc_get_orders(
 			array(
 				'customer_id' => $user_id,
-				'status'      => array( 'completed' ),
+				'status'      => array( 'completed', 'processing' ),
 				'limit'       => -1,
 				'return'      => 'objects',
 			)

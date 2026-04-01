@@ -9,31 +9,142 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( empty( $saved ) ) : ?>
-	<p>You have not saved any properties yet. Browse your <a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">alerts</a> or the <a href="<?php echo esc_url( home_url( '/map/' ) ); ?>">property map</a> to find and save properties.</p>
+	<p>
+		<?php
+		echo wp_kses(
+			sprintf(
+				/* translators: 1: alerts URL, 2: map URL */
+				__( 'You have not saved any properties yet. Browse your <a href="%1$s">alerts</a> or the <a href="%2$s">property map</a> to find and save properties.', 'lpnw-alerts' ),
+				esc_url( home_url( '/dashboard/' ) ),
+				esc_url( home_url( '/map/' ) )
+			),
+			array(
+				'a' => array(
+					'href' => array(),
+				),
+			)
+		);
+		?>
+	</p>
 <?php else : ?>
-	<div class="lpnw-property-list">
+	<ul class="lpnw-property-list lpnw-property-list--grid" id="lpnw-saved-properties-list">
 		<?php foreach ( $saved as $item ) : ?>
-			<div class="lpnw-property-card">
-				<h3 class="lpnw-property-card__address"><?php echo esc_html( $item->address ); ?></h3>
-				<div class="lpnw-property-card__meta">
-					<span><?php echo esc_html( $item->postcode ); ?></span>
-					<?php if ( $item->price ) : ?>
-						<span>&pound;<?php echo esc_html( number_format( (int) $item->price ) ); ?></span>
+			<?php
+			$prop_id    = isset( $item->property_id ) ? absint( $item->property_id ) : 0;
+			$title_id   = 'lpnw-saved-card-title-' . $prop_id;
+			$desc_plain = wp_strip_all_tags( (string) ( $item->description ?? '' ) );
+			$beds       = null;
+			$baths      = null;
+			if ( preg_match( '/\b(\d+)\s*(?:bed(?:room)?s?|br)\b/i', $desc_plain, $bed_m ) ) {
+				$beds = (int) $bed_m[1];
+			}
+			if ( preg_match( '/\b(\d+)\s*bath(?:room)?s?\b/i', $desc_plain, $bath_m ) ) {
+				$baths = (int) $bath_m[1];
+			}
+			$price_raw   = isset( $item->price ) ? (int) $item->price : 0;
+			$is_pcm      = $price_raw > 0 && $price_raw < 1000;
+			$source      = sanitize_key( $item->source ?? '' );
+			$source_root = '' !== $source ? explode( '_', $source, 2 )[0] : '';
+
+			$view_label = __( 'View source', 'lpnw-alerts' );
+			if ( 'rightmove' === $source ) {
+				$view_label = __( 'View on Rightmove', 'lpnw-alerts' );
+			} elseif ( 'zoopla' === $source ) {
+				$view_label = __( 'View on Zoopla', 'lpnw-alerts' );
+			} elseif ( 'onthemarket' === $source ) {
+				$view_label = __( 'View on OnTheMarket', 'lpnw-alerts' );
+			} elseif ( '' !== $source && str_starts_with( $source, 'auction_' ) ) {
+				$view_label = __( 'View auction listing', 'lpnw-alerts' );
+			} elseif ( 'planning' === $source ) {
+				$view_label = __( 'View planning application', 'lpnw-alerts' );
+			} elseif ( 'epc' === $source ) {
+				$view_label = __( 'View EPC record', 'lpnw-alerts' );
+			} elseif ( 'landregistry' === $source ) {
+				$view_label = __( 'View Land Registry record', 'lpnw-alerts' );
+			}
+
+			$source_badge_label = ucwords( str_replace( '_', ' ', $source ) );
+			$type_label         = trim( (string) ( $item->property_type ?? '' ) );
+			?>
+			<li class="lpnw-property-list__item">
+				<article class="lpnw-property-card" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
+					<header class="lpnw-property-card__header">
+						<h3 class="lpnw-property-card__title" id="<?php echo esc_attr( $title_id ); ?>"><?php echo esc_html( $item->address ); ?></h3>
+						<?php if ( ! empty( $item->postcode ) ) : ?>
+							<p class="lpnw-property-card__postcode"><?php echo esc_html( $item->postcode ); ?></p>
+						<?php endif; ?>
+					</header>
+
+					<div class="lpnw-property-card__top">
+						<div class="lpnw-property-card__badges">
+							<?php if ( '' !== $type_label ) : ?>
+								<span class="lpnw-property-card__type-badge"><?php echo esc_html( $type_label ); ?></span>
+							<?php endif; ?>
+							<?php if ( '' !== $source ) : ?>
+								<span class="lpnw-source-badge lpnw-source-badge--<?php echo esc_attr( $source_root ); ?>"><?php echo esc_html( $source_badge_label ); ?></span>
+							<?php endif; ?>
+						</div>
+						<?php if ( $price_raw > 0 ) : ?>
+							<p class="lpnw-property-card__price<?php echo $is_pcm ? ' lpnw-property-card__price--pcm' : ' lpnw-property-card__price--sale'; ?>">
+								<span class="lpnw-property-card__price-currency">&pound;<?php echo esc_html( number_format_i18n( $price_raw ) ); ?></span>
+								<?php if ( $is_pcm ) : ?>
+									<span class="lpnw-property-card__price-suffix">pcm</span>
+								<?php endif; ?>
+							</p>
+						<?php endif; ?>
+					</div>
+
+					<?php if ( null !== $beds || null !== $baths ) : ?>
+						<p class="lpnw-property-card__rooms">
+							<?php
+							$room_parts = array();
+							if ( null !== $beds ) {
+								$room_parts[] = sprintf(
+									/* translators: %d: bedroom count */
+									_n( '%d bed', '%d beds', $beds, 'lpnw-alerts' ),
+									$beds
+								);
+							}
+							if ( null !== $baths ) {
+								$room_parts[] = sprintf(
+									/* translators: %d: bathroom count */
+									_n( '%d bath', '%d baths', $baths, 'lpnw-alerts' ),
+									$baths
+								);
+							}
+							echo esc_html( implode( ' · ', $room_parts ) );
+							?>
+						</p>
 					<?php endif; ?>
-					<span class="lpnw-source-badge lpnw-source-badge--<?php echo esc_attr( explode( '_', $item->source )[0] ); ?>">
-						<?php echo esc_html( ucfirst( str_replace( '_', ' ', $item->source ) ) ); ?>
-					</span>
-					<span>Saved <?php echo esc_html( human_time_diff( strtotime( $item->saved_at ), time() ) ); ?> ago</span>
-				</div>
-				<?php if ( $item->notes ) : ?>
-					<p class="lpnw-property-card__description"><em><?php echo esc_html( $item->notes ); ?></em></p>
-				<?php endif; ?>
-				<div class="lpnw-property-card__actions">
-					<?php if ( $item->source_url ) : ?>
-						<a href="<?php echo esc_url( $item->source_url ); ?>" class="lpnw-btn lpnw-btn--outline" target="_blank" rel="noopener">View Source</a>
+
+					<p class="lpnw-property-card__saved-meta">
+						<?php
+						printf(
+							/* translators: %s: human-readable time difference */
+							esc_html__( 'Saved %s ago', 'lpnw-alerts' ),
+							esc_html( human_time_diff( strtotime( $item->saved_at ), time() ) )
+						);
+						?>
+					</p>
+
+					<?php if ( ! empty( $item->notes ) ) : ?>
+						<p class="lpnw-property-card__description lpnw-property-card__description--notes"><em><?php echo esc_html( $item->notes ); ?></em></p>
 					<?php endif; ?>
-				</div>
-			</div>
+
+					<?php if ( empty( $item->notes ) && ! empty( $item->description ) ) : ?>
+						<p class="lpnw-property-card__description"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $item->description ), 50 ) ); ?></p>
+					<?php endif; ?>
+
+					<footer class="lpnw-property-card__actions">
+						<?php if ( ! empty( $item->source_url ) ) : ?>
+							<a href="<?php echo esc_url( $item->source_url ); ?>" class="lpnw-btn lpnw-btn--amber-outline" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $view_label ); ?></a>
+						<?php endif; ?>
+						<button type="button" class="lpnw-btn lpnw-btn--outline lpnw-unsave-property" data-property-id="<?php echo esc_attr( (string) $prop_id ); ?>" aria-label="<?php echo esc_attr__( 'Remove this property from your saved list', 'lpnw-alerts' ); ?>">
+							<?php esc_html_e( 'Unsave', 'lpnw-alerts' ); ?>
+						</button>
+					</footer>
+				</article>
+			</li>
 		<?php endforeach; ?>
-	</div>
+	</ul>
 <?php endif; ?>

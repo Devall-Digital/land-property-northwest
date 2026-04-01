@@ -64,10 +64,44 @@
 
             post('lpnw_save_property', { property_id: propertyId }).then(function (res) {
                 if (res.success) {
-                    btn.textContent = 'Saved';
+                    var textSpan = btn.querySelector('.lpnw-btn--bookmark__text');
+                    if (textSpan) {
+                        textSpan.textContent = 'Saved';
+                    } else {
+                        btn.textContent = 'Saved';
+                    }
                     btn.classList.add('lpnw-btn--saved');
                 } else {
                     btn.disabled = false;
+                }
+            });
+        });
+    }
+
+    function initUnsaveButtons() {
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.lpnw-unsave-property');
+            if (!btn) return;
+
+            var propertyId = btn.getAttribute('data-property-id');
+            if (!propertyId) return;
+
+            btn.disabled = true;
+
+            post('lpnw_unsave_property', { property_id: propertyId }).then(function (res) {
+                if (res.success) {
+                    var item = btn.closest('.lpnw-property-list__item');
+                    if (item) {
+                        item.remove();
+                    }
+                    var list = document.getElementById('lpnw-saved-properties-list');
+                    if (list && !list.querySelector('.lpnw-property-list__item')) {
+                        window.location.reload();
+                    }
+                    showNotice('Removed from saved list.', 'success');
+                } else {
+                    btn.disabled = false;
+                    showNotice('Could not remove property. Try again.', 'error');
                 }
             });
         });
@@ -94,5 +128,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         initPreferencesForm();
         initSaveButtons();
+        initUnsaveButtons();
     });
 })();

@@ -316,6 +316,178 @@
 	vertical-align: middle;
 }
 
+/* Subscriber dashboard shell */
+.lpnw-dashboard {
+	max-width: 72rem;
+	margin-inline: auto;
+	padding: 0 1rem 2rem;
+	box-sizing: border-box;
+}
+
+.lpnw-dashboard__title {
+	font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+	font-weight: 700;
+	color: var(--lpnw-navy, #1B2A4A);
+	margin: 0 0 1.25rem;
+	line-height: 1.3;
+}
+
+.lpnw-dashboard__section-heading {
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--lpnw-navy, #1B2A4A);
+	margin: 1.75rem 0 1rem;
+}
+
+.lpnw-dashboard__links {
+	list-style: none;
+	margin: 0 0 0.5rem;
+	padding: 0;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+	.lpnw-dashboard__links {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.lpnw-dashboard__links-item {
+	margin: 0;
+}
+
+.lpnw-dashboard__link {
+	display: block;
+	padding: 0.875rem 1rem;
+	border-radius: 10px;
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	background: var(--lpnw-white, #FFFFFF);
+	color: var(--lpnw-navy, #1B2A4A);
+	font-weight: 600;
+	font-size: 0.9375rem;
+	text-decoration: none;
+	text-align: center;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.lpnw-dashboard__link:hover {
+	border-color: var(--lpnw-navy-light, #2D4470);
+	box-shadow: 0 4px 14px rgba(27, 42, 74, 0.08);
+	background: var(--lpnw-offwhite, #F7F8FA);
+	color: var(--lpnw-navy, #1B2A4A);
+}
+
+.lpnw-dashboard__link:focus-visible {
+	outline: 2px solid var(--lpnw-amber, #E8A317);
+	outline-offset: 2px;
+}
+
+/* Upgrade / promo strip (matches marketing navy gradient) */
+.lpnw-cta-banner {
+	border-radius: 10px;
+	margin-bottom: 1.5rem;
+	overflow: hidden;
+	background: linear-gradient(135deg, var(--lpnw-navy, #1B2A4A) 0%, var(--lpnw-navy-light, #2D4470) 100%);
+	color: #FFFFFF;
+}
+
+.lpnw-cta-banner__inner {
+	padding: 1.5rem 1.5rem 1.625rem;
+}
+
+.lpnw-cta-banner__title {
+	color: #FFFFFF;
+	margin: 0 0 0.5rem;
+	font-size: 1.25rem;
+	font-weight: 700;
+	line-height: 1.25;
+}
+
+.lpnw-cta-banner__text {
+	margin: 0 0 1.125rem;
+	font-size: 0.9375rem;
+	line-height: 1.55;
+	opacity: 0.94;
+	max-width: 52ch;
+}
+
+.lpnw-cta-banner__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem 0.75rem;
+	align-items: center;
+}
+
+.lpnw-dashboard .lpnw-cta-banner {
+	margin-bottom: 1.75rem;
+}
+
+.lpnw-dashboard .lpnw-property-list--grid {
+	margin-top: 0.5rem;
+}
+
+.lpnw-property-card__saved-meta {
+	margin: 0 0 0.625rem;
+	font-size: 0.8125rem;
+	font-weight: 500;
+	color: var(--lpnw-grey, #6B7280);
+}
+
+.lpnw-property-card__description--notes {
+	font-style: normal;
+}
+
+.lpnw-property-card__description--notes em {
+	font-style: italic;
+	color: var(--lpnw-grey-dark, #374151);
+}
+
+/* Signup shortcode */
+.lpnw-signup-form {
+	max-width: 30rem;
+	margin-inline: auto;
+}
+
+.lpnw-signup-form__title {
+	margin: 0 0 0.75rem;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--lpnw-navy, #1B2A4A);
+}
+
+.lpnw-signup-form__intro,
+.lpnw-signup-form__lead {
+	margin: 0 0 1.25rem;
+	font-size: 0.9375rem;
+	line-height: 1.55;
+	color: var(--lpnw-grey-dark, #374151);
+}
+
+.lpnw-signup-form__lead {
+	margin-bottom: 0;
+}
+
+.lpnw-signup-form__lead a {
+	font-weight: 600;
+	color: var(--lpnw-navy, #1B2A4A);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.lpnw-signup-form__lead a:hover {
+	color: var(--lpnw-amber, #E8A317);
+}
+
+.lpnw-signup-form__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 0.5rem 0.75rem;
+}
+
 .lpnw-dashboard-stats {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
