@@ -46,6 +46,17 @@ class LPNW_Matcher {
 
 	/**
 	 * Check if a property matches a subscriber's preferences.
+	 *
+	 * @param object $property   Row from {@see LPNW_Property::get()}.
+	 * @param object $subscriber Row shaped like lpnw_subscriber_preferences: areas, property_types,
+	 *                           alert_types as JSON strings; min_price, max_price optional.
+	 */
+	public function property_matches_subscriber( object $property, object $subscriber ): bool {
+		return $this->matches( $property, $subscriber );
+	}
+
+	/**
+	 * Check if a property matches a subscriber's preferences.
 	 */
 	private function matches( object $property, object $subscriber ): bool {
 		if ( ! $this->matches_area( $property, $subscriber ) ) {

@@ -161,6 +161,11 @@ HTML;
 
 <p><a class="lpnw-btn lpnw-btn--primary" href="{$pricing}">View pricing</a> <a class="lpnw-btn lpnw-btn--secondary" href="{$contact}">Contact us</a></p>
 
+<h2>Coverage in numbers</h2>
+<p>We track live listings and records across Northwest postcode areas. More portal and official feeds join the pipeline over time.</p>
+[lpnw_total_sources]
+[lpnw_area_stats]
+
 </div>
 HTML;
 	}

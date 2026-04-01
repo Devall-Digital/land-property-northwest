@@ -18,6 +18,8 @@ class LPNW_Public {
 		add_shortcode( 'lpnw_signup_form', array( __CLASS__, 'render_signup_form' ) );
 		add_shortcode( 'lpnw_latest_properties', array( __CLASS__, 'render_latest_properties' ) );
 		add_shortcode( 'lpnw_contact_form', array( __CLASS__, 'render_contact_form' ) );
+		add_shortcode( 'lpnw_area_stats', array( __CLASS__, 'render_area_stats' ) );
+		add_shortcode( 'lpnw_total_sources', array( __CLASS__, 'render_total_sources' ) );
 
 		add_action( 'wp_ajax_lpnw_save_preferences', array( __CLASS__, 'ajax_save_preferences' ) );
 		add_action( 'wp_ajax_lpnw_contact_form', array( __CLASS__, 'ajax_contact_form' ) );
@@ -72,6 +74,71 @@ class LPNW_Public {
 		global $wpdb;
 		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties" );
 		return '<span class="lpnw-property-count">' . esc_html( number_format( $count ) ) . '</span>';
+	}
+
+	/**
+	 * [lpnw_area_stats] - Grid of property counts by NW postcode area.
+	 *
+	 * @return string HTML.
+	 */
+	public static function render_area_stats(): string {
+		$rows   = LPNW_Property::count_by_nw_area();
+		$labels = LPNW_Property::get_nw_area_labels();
+
+		if ( empty( $rows ) ) {
+			return '<p class="lpnw-area-stats lpnw-area-stats--empty">' . esc_html__( 'Area breakdown will appear once we have postcode data.', 'lpnw-alerts' ) . '</p>';
+		}
+
+		$list = '';
+		foreach ( $rows as $row ) {
+			$code  = isset( $row->area ) ? sanitize_text_field( (string) $row->area ) : '';
+			$count = isset( $row->cnt ) ? (int) $row->cnt : 0;
+			if ( '' === $code || $count < 1 ) {
+				continue;
+			}
+			$name = isset( $labels[ $code ] ) ? $labels[ $code ] : $code;
+			$line = sprintf(
+				/* translators: 1: area name (e.g. Manchester), 2: property count */
+				__( '%1$s: %2$s properties', 'lpnw-alerts' ),
+				$name,
+				number_format_i18n( $count )
+			);
+			$list .= '<li class="lpnw-area-stats__item"><span class="lpnw-area-stats__text">' . esc_html( $line ) . '</span></li>';
+		}
+
+		if ( '' === $list ) {
+			return '<p class="lpnw-area-stats lpnw-area-stats--empty">' . esc_html__( 'Area breakdown will appear once we have postcode data.', 'lpnw-alerts' ) . '</p>';
+		}
+
+		return '<div class="lpnw-area-stats" role="region" aria-label="' . esc_attr__( 'Property counts by northwest area', 'lpnw-alerts' ) . '">'
+			. '<ul class="lpnw-area-stats__grid" role="list">' . $list . '</ul>'
+			. '</div>';
+	}
+
+	/**
+	 * [lpnw_total_sources] - How many distinct feed sources have rows in the property table.
+	 *
+	 * @return string HTML.
+	 */
+	public static function render_total_sources(): string {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_properties';
+		$count = (int) $wpdb->get_var(
+			"SELECT COUNT(DISTINCT source) FROM {$table} WHERE TRIM(COALESCE(source, '')) <> ''" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		);
+
+		if ( $count < 1 ) {
+			return '<p class="lpnw-total-sources lpnw-total-sources--empty">' . esc_html__( 'Source counts will appear as feeds add data.', 'lpnw-alerts' ) . '</p>';
+		}
+
+		$text = sprintf(
+			/* translators: %d: number of distinct data sources */
+			_n( 'Data from %d source', 'Data from %d sources', $count, 'lpnw-alerts' ),
+			$count
+		);
+
+		return '<p class="lpnw-total-sources">' . esc_html( $text ) . '</p>';
 	}
 
 	/**

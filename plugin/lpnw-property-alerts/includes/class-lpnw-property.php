@@ -229,6 +229,56 @@ class LPNW_Property {
 	}
 
 	/**
+	 * NW postcode bucket codes to human-readable area names (marketing / stats).
+	 *
+	 * @return array<string, string>
+	 */
+	public static function get_nw_area_labels(): array {
+		return array(
+			'M'  => 'Manchester',
+			'L'  => 'Liverpool',
+			'PR' => 'Preston',
+			'BB' => 'Blackburn',
+			'LA' => 'Lancaster',
+			'BL' => 'Bolton',
+			'OL' => 'Oldham',
+			'SK' => 'Stockport',
+			'WA' => 'Warrington',
+			'WN' => 'Wigan',
+			'CW' => 'Crewe/Cheshire',
+			'CH' => 'Chester',
+			'CA' => 'Carlisle',
+			'FY' => 'Blackpool',
+		);
+	}
+
+	/**
+	 * Property counts grouped by NW postcode bucket (same rules as alert area matching).
+	 *
+	 * @return array<int, object{area: string, cnt: string}>
+	 */
+	public static function count_by_nw_area(): array {
+		global $wpdb;
+
+		$table       = $wpdb->prefix . 'lpnw_properties';
+		$pc          = 'UPPER(TRIM(postcode))';
+		$bucket_case = self::get_nw_postcode_bucket_case_sql( $pc );
+
+		$sql = "SELECT bucket_area AS area, COUNT(*) AS cnt FROM (
+			SELECT ({$bucket_case}) AS bucket_area
+			FROM {$table}
+			WHERE TRIM(postcode) <> ''
+		) AS lpnw_area_buckets
+		WHERE bucket_area <> ''
+		GROUP BY bucket_area
+		ORDER BY cnt DESC"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		$rows = $wpdb->get_results( $sql );
+
+		return is_array( $rows ) ? $rows : array();
+	}
+
+	/**
 	 * One recent property per NW prefix via UNION ALL (MySQL before 8.0, MariaDB before 10.2).
 	 *
 	 * @param string               $table        Full table name.

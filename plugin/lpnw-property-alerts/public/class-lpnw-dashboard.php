@@ -16,6 +16,7 @@ class LPNW_Dashboard {
 		add_shortcode( 'lpnw_dashboard', array( __CLASS__, 'render_dashboard' ) );
 		add_shortcode( 'lpnw_preferences', array( __CLASS__, 'render_preferences' ) );
 		add_shortcode( 'lpnw_saved_properties', array( __CLASS__, 'render_saved' ) );
+		add_shortcode( 'lpnw_email_preview', array( __CLASS__, 'render_email_preview' ) );
 	}
 
 	/**
@@ -75,6 +76,107 @@ class LPNW_Dashboard {
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/saved-properties.php';
 		return ob_get_clean();
+	}
+
+	/**
+	 * [lpnw_email_preview] - Preview alert email HTML using real matching properties.
+	 */
+	public static function render_email_preview(): string {
+		if ( ! is_user_logged_in() ) {
+			return self::login_prompt();
+		}
+
+		$user_id = get_current_user_id();
+		$user    = wp_get_current_user();
+		$tier    = LPNW_Subscriber::get_tier( $user_id );
+		$prefs   = LPNW_Subscriber::get_preferences( $user_id );
+
+		$subscriber_row = self::subscriber_row_for_matcher( $prefs );
+		$matcher        = new LPNW_Matcher();
+		$matching       = array();
+
+		global $wpdb;
+		$property_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}lpnw_properties ORDER BY updated_at DESC, id DESC LIMIT %d",
+				400
+			)
+		);
+
+		if ( is_array( $property_ids ) ) {
+			foreach ( $property_ids as $pid ) {
+				$property = LPNW_Property::get( (int) $pid );
+				if ( ! $property ) {
+					continue;
+				}
+				if ( $matcher->property_matches_subscriber( $property, $subscriber_row ) ) {
+					$matching[] = $property;
+					if ( count( $matching ) >= 5 ) {
+						break;
+					}
+				}
+			}
+		}
+
+		$frequency = LPNW_Dispatcher::get_effective_alert_frequency( $tier, $prefs );
+		$freq_label = self::frequency_layout_label( $frequency );
+
+		$email_preview_body_html = '';
+		if ( ! empty( $matching ) ) {
+			$email_preview_body_html = LPNW_Dispatcher::build_alert_email_html( $user, $matching, $frequency );
+		}
+
+		$email_preview_matching    = $matching;
+		$email_preview_freq_label  = $freq_label;
+
+		ob_start();
+		include LPNW_PLUGIN_DIR . 'public/views/email-preview.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Build a subscriber-shaped object for {@see LPNW_Matcher::property_matches_subscriber()}
+	 * from decoded preferences (JSON fields as strings).
+	 *
+	 * @param object|null $prefs From {@see LPNW_Subscriber::get_preferences()}.
+	 */
+	private static function subscriber_row_for_matcher( ?object $prefs ): object {
+		$areas    = array();
+		$types    = array();
+		$alerts   = array();
+		$min      = null;
+		$max      = null;
+
+		if ( $prefs ) {
+			$areas  = is_array( $prefs->areas ?? null ) ? $prefs->areas : array();
+			$types  = is_array( $prefs->property_types ?? null ) ? $prefs->property_types : array();
+			$alerts = is_array( $prefs->alert_types ?? null ) ? $prefs->alert_types : array();
+			$min    = isset( $prefs->min_price ) ? $prefs->min_price : null;
+			$max    = isset( $prefs->max_price ) ? $prefs->max_price : null;
+		}
+
+		return (object) array(
+			'areas'          => wp_json_encode( $areas ),
+			'property_types' => wp_json_encode( $types ),
+			'alert_types'    => wp_json_encode( $alerts ),
+			'min_price'      => $min,
+			'max_price'      => $max,
+		);
+	}
+
+	/**
+	 * Short label for the email template layout.
+	 */
+	private static function frequency_layout_label( string $frequency ): string {
+		switch ( $frequency ) {
+			case 'instant':
+				return __( 'instant alert', 'lpnw-alerts' );
+			case 'daily':
+				return __( 'daily digest', 'lpnw-alerts' );
+			case 'weekly':
+			default:
+				return __( 'weekly digest', 'lpnw-alerts' );
+		}
 	}
 
 	private static function login_prompt(): string {

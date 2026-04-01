@@ -77,6 +77,9 @@ $tier_label = strtoupper( $tier );
 		<li class="lpnw-dashboard__links-item">
 			<a class="lpnw-dashboard__link" href="<?php echo esc_url( home_url( '/map/' ) ); ?>"><?php esc_html_e( 'Property map', 'lpnw-alerts' ); ?></a>
 		</li>
+		<li class="lpnw-dashboard__links-item">
+			<a class="lpnw-dashboard__link" href="<?php echo esc_url( home_url( '/email-preview/' ) ); ?>"><?php esc_html_e( 'Preview your alerts', 'lpnw-alerts' ); ?></a>
+		</li>
 	</ul>
 
 	<h3 class="lpnw-dashboard__section-heading"><?php esc_html_e( 'Latest alerts', 'lpnw-alerts' ); ?></h3>

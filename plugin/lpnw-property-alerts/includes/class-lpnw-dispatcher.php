@@ -93,7 +93,7 @@ class LPNW_Dispatcher {
 		$sent = false;
 
 		$prefs               = LPNW_Subscriber::get_preferences( $user_id );
-		$effective_frequency = $this->get_effective_alert_frequency( $tier, $prefs );
+		$effective_frequency = self::get_effective_alert_frequency( $tier, $prefs );
 
 		if ( $this->mautic->is_configured() && $this->mautic->has_email_template_for_tier( $tier ) ) {
 			$sent = $this->mautic->send_alert(
@@ -104,7 +104,7 @@ class LPNW_Dispatcher {
 		}
 
 		if ( ! $sent ) {
-			$sent = $this->send_via_wp_mail( $user, $properties, $tier, $effective_frequency );
+			$sent = $this->send_via_wp_mail( $user, $properties, $effective_frequency );
 		}
 
 		$status = $sent ? 'sent' : 'failed';
@@ -124,20 +124,17 @@ class LPNW_Dispatcher {
 	/**
 	 * @param \WP_User      $user                 WordPress user.
 	 * @param array<object> $properties           Properties to include.
-	 * @param string        $tier                 Subscription tier.
 	 * @param string        $effective_frequency One of instant, daily, weekly.
 	 */
-	private function send_via_wp_mail( \WP_User $user, array $properties, string $tier, string $effective_frequency ): bool {
+	private function send_via_wp_mail( \WP_User $user, array $properties, string $effective_frequency ): bool {
 		$count = count( $properties );
 
 		switch ( $effective_frequency ) {
 			case 'instant':
-				$template = 'email-instant-alert.html';
 				/* translators: %d: number of new alerts. */
 				$subject = sprintf( _n( '%d new NW property alert', '%d new NW property alerts', $count, 'lpnw-alerts' ), $count );
 				break;
 			case 'daily':
-				$template = 'email-daily-digest.html';
 				/* translators: 1: number of matches, 2: "Match" or "Matches". */
 				$subject = sprintf(
 					'Your Daily NW Property Digest - %1$d New %2$s',
@@ -147,7 +144,6 @@ class LPNW_Dispatcher {
 				break;
 			case 'weekly':
 			default:
-				$template = 'email-weekly-digest.html';
 				/* translators: 1: number of matches, 2: "Match" or "Matches". */
 				$subject = sprintf(
 					'Your Weekly NW Property Digest - %1$d New %2$s',
@@ -157,8 +153,40 @@ class LPNW_Dispatcher {
 				break;
 		}
 
+		$body = self::build_alert_email_html( $user, $properties, $effective_frequency );
+
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+
+		return wp_mail( $user->user_email, $subject, $body, $headers );
+	}
+
+	/**
+	 * Build HTML body for alert emails (same templates as wp_mail delivery).
+	 *
+	 * @param \WP_User      $user                 WordPress user.
+	 * @param array<object> $properties           Properties to include.
+	 * @param string        $effective_frequency One of instant, daily, weekly.
+	 */
+	public static function build_alert_email_html( \WP_User $user, array $properties, string $effective_frequency ): string {
+		if ( empty( $properties ) ) {
+			return '';
+		}
+
+		$template = 'email-weekly-digest.html';
+		switch ( $effective_frequency ) {
+			case 'instant':
+				$template = 'email-instant-alert.html';
+				break;
+			case 'daily':
+				$template = 'email-daily-digest.html';
+				break;
+			case 'weekly':
+			default:
+				$template = 'email-weekly-digest.html';
+				break;
+		}
+
 		$template_path = LPNW_PLUGIN_DIR . 'templates/' . $template;
-		$body          = '';
 
 		if ( file_exists( $template_path ) ) {
 			ob_start();
@@ -167,20 +195,16 @@ class LPNW_Dispatcher {
 			$dashboard_url    = home_url( '/dashboard/' );
 			$unsubscribe_url  = add_query_arg( 'tab', 'preferences', $dashboard_url );
 			include $template_path;
-			$body = ob_get_clean();
-		} else {
-			$body = $this->build_plain_email( $properties );
+			return ob_get_clean();
 		}
 
-		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
-
-		return wp_mail( $user->user_email, $subject, $body, $headers );
+		return self::build_plain_email( $properties );
 	}
 
 	/**
 	 * @param array<object> $properties Properties.
 	 */
-	private function build_plain_email( array $properties ): string {
+	private static function build_plain_email( array $properties ): string {
 		$lines = array( '<h2>Your NW Property Alerts</h2>' );
 
 		foreach ( $properties as $prop ) {
@@ -211,7 +235,7 @@ class LPNW_Dispatcher {
 	 * @param object|null   $prefs Row from LPNW_Subscriber::get_preferences().
 	 * @return string One of instant, daily, weekly.
 	 */
-	private function get_effective_alert_frequency( string $tier, ?object $prefs ): string {
+	public static function get_effective_alert_frequency( string $tier, ?object $prefs ): string {
 		$saved = 'daily';
 		if ( $prefs && isset( $prefs->frequency ) && is_string( $prefs->frequency ) ) {
 			$saved = strtolower( $prefs->frequency );
