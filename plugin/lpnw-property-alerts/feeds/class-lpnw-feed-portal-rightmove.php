@@ -502,7 +502,7 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 
 		$description = $desc_prefix . implode( '. ', $desc_parts );
 
-		return array(
+		$out = array(
 			'source'             => $this->get_source_name(),
 			'source_ref'         => 'rm-' . $rm_id,
 			'address'            => $address,
@@ -516,6 +516,39 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			'source_url'         => esc_url_raw( $property_url ),
 			'raw_data'           => $raw_item,
 		);
+
+		if ( isset( $raw_item['bedrooms'] ) ) {
+			$out['bedrooms'] = absint( $raw_item['bedrooms'] );
+		}
+		if ( isset( $raw_item['bathrooms'] ) ) {
+			$out['bathrooms'] = absint( $raw_item['bathrooms'] );
+		}
+		if ( isset( $raw_item['tenure'] ) && is_array( $raw_item['tenure'] ) && isset( $raw_item['tenure']['tenureType'] ) && is_scalar( $raw_item['tenure']['tenureType'] ) ) {
+			$tt = strtolower( trim( (string) $raw_item['tenure']['tenureType'] ) );
+			if ( '' !== $tt ) {
+				$out['tenure_type'] = sanitize_text_field( $tt );
+			}
+		}
+		if ( '' !== $price_freq ) {
+			$out['price_frequency'] = sanitize_text_field( $price_freq );
+		}
+		$sqft = $this->parse_rightmove_display_size_sqft( $raw_item );
+		if ( null !== $sqft ) {
+			$out['floor_area_sqft'] = $sqft;
+		}
+		$listed_ymd = $this->parse_rightmove_first_listed_date_ymd( $raw_item );
+		if ( '' !== $listed_ymd ) {
+			$out['first_listed_date'] = $listed_ymd;
+		}
+		if ( '' !== $agent_name ) {
+			$out['agent_name'] = $agent_name;
+		}
+		$key_pipe = $this->extract_rightmove_key_features_pipe( $raw_item );
+		if ( '' !== $key_pipe ) {
+			$out['key_features_text'] = $key_pipe;
+		}
+
+		return $out;
 	}
 
 	/**
@@ -606,6 +639,80 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			return '';
 		}
 		return implode( ', ', $out );
+	}
+
+	/**
+	 * Parse displaySize (e.g. "1,200 sq ft") to square feet integer.
+	 *
+	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
+	 * @return int|null Positive sq ft or null.
+	 */
+	private function parse_rightmove_display_size_sqft( array $raw_item ): ?int {
+		$s = $raw_item['displaySize'] ?? '';
+		if ( ! is_string( $s ) ) {
+			return null;
+		}
+		$s = trim( $s );
+		if ( '' === $s ) {
+			return null;
+		}
+		if ( ! preg_match( '/([\d][\d,\.]*)\s*sq\.?\s*ft\b/i', $s, $m ) ) {
+			return null;
+		}
+		$n = absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+		return $n > 0 ? $n : null;
+	}
+
+	/**
+	 * First listed date as Y-m-d from firstVisibleDate or listing update date.
+	 *
+	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
+	 */
+	private function parse_rightmove_first_listed_date_ymd( array $raw_item ): string {
+		$raw = $raw_item['firstVisibleDate'] ?? '';
+		if ( ( '' === $raw || null === $raw ) && isset( $raw_item['listingUpdate'] ) && is_array( $raw_item['listingUpdate'] ) ) {
+			$raw = $raw_item['listingUpdate']['listingUpdateDate'] ?? '';
+		}
+		if ( '' === $raw || null === $raw || ! is_scalar( $raw ) ) {
+			return '';
+		}
+		$str = trim( (string) $raw );
+		if ( '' === $str ) {
+			return '';
+		}
+		$ts = strtotime( $str );
+		if ( false === $ts ) {
+			return '';
+		}
+		return wp_date( 'Y-m-d', $ts );
+	}
+
+	/**
+	 * All key features joined with "|" for structured storage.
+	 *
+	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
+	 */
+	private function extract_rightmove_key_features_pipe( array $raw_item ): string {
+		if ( empty( $raw_item['keyFeatures'] ) || ! is_array( $raw_item['keyFeatures'] ) ) {
+			return '';
+		}
+		$out = array();
+		foreach ( $raw_item['keyFeatures'] as $feature ) {
+			if ( is_array( $feature ) ) {
+				$feature = $feature['text'] ?? $feature['value'] ?? '';
+			}
+			if ( ! is_scalar( $feature ) ) {
+				continue;
+			}
+			$text = sanitize_text_field( trim( (string) $feature ) );
+			if ( '' !== $text ) {
+				$out[] = $text;
+			}
+		}
+		if ( empty( $out ) ) {
+			return '';
+		}
+		return implode( '|', $out );
 	}
 
 	private function extract_postcode_from_address( string $address ): string {

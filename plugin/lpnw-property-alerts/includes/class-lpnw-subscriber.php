@@ -28,9 +28,12 @@ class LPNW_Subscriber {
 		) );
 
 		if ( $row ) {
-			$row->areas          = json_decode( $row->areas, true ) ?: array();
-			$row->property_types = json_decode( $row->property_types, true ) ?: array();
-			$row->alert_types    = json_decode( $row->alert_types, true ) ?: array();
+			$row->areas              = json_decode( $row->areas, true ) ?: array();
+			$row->property_types     = json_decode( $row->property_types, true ) ?: array();
+			$row->alert_types        = json_decode( $row->alert_types, true ) ?: array();
+			$row->listing_channels   = json_decode( $row->listing_channels ?? '', true ) ?: array();
+			$row->tenure_preferences = json_decode( $row->tenure_preferences ?? '', true ) ?: array();
+			$row->required_features  = json_decode( $row->required_features ?? '', true ) ?: array();
 		}
 
 		return $row;
@@ -51,8 +54,13 @@ class LPNW_Subscriber {
 			'user_id'        => $user_id,
 			'areas'          => wp_json_encode( $prefs['areas'] ?? array() ),
 			'min_price'      => isset( $prefs['min_price'] ) ? absint( $prefs['min_price'] ) : null,
-			'max_price'      => isset( $prefs['max_price'] ) ? absint( $prefs['max_price'] ) : null,
-			'property_types' => wp_json_encode( $prefs['property_types'] ?? array() ),
+			'max_price'          => isset( $prefs['max_price'] ) ? absint( $prefs['max_price'] ) : null,
+			'min_bedrooms'       => isset( $prefs['min_bedrooms'] ) ? absint( $prefs['min_bedrooms'] ) : null,
+			'max_bedrooms'       => isset( $prefs['max_bedrooms'] ) ? absint( $prefs['max_bedrooms'] ) : null,
+			'listing_channels'   => wp_json_encode( $prefs['listing_channels'] ?? array() ),
+			'tenure_preferences' => wp_json_encode( $prefs['tenure_preferences'] ?? array() ),
+			'required_features'  => wp_json_encode( $prefs['required_features'] ?? array() ),
+			'property_types'     => wp_json_encode( $prefs['property_types'] ?? array() ),
 			'alert_types'    => wp_json_encode( $prefs['alert_types'] ?? array() ),
 			'frequency'      => sanitize_text_field( $prefs['frequency'] ?? 'weekly' ),
 			'is_active'      => 1,

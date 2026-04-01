@@ -17,16 +17,68 @@ if ( empty( $properties ) ) : ?>
 	<ul class="lpnw-property-list lpnw-property-list--grid">
 		<?php foreach ( $properties as $prop ) : ?>
 			<?php
-			$prop_id    = isset( $prop->id ) ? absint( $prop->id ) : 0;
-			$title_id   = 'lpnw-property-card-title-' . $prop_id;
-			$desc_plain = wp_strip_all_tags( (string) ( $prop->description ?? '' ) );
-			$beds       = null;
-			$baths      = null;
-			if ( preg_match( '/\b(\d+)\s*(?:bed(?:room)?s?|br)\b/i', $desc_plain, $bed_m ) ) {
-				$beds = (int) $bed_m[1];
+			$prop_id  = isset( $prop->id ) ? absint( $prop->id ) : 0;
+			$title_id = 'lpnw-property-card-title-' . $prop_id;
+
+			$beds_raw  = isset( $prop->bedrooms ) ? trim( (string) $prop->bedrooms ) : '';
+			$baths_raw = isset( $prop->bathrooms ) ? trim( (string) $prop->bathrooms ) : '';
+			$beds      = ( '' !== $beds_raw ) ? (int) $beds_raw : null;
+			$baths     = ( '' !== $baths_raw ) ? (int) $baths_raw : null;
+
+			$tenure_badge_label = '';
+			$tenure_raw         = trim( (string) ( $prop->tenure_type ?? '' ) );
+			if ( '' !== $tenure_raw ) {
+				$tlow = strtolower( $tenure_raw );
+				if ( false !== strpos( $tlow, 'leasehold' ) ) {
+					$tenure_badge_label = __( 'Leasehold', 'lpnw-alerts' );
+				} elseif ( false !== strpos( $tlow, 'freehold' ) ) {
+					$tenure_badge_label = __( 'Freehold', 'lpnw-alerts' );
+				} else {
+					$tenure_badge_label = ucwords( str_replace( '_', ' ', $tenure_raw ) );
+				}
 			}
-			if ( preg_match( '/\b(\d+)\s*bath(?:room)?s?\b/i', $desc_plain, $bath_m ) ) {
-				$baths = (int) $bath_m[1];
+
+			$key_feature_tags = array();
+			if ( ! empty( $prop->key_features_text ) ) {
+				$key_feature_tags = array_slice(
+					array_values(
+						array_filter(
+							array_map( 'trim', explode( '|', (string) $prop->key_features_text ) )
+						)
+					),
+					0,
+					4
+				);
+			}
+
+			$agent_line = trim( (string) ( $prop->agent_name ?? '' ) );
+
+			$listed_label = '';
+			if ( ! empty( $prop->first_listed_date ) ) {
+				$listed_ts = strtotime( (string) $prop->first_listed_date );
+				if ( false !== $listed_ts ) {
+					$listed_day = wp_date( 'Y-m-d', $listed_ts );
+					$today_day  = current_time( 'Y-m-d' );
+					$tz         = wp_timezone();
+					$listed_dt  = date_create_immutable( $listed_day, $tz );
+					$today_dt   = date_create_immutable( $today_day, $tz );
+					if ( $listed_dt && $today_dt && $listed_dt <= $today_dt ) {
+						if ( $listed_day === $today_day ) {
+							$listed_label = __( 'Listed today', 'lpnw-alerts' );
+						} else {
+							$cal_days = (int) $listed_dt->diff( $today_dt )->days;
+							if ( 1 === $cal_days ) {
+								$listed_label = __( 'Listed yesterday', 'lpnw-alerts' );
+							} elseif ( $cal_days > 1 ) {
+								$listed_label = sprintf(
+									/* translators: %d: number of days since listing */
+									_n( 'Listed %d day ago', 'Listed %d days ago', $cal_days, 'lpnw-alerts' ),
+									$cal_days
+								);
+							}
+						}
+					}
+				}
 			}
 			$price_raw   = isset( $prop->price ) ? (int) $prop->price : 0;
 			$is_pcm      = 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) );
@@ -89,6 +141,9 @@ if ( empty( $properties ) ) : ?>
 							<?php if ( '' !== $source ) : ?>
 								<span class="lpnw-source-badge lpnw-source-badge--<?php echo esc_attr( $source_root ); ?>"><?php echo esc_html( $source_badge_label ); ?></span>
 							<?php endif; ?>
+							<?php if ( '' !== $tenure_badge_label ) : ?>
+								<span class="lpnw-tenure-badge"><?php echo esc_html( $tenure_badge_label ); ?></span>
+							<?php endif; ?>
 						</div>
 						<?php if ( $price_raw > 0 ) : ?>
 							<p class="lpnw-property-card__price<?php echo $is_pcm ? ' lpnw-property-card__price--pcm' : ' lpnw-property-card__price--sale'; ?>">
@@ -118,13 +173,29 @@ if ( empty( $properties ) ) : ?>
 									$baths
 								);
 							}
-							echo esc_html( implode( ' · ', $room_parts ) );
+							echo esc_html( implode( ', ', $room_parts ) );
 							?>
 						</p>
 					<?php endif; ?>
 
+					<?php if ( ! empty( $key_feature_tags ) ) : ?>
+						<div class="lpnw-property-card__features" role="list">
+							<?php foreach ( $key_feature_tags as $lpnw_feature ) : ?>
+								<span class="lpnw-feature-tag" role="listitem"><?php echo esc_html( $lpnw_feature ); ?></span>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
+
 					<?php if ( ! empty( $prop->description ) ) : ?>
 						<p class="lpnw-property-card__description"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $prop->description ), 50 ) ); ?></p>
+					<?php endif; ?>
+
+					<?php if ( '' !== $agent_line ) : ?>
+						<p class="lpnw-property-card__agent"><?php echo esc_html( sprintf( __( 'via %s', 'lpnw-alerts' ), $agent_line ) ); ?></p>
+					<?php endif; ?>
+
+					<?php if ( '' !== $listed_label ) : ?>
+						<p class="lpnw-property-card__listed"><?php echo esc_html( $listed_label ); ?></p>
 					<?php endif; ?>
 
 					<footer class="lpnw-property-card__actions">

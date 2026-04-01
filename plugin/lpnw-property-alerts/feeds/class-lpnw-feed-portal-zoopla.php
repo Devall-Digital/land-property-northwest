@@ -570,7 +570,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 
 		$description = $desc_prefix . implode( '. ', $desc_parts );
 
-		return array(
+		$out = array(
 			'source'           => $this->get_source_name(),
 			'source_ref'       => 'zp-' . $listing_id,
 			'address'          => $address,
@@ -584,5 +584,240 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 			'source_url'       => esc_url_raw( $url ),
 			'raw_data'         => $raw_item,
 		);
+
+		return array_merge( $out, $this->zoopla_optional_structured_fields( $raw_item ) );
+	}
+
+	/**
+	 * Extract optional DB columns from Zoopla JSON or DOM fallback rows.
+	 *
+	 * @param array<string, mixed> $raw_item Raw listing.
+	 * @return array<string, mixed>
+	 */
+	private function zoopla_optional_structured_fields( array $raw_item ): array {
+		$out = array();
+
+		if ( isset( $raw_item['attributes']['bedrooms'] ) ) {
+			$out['bedrooms'] = absint( $raw_item['attributes']['bedrooms'] );
+		} elseif ( isset( $raw_item['num_bedrooms'] ) ) {
+			$out['bedrooms'] = absint( $raw_item['num_bedrooms'] );
+		} elseif ( isset( $raw_item['beds'] ) && '' !== (string) $raw_item['beds'] ) {
+			$n = absint( preg_replace( '/[^0-9]/', '', (string) $raw_item['beds'] ) );
+			if ( $n > 0 ) {
+				$out['bedrooms'] = $n;
+			}
+		}
+
+		if ( isset( $raw_item['attributes']['bathrooms'] ) ) {
+			$out['bathrooms'] = absint( $raw_item['attributes']['bathrooms'] );
+		} elseif ( isset( $raw_item['num_bathrooms'] ) ) {
+			$out['bathrooms'] = absint( $raw_item['num_bathrooms'] );
+		}
+
+		if ( isset( $raw_item['pricing']['label'] ) && is_scalar( $raw_item['pricing']['label'] ) ) {
+			$freq = $this->zoopla_pricing_label_to_frequency( (string) $raw_item['pricing']['label'] );
+			if ( '' !== $freq ) {
+				$out['price_frequency'] = $freq;
+			}
+		}
+
+		$attrs = isset( $raw_item['attributes'] ) && is_array( $raw_item['attributes'] ) ? $raw_item['attributes'] : array();
+		if ( isset( $attrs['tenure'] ) && is_scalar( $attrs['tenure'] ) ) {
+			$t = strtolower( trim( (string) $attrs['tenure'] ) );
+			if ( '' !== $t ) {
+				$out['tenure_type'] = sanitize_text_field( $t );
+			}
+		}
+
+		$sqft = $this->zoopla_extract_floor_area_sqft( $raw_item );
+		if ( null !== $sqft ) {
+			$out['floor_area_sqft'] = $sqft;
+		}
+
+		$listed = $this->zoopla_extract_first_listed_date_ymd( $raw_item );
+		if ( '' !== $listed ) {
+			$out['first_listed_date'] = $listed;
+		}
+
+		$agent = $this->zoopla_extract_agent_name( $raw_item );
+		if ( '' !== $agent ) {
+			$out['agent_name'] = $agent;
+		}
+
+		$features = $this->zoopla_extract_key_features_pipe( $raw_item );
+		if ( '' !== $features ) {
+			$out['key_features_text'] = $features;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Map Zoopla pricing label (e.g. pcm, pw) to a normalised frequency token.
+	 */
+	private function zoopla_pricing_label_to_frequency( string $label ): string {
+		$l = strtolower( trim( $label ) );
+		if ( '' === $l ) {
+			return '';
+		}
+		if ( str_contains( $l, 'pcm' ) || str_contains( $l, 'per month' ) || str_contains( $l, '/month' ) || 'monthly' === $l ) {
+			return 'monthly';
+		}
+		if ( str_contains( $l, 'pw' ) || str_contains( $l, 'per week' ) || str_contains( $l, '/week' ) || 'weekly' === $l ) {
+			return 'weekly';
+		}
+		if ( strlen( $l ) <= 20 && preg_match( '/^[a-z0-9\s\-\/]+$/', $l ) ) {
+			return sanitize_text_field( $l );
+		}
+		return '';
+	}
+
+	/**
+	 * Square feet from attributes when present.
+	 *
+	 * @param array<string, mixed> $raw Raw listing.
+	 * @return int|null
+	 */
+	private function zoopla_extract_floor_area_sqft( array $raw ): ?int {
+		$attrs = isset( $raw['attributes'] ) && is_array( $raw['attributes'] ) ? $raw['attributes'] : array();
+		foreach ( array( 'floorAreaSquareFeet', 'floorAreaSqFeet', 'squareFeet', 'floorAreaInSqft' ) as $k ) {
+			if ( isset( $attrs[ $k ] ) && is_numeric( $attrs[ $k ] ) ) {
+				$n = absint( $attrs[ $k ] );
+				return $n > 0 ? $n : null;
+			}
+		}
+		if ( isset( $attrs['floorArea'] ) ) {
+			$fa = $attrs['floorArea'];
+			if ( is_numeric( $fa ) ) {
+				$n = absint( $fa );
+				return $n > 0 ? $n : null;
+			}
+			if ( is_string( $fa ) && preg_match( '/([\d][\d,\.]*)\s*sq\.?\s*ft\b/i', $fa, $m ) ) {
+				$n = absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+				return $n > 0 ? $n : null;
+			}
+			if ( is_array( $fa ) ) {
+				$val  = $fa['value'] ?? $fa['amount'] ?? null;
+				$unit = strtolower( (string) ( $fa['unit'] ?? '' ) );
+				if ( is_numeric( $val ) ) {
+					$n = absint( $val );
+					if ( $n < 1 ) {
+						return null;
+					}
+					if ( '' !== $unit && ( str_contains( $unit, 'metre' ) || str_contains( $unit, 'sqm' ) || str_contains( $unit, 'm²' ) || str_contains( $unit, 'm2' ) ) ) {
+						return (int) round( $n * 10.7639 );
+					}
+					return $n;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * First listed / published date as Y-m-d.
+	 *
+	 * @param array<string, mixed> $raw Raw listing.
+	 */
+	private function zoopla_extract_first_listed_date_ymd( array $raw ): string {
+		$candidates = array();
+		if ( isset( $raw['listingDates'] ) && is_array( $raw['listingDates'] ) ) {
+			$candidates[] = $raw['listingDates']['firstVisibleDate'] ?? '';
+			$candidates[] = $raw['listingDates']['publishedDate'] ?? '';
+		}
+		$candidates[] = $raw['publicationDate'] ?? '';
+		$candidates[] = $raw['publishedDate'] ?? '';
+		$candidates[] = $raw['createdDate'] ?? '';
+		if ( isset( $raw['dates'] ) && is_array( $raw['dates'] ) ) {
+			$candidates[] = $raw['dates']['published'] ?? '';
+			$candidates[] = $raw['dates']['firstPublished'] ?? '';
+		}
+		foreach ( $candidates as $raw_date ) {
+			if ( ! is_scalar( $raw_date ) ) {
+				continue;
+			}
+			$str = trim( (string) $raw_date );
+			if ( '' === $str ) {
+				continue;
+			}
+			$ts = strtotime( $str );
+			if ( false !== $ts ) {
+				return wp_date( 'Y-m-d', $ts );
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Branch or listing company display name.
+	 *
+	 * @param array<string, mixed> $raw Raw listing.
+	 */
+	private function zoopla_extract_agent_name( array $raw ): string {
+		$paths = array(
+			array( 'branch', 'name' ),
+			array( 'branch', 'branchName' ),
+			array( 'branchName' ),
+			array( 'formattedBranchName' ),
+			array( 'listingCompany', 'name' ),
+			array( 'agent', 'branchName' ),
+			array( 'agent', 'name' ),
+		);
+		foreach ( $paths as $path ) {
+			$v = $raw;
+			foreach ( $path as $p ) {
+				if ( ! is_array( $v ) || ! isset( $v[ $p ] ) ) {
+					continue 2;
+				}
+				$v = $v[ $p ];
+			}
+			if ( is_scalar( $v ) ) {
+				$name = trim( (string) $v );
+				if ( '' !== $name ) {
+					return sanitize_text_field( $name );
+				}
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Feature bullets joined with "|" for storage.
+	 *
+	 * @param array<string, mixed> $raw Raw listing.
+	 */
+	private function zoopla_extract_key_features_pipe( array $raw ): string {
+		$lists = array();
+		if ( isset( $raw['attributes']['features'] ) && is_array( $raw['attributes']['features'] ) ) {
+			$lists[] = $raw['attributes']['features'];
+		}
+		if ( isset( $raw['highlights'] ) && is_array( $raw['highlights'] ) ) {
+			$lists[] = $raw['highlights'];
+		}
+		if ( isset( $raw['bulletPoints'] ) && is_array( $raw['bulletPoints'] ) ) {
+			$lists[] = $raw['bulletPoints'];
+		}
+		if ( isset( $raw['featureSummary'] ) && is_array( $raw['featureSummary'] ) ) {
+			$lists[] = $raw['featureSummary'];
+		}
+		$out = array();
+		foreach ( $lists as $list ) {
+			foreach ( $list as $item ) {
+				if ( is_array( $item ) ) {
+					$item = $item['text'] ?? $item['value'] ?? $item['label'] ?? '';
+				}
+				if ( ! is_scalar( $item ) ) {
+					continue;
+				}
+				$t = sanitize_text_field( trim( (string) $item ) );
+				if ( '' !== $t ) {
+					$out[] = $t;
+				}
+			}
+		}
+		if ( empty( $out ) ) {
+			return '';
+		}
+		return implode( '|', $out );
 	}
 }

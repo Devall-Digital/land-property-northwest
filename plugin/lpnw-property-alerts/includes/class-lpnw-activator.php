@@ -13,6 +13,7 @@ class LPNW_Activator {
 
 	public static function activate(): void {
 		self::create_tables();
+		self::maybe_migrate();
 		self::set_default_options();
 		self::schedule_cron();
 
@@ -36,6 +37,14 @@ class LPNW_Activator {
 			longitude DECIMAL(10,7) DEFAULT NULL,
 			price BIGINT UNSIGNED DEFAULT NULL,
 			property_type VARCHAR(100) DEFAULT NULL,
+			bedrooms TINYINT UNSIGNED DEFAULT NULL,
+			bathrooms TINYINT UNSIGNED DEFAULT NULL,
+			tenure_type VARCHAR(32) DEFAULT NULL,
+			price_frequency VARCHAR(20) DEFAULT NULL,
+			floor_area_sqft INT UNSIGNED DEFAULT NULL,
+			first_listed_date DATE DEFAULT NULL,
+			agent_name VARCHAR(255) DEFAULT NULL,
+			key_features_text TEXT DEFAULT NULL,
 			description TEXT DEFAULT NULL,
 			application_type VARCHAR(100) DEFAULT NULL,
 			auction_date DATE DEFAULT NULL,
@@ -48,7 +57,10 @@ class LPNW_Activator {
 			KEY idx_postcode (postcode),
 			KEY idx_source (source),
 			KEY idx_created (created_at),
-			KEY idx_property_type (property_type)
+			KEY idx_property_type (property_type),
+			KEY idx_bedrooms (bedrooms),
+			KEY idx_tenure (tenure_type),
+			KEY idx_first_listed (first_listed_date)
 		) {$charset};
 
 		CREATE TABLE {$wpdb->prefix}lpnw_subscriber_preferences (
@@ -57,6 +69,11 @@ class LPNW_Activator {
 			areas TEXT DEFAULT NULL,
 			min_price BIGINT UNSIGNED DEFAULT NULL,
 			max_price BIGINT UNSIGNED DEFAULT NULL,
+			min_bedrooms TINYINT UNSIGNED DEFAULT NULL,
+			max_bedrooms TINYINT UNSIGNED DEFAULT NULL,
+			listing_channels TEXT DEFAULT NULL,
+			tenure_preferences TEXT DEFAULT NULL,
+			required_features TEXT DEFAULT NULL,
 			property_types TEXT DEFAULT NULL,
 			alert_types TEXT DEFAULT NULL,
 			frequency VARCHAR(20) NOT NULL DEFAULT 'daily',
@@ -114,6 +131,82 @@ class LPNW_Activator {
 		dbDelta( $sql );
 	}
 
+	private static function maybe_migrate(): void {
+		$current_db_version = get_option( 'lpnw_db_version', '1.0' );
+
+		if ( version_compare( $current_db_version, '2.0', '>=' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$props_table = $wpdb->prefix . 'lpnw_properties';
+		$prefs_table = $wpdb->prefix . 'lpnw_subscriber_preferences';
+
+		$prop_columns = array(
+			'bedrooms'          => 'TINYINT UNSIGNED DEFAULT NULL',
+			'bathrooms'         => 'TINYINT UNSIGNED DEFAULT NULL',
+			'tenure_type'       => 'VARCHAR(32) DEFAULT NULL',
+			'price_frequency'   => 'VARCHAR(20) DEFAULT NULL',
+			'floor_area_sqft'   => 'INT UNSIGNED DEFAULT NULL',
+			'first_listed_date' => 'DATE DEFAULT NULL',
+			'agent_name'        => 'VARCHAR(255) DEFAULT NULL',
+			'key_features_text' => 'TEXT DEFAULT NULL',
+		);
+
+		foreach ( $prop_columns as $col => $definition ) {
+			$exists = $wpdb->get_var( $wpdb->prepare(
+				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
+				DB_NAME,
+				$props_table,
+				$col
+			) );
+			if ( ! $exists ) {
+				$wpdb->query( "ALTER TABLE {$props_table} ADD COLUMN {$col} {$definition} AFTER property_type" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+		}
+
+		$prop_indexes = array(
+			'idx_bedrooms'     => 'bedrooms',
+			'idx_tenure'       => 'tenure_type',
+			'idx_first_listed' => 'first_listed_date',
+		);
+
+		foreach ( $prop_indexes as $idx_name => $idx_col ) {
+			$idx_exists = $wpdb->get_var( $wpdb->prepare(
+				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND INDEX_NAME = %s',
+				DB_NAME,
+				$props_table,
+				$idx_name
+			) );
+			if ( ! $idx_exists ) {
+				$wpdb->query( "ALTER TABLE {$props_table} ADD INDEX {$idx_name} ({$idx_col})" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+		}
+
+		$pref_columns = array(
+			'min_bedrooms'       => 'TINYINT UNSIGNED DEFAULT NULL',
+			'max_bedrooms'       => 'TINYINT UNSIGNED DEFAULT NULL',
+			'listing_channels'   => 'TEXT DEFAULT NULL',
+			'tenure_preferences' => 'TEXT DEFAULT NULL',
+			'required_features'  => 'TEXT DEFAULT NULL',
+		);
+
+		foreach ( $pref_columns as $col => $definition ) {
+			$exists = $wpdb->get_var( $wpdb->prepare(
+				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
+				DB_NAME,
+				$prefs_table,
+				$col
+			) );
+			if ( ! $exists ) {
+				$wpdb->query( "ALTER TABLE {$prefs_table} ADD COLUMN {$col} {$definition} AFTER max_price" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+		}
+
+		update_option( 'lpnw_db_version', '2.0' );
+	}
+
 	private static function set_default_options(): void {
 		$defaults = array(
 			'planning_enabled'     => true,
@@ -126,10 +219,17 @@ class LPNW_Activator {
 			'mautic_api_url'       => '',
 			'mautic_api_user'      => '',
 			'mautic_api_password'  => '',
+			'retention_days'       => 180,
 		);
 
 		if ( false === get_option( 'lpnw_settings' ) ) {
 			add_option( 'lpnw_settings', $defaults );
+		} else {
+			$settings = get_option( 'lpnw_settings', array() );
+			$merged   = wp_parse_args( $settings, $defaults );
+			if ( $merged !== $settings ) {
+				update_option( 'lpnw_settings', $merged );
+			}
 		}
 	}
 
@@ -154,6 +254,9 @@ class LPNW_Activator {
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_free_digest' ) ) {
 			wp_schedule_event( time(), 'weekly', 'lpnw_cron_free_digest' );
+		}
+		if ( ! wp_next_scheduled( 'lpnw_cron_data_retention' ) ) {
+			wp_schedule_event( time(), 'daily', 'lpnw_cron_data_retention' );
 		}
 	}
 }

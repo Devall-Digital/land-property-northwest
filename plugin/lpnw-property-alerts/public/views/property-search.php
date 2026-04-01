@@ -45,6 +45,8 @@ $build_url = static function ( array $extra = array() ) use ( $f, $lpnw_search_b
 			'min_price'  => $f['min_price'],
 			'max_price'  => $f['max_price'],
 			'source'     => $f['source'],
+			'bedrooms'   => $f['bedrooms'],
+			'tenure'     => $f['tenure'],
 		),
 		$extra
 	);
@@ -108,6 +110,25 @@ $signup_url = add_query_arg(
 					<?php foreach ( $source_opts as $val => $slabel ) : ?>
 						<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $f['source'], $val ); ?>><?php echo esc_html( $slabel ); ?></option>
 					<?php endforeach; ?>
+				</select>
+			</div>
+			<div class="lpnw-property-search__field">
+				<label class="lpnw-property-search__label" for="lpnw-search-bedrooms"><?php esc_html_e( 'Bedrooms', 'lpnw-alerts' ); ?></label>
+				<select class="lpnw-property-search__control" name="bedrooms" id="lpnw-search-bedrooms">
+					<option value=""><?php esc_html_e( 'Any', 'lpnw-alerts' ); ?></option>
+					<option value="1" <?php selected( $f['bedrooms'], '1' ); ?>><?php esc_html_e( '1', 'lpnw-alerts' ); ?></option>
+					<option value="2" <?php selected( $f['bedrooms'], '2' ); ?>><?php esc_html_e( '2', 'lpnw-alerts' ); ?></option>
+					<option value="3" <?php selected( $f['bedrooms'], '3' ); ?>><?php esc_html_e( '3', 'lpnw-alerts' ); ?></option>
+					<option value="4" <?php selected( $f['bedrooms'], '4' ); ?>><?php esc_html_e( '4', 'lpnw-alerts' ); ?></option>
+					<option value="5" <?php selected( $f['bedrooms'], '5' ); ?>><?php esc_html_e( '5+', 'lpnw-alerts' ); ?></option>
+				</select>
+			</div>
+			<div class="lpnw-property-search__field">
+				<label class="lpnw-property-search__label" for="lpnw-search-tenure"><?php esc_html_e( 'Tenure', 'lpnw-alerts' ); ?></label>
+				<select class="lpnw-property-search__control" name="tenure" id="lpnw-search-tenure">
+					<option value=""><?php esc_html_e( 'Any', 'lpnw-alerts' ); ?></option>
+					<option value="freehold" <?php selected( $f['tenure'], 'freehold' ); ?>><?php esc_html_e( 'Freehold', 'lpnw-alerts' ); ?></option>
+					<option value="leasehold" <?php selected( $f['tenure'], 'leasehold' ); ?>><?php esc_html_e( 'Leasehold', 'lpnw-alerts' ); ?></option>
 				</select>
 			</div>
 			<div class="lpnw-property-search__field lpnw-property-search__field--submit">

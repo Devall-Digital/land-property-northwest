@@ -557,7 +557,7 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 
 		$description = $desc_prefix . implode( '. ', $desc_parts );
 
-		return array(
+		$out = array(
 			'source'           => $this->get_source_name(),
 			'source_ref'       => 'otm-' . $otm_id,
 			'address'          => $address,
@@ -571,6 +571,129 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			'source_url'       => esc_url_raw( $property_url ),
 			'raw_data'         => $raw_item,
 		);
+
+		return array_merge( $out, $this->otm_optional_structured_fields( $raw_item ) );
+	}
+
+	/**
+	 * Extract optional DB columns from OnTheMarket JSON or DOM fallback rows.
+	 *
+	 * @param array<string, mixed> $raw Raw listing row.
+	 * @return array<string, mixed>
+	 */
+	private function otm_optional_structured_fields( array $raw ): array {
+		$out = array();
+
+		if ( isset( $raw['bedrooms'] ) ) {
+			$out['bedrooms'] = absint( $raw['bedrooms'] );
+		}
+		if ( isset( $raw['bathrooms'] ) ) {
+			$out['bathrooms'] = absint( $raw['bathrooms'] );
+		}
+
+		$tenure = $raw['tenure'] ?? $raw['tenure-type'] ?? $raw['tenureType'] ?? '';
+		if ( is_scalar( $tenure ) ) {
+			$t = strtolower( trim( (string) $tenure ) );
+			if ( '' !== $t ) {
+				$out['tenure_type'] = sanitize_text_field( $t );
+			}
+		}
+
+		$freq = $raw['price-frequency'] ?? $raw['rent-frequency'] ?? $raw['rental-frequency'] ?? '';
+		if ( is_scalar( $freq ) ) {
+			$f = strtolower( trim( (string) $freq ) );
+			if ( '' !== $f ) {
+				$out['price_frequency'] = sanitize_text_field( $f );
+			}
+		}
+
+		$sqft = $this->otm_extract_floor_area_sqft( $raw );
+		if ( null !== $sqft ) {
+			$out['floor_area_sqft'] = $sqft;
+		}
+
+		$listed = $this->otm_extract_first_listed_date_ymd( $raw );
+		if ( '' !== $listed ) {
+			$out['first_listed_date'] = $listed;
+		}
+
+		$agent = $raw['branch-name'] ?? $raw['agent-name'] ?? $raw['agentName'] ?? '';
+		if ( is_scalar( $agent ) ) {
+			$a = trim( (string) $agent );
+			if ( '' !== $a ) {
+				$out['agent_name'] = sanitize_text_field( $a );
+			}
+		}
+
+		if ( ! empty( $raw['features'] ) && is_array( $raw['features'] ) ) {
+			$parts = array();
+			foreach ( $raw['features'] as $feat ) {
+				if ( ! is_scalar( $feat ) ) {
+					continue;
+				}
+				$t = sanitize_text_field( trim( (string) $feat ) );
+				if ( '' !== $t ) {
+					$parts[] = $t;
+				}
+			}
+			if ( ! empty( $parts ) ) {
+				$out['key_features_text'] = implode( '|', $parts );
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Square feet from numeric fields or size summary text.
+	 *
+	 * @param array<string, mixed> $raw Raw listing.
+	 * @return int|null
+	 */
+	private function otm_extract_floor_area_sqft( array $raw ): ?int {
+		foreach ( array( 'floor-area-sq-ft', 'floorAreaSqFt', 'size-square-feet', 'square-feet' ) as $k ) {
+			if ( isset( $raw[ $k ] ) && is_numeric( $raw[ $k ] ) ) {
+				$n = absint( $raw[ $k ] );
+				return $n > 0 ? $n : null;
+			}
+		}
+		foreach ( array( 'size-summary', 'sizeSummary', 'property-size', 'display-size' ) as $k ) {
+			if ( isset( $raw[ $k ] ) && is_string( $raw[ $k ] ) && preg_match( '/([\d][\d,\.]*)\s*sq\.?\s*ft\b/i', $raw[ $k ], $m ) ) {
+				$n = absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+				return $n > 0 ? $n : null;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * First published / listed date as Y-m-d.
+	 *
+	 * @param array<string, mixed> $raw Raw listing.
+	 */
+	private function otm_extract_first_listed_date_ymd( array $raw ): string {
+		$candidates = array(
+			$raw['first-published-date'] ?? '',
+			$raw['firstPublishedDate'] ?? '',
+			$raw['published-date'] ?? '',
+			$raw['date-added'] ?? '',
+			$raw['listed-date'] ?? '',
+			$raw['first-visible-date'] ?? '',
+		);
+		foreach ( $candidates as $raw_date ) {
+			if ( ! is_scalar( $raw_date ) ) {
+				continue;
+			}
+			$str = trim( (string) $raw_date );
+			if ( '' === $str ) {
+				continue;
+			}
+			$ts = strtotime( $str );
+			if ( false !== $ts ) {
+				return wp_date( 'Y-m-d', $ts );
+			}
+		}
+		return '';
 	}
 
 	/**

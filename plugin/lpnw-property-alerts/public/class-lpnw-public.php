@@ -263,6 +263,17 @@ class LPNW_Public {
 			$source = '';
 		}
 
+		$bedrooms         = isset( $_GET['bedrooms'] ) ? sanitize_text_field( wp_unslash( $_GET['bedrooms'] ) ) : '';
+		$bedrooms_allowed = array( '1', '2', '3', '4', '5' );
+		if ( ! in_array( $bedrooms, $bedrooms_allowed, true ) ) {
+			$bedrooms = '';
+		}
+
+		$tenure = isset( $_GET['tenure'] ) ? strtolower( trim( sanitize_text_field( wp_unslash( $_GET['tenure'] ) ) ) ) : '';
+		if ( ! in_array( $tenure, array( 'freehold', 'leasehold' ), true ) ) {
+			$tenure = '';
+		}
+
 		$raw_page = isset( $_GET['page'] ) ? max( 1, absint( wp_unslash( $_GET['page'] ) ) ) : 1;
 
 		$filters = array();
@@ -285,6 +296,12 @@ class LPNW_Public {
 			$filters['auction_sources'] = true;
 		} elseif ( '' !== $source ) {
 			$filters['source'] = $source;
+		}
+		if ( '' !== $bedrooms ) {
+			$filters['bedrooms'] = (int) $bedrooms;
+		}
+		if ( '' !== $tenure ) {
+			$filters['tenure'] = 'freehold' === $tenure ? 'Freehold' : 'Leasehold';
 		}
 
 		$logged_in = is_user_logged_in();
@@ -335,6 +352,8 @@ class LPNW_Public {
 				'min_price'  => $min_price,
 				'max_price'  => $max_price,
 				'source'     => $source,
+				'bedrooms'   => $bedrooms,
+				'tenure'     => $tenure,
 			),
 			'filters'     => $filters,
 			'properties'  => $properties,
@@ -380,17 +399,51 @@ class LPNW_Public {
 		$user_id = get_current_user_id();
 		$tier    = LPNW_Subscriber::get_tier( $user_id );
 
+		$listing_raw = isset( $_POST['listing_channels'] ) ? wp_unslash( $_POST['listing_channels'] ) : array();
+		if ( ! is_array( $listing_raw ) ) {
+			$listing_raw = array();
+		}
+		$allowed_listing = array( 'sale', 'rent' );
+		$listing_channels = array_values( array_intersect( $allowed_listing, array_map( 'sanitize_text_field', $listing_raw ) ) );
+
+		$tenure_raw = isset( $_POST['tenure_preferences'] ) ? wp_unslash( $_POST['tenure_preferences'] ) : array();
+		if ( ! is_array( $tenure_raw ) ) {
+			$tenure_raw = array();
+		}
+		$allowed_tenure = array( 'freehold', 'leasehold', 'share_of_freehold' );
+		$tenure_preferences = array_values( array_intersect( $allowed_tenure, array_map( 'sanitize_text_field', $tenure_raw ) ) );
+
+		$features_raw = isset( $_POST['required_features'] ) ? wp_unslash( $_POST['required_features'] ) : array();
+		if ( ! is_array( $features_raw ) ) {
+			$features_raw = array();
+		}
+		$allowed_features = array( 'garden', 'parking', 'garage', 'new_build', 'chain_free' );
+		$required_features = array_values( array_intersect( $allowed_features, array_map( 'sanitize_text_field', $features_raw ) ) );
+
 		$prefs = array(
-			'areas'          => array_map( 'sanitize_text_field', $_POST['areas'] ?? array() ),
-			'min_price'      => absint( $_POST['min_price'] ?? 0 ),
-			'max_price'      => absint( $_POST['max_price'] ?? 0 ),
-			'property_types' => array_map( 'sanitize_text_field', $_POST['property_types'] ?? array() ),
-			'alert_types'    => array_map( 'sanitize_text_field', $_POST['alert_types'] ?? array() ),
-			'frequency'      => self::clamp_frequency_for_tier(
+			'areas'                => array_map( 'sanitize_text_field', $_POST['areas'] ?? array() ),
+			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
+			'max_price'            => absint( $_POST['max_price'] ?? 0 ),
+			'property_types'       => array_map( 'sanitize_text_field', $_POST['property_types'] ?? array() ),
+			'alert_types'          => array_map( 'sanitize_text_field', $_POST['alert_types'] ?? array() ),
+			'listing_channels'     => $listing_channels,
+			'tenure_preferences'   => $tenure_preferences,
+			'required_features'    => $required_features,
+			'frequency'            => self::clamp_frequency_for_tier(
 				sanitize_text_field( $_POST['frequency'] ?? 'weekly' ),
 				$tier
 			),
 		);
+
+		$min_bedrooms_raw = isset( $_POST['min_bedrooms'] ) ? sanitize_text_field( wp_unslash( $_POST['min_bedrooms'] ) ) : '';
+		if ( '' !== $min_bedrooms_raw ) {
+			$prefs['min_bedrooms'] = min( 10, max( 0, absint( $min_bedrooms_raw ) ) );
+		}
+
+		$max_bedrooms_raw = isset( $_POST['max_bedrooms'] ) ? sanitize_text_field( wp_unslash( $_POST['max_bedrooms'] ) ) : '';
+		if ( '' !== $max_bedrooms_raw ) {
+			$prefs['max_bedrooms'] = min( 10, max( 0, absint( $max_bedrooms_raw ) ) );
+		}
 
 		$saved = LPNW_Subscriber::save_preferences( $user_id, $prefs );
 

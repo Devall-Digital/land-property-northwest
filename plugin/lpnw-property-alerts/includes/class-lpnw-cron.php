@@ -21,6 +21,7 @@ class LPNW_Cron {
 		add_action( 'lpnw_cron_portals', array( __CLASS__, 'run_portal_feeds' ) );
 		add_action( 'lpnw_cron_dispatch_alerts', array( __CLASS__, 'dispatch_alerts' ) );
 		add_action( 'lpnw_cron_free_digest', array( __CLASS__, 'run_free_digest' ) );
+		add_action( 'lpnw_cron_data_retention', array( __CLASS__, 'run_data_retention' ) );
 	}
 
 	/**
@@ -116,5 +117,55 @@ class LPNW_Cron {
 	public static function run_free_digest(): void {
 		$dispatcher = new LPNW_Dispatcher();
 		$dispatcher->send_free_digest();
+	}
+
+	/**
+	 * Remove property rows older than configured retention and related queue/saved rows.
+	 */
+	public static function run_data_retention(): void {
+		global $wpdb;
+
+		$settings       = get_option( 'lpnw_settings', array() );
+		$retention_days = isset( $settings['retention_days'] ) ? absint( $settings['retention_days'] ) : 180;
+		if ( $retention_days < 1 ) {
+			$retention_days = 180;
+		}
+
+		$props_table = $wpdb->prefix . 'lpnw_properties';
+		$queue_table = $wpdb->prefix . 'lpnw_alert_queue';
+		$saved_table = $wpdb->prefix . 'lpnw_saved_properties';
+
+		$deleted_queue = $wpdb->query( $wpdb->prepare(
+			"DELETE q FROM {$queue_table} q
+			INNER JOIN {$props_table} p ON q.property_id = p.id
+			WHERE p.created_at < DATE_SUB(NOW(), INTERVAL %d DAY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$retention_days
+		) );
+		$deleted_queue = false !== $deleted_queue ? (int) $deleted_queue : 0;
+
+		$deleted_saved = $wpdb->query( $wpdb->prepare(
+			"DELETE s FROM {$saved_table} s
+			INNER JOIN {$props_table} p ON s.property_id = p.id
+			WHERE p.created_at < DATE_SUB(NOW(), INTERVAL %d DAY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$retention_days
+		) );
+		$deleted_saved = false !== $deleted_saved ? (int) $deleted_saved : 0;
+
+		$deleted_props = $wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$props_table} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+			$retention_days
+		) );
+		$deleted_props = false !== $deleted_props ? (int) $deleted_props : 0;
+
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational cron diagnostics.
+		error_log(
+			sprintf(
+				'LPNW data retention: deleted %d properties, %d alert_queue rows, %d saved_properties rows (retention_days=%d).',
+				$deleted_props,
+				$deleted_queue,
+				$deleted_saved,
+				$retention_days
+			)
+		);
 	}
 }

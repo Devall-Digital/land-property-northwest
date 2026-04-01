@@ -23,6 +23,39 @@ $frequency      = $prefs ? $prefs->frequency : 'daily';
 $min_price      = $prefs ? $prefs->min_price : '';
 $max_price      = $prefs ? $prefs->max_price : '';
 
+$min_bedrooms_display = '';
+$max_bedrooms_display = '';
+if ( $prefs ) {
+	if ( null !== $prefs->min_bedrooms && '' !== $prefs->min_bedrooms ) {
+		$min_bedrooms_display = (string) (int) $prefs->min_bedrooms;
+	}
+	if ( null !== $prefs->max_bedrooms && '' !== $prefs->max_bedrooms ) {
+		$max_bedrooms_display = (string) (int) $prefs->max_bedrooms;
+	}
+}
+$listing_channels   = ( $prefs && is_array( $prefs->listing_channels ) ) ? $prefs->listing_channels : array();
+$tenure_preferences = ( $prefs && is_array( $prefs->tenure_preferences ) ) ? $prefs->tenure_preferences : array();
+$required_features  = ( $prefs && is_array( $prefs->required_features ) ) ? $prefs->required_features : array();
+
+$listing_channel_options = array(
+	'sale' => __( 'For sale', 'lpnw-alerts' ),
+	'rent' => __( 'To let', 'lpnw-alerts' ),
+);
+
+$tenure_options = array(
+	'freehold'           => __( 'Freehold', 'lpnw-alerts' ),
+	'leasehold'          => __( 'Leasehold', 'lpnw-alerts' ),
+	'share_of_freehold'  => __( 'Share of freehold', 'lpnw-alerts' ),
+);
+
+$feature_options = array(
+	'garden'     => __( 'Garden', 'lpnw-alerts' ),
+	'parking'    => __( 'Parking', 'lpnw-alerts' ),
+	'garage'     => __( 'Garage', 'lpnw-alerts' ),
+	'new_build'  => __( 'New Build', 'lpnw-alerts' ),
+	'chain_free' => __( 'Chain Free', 'lpnw-alerts' ),
+);
+
 $nw_areas = array(
 	'M'  => 'Manchester (M)',
 	'BL' => 'Bolton (BL)',
@@ -129,6 +162,71 @@ $available_alert_types = array(
 					<label class="lpnw-checkbox-group__item">
 						<input type="checkbox" name="property_types[]" value="<?php echo esc_attr( $value ); ?>"
 							<?php checked( in_array( $value, $property_types, true ) ); ?>>
+						<span><?php echo esc_html( $label ); ?></span>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</fieldset>
+
+		<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-bedrooms">
+			<legend class="lpnw-fieldset__legend"><?php esc_html_e( 'Bedrooms', 'lpnw-alerts' ); ?></legend>
+			<p class="lpnw-field__help" id="lpnw-help-bedrooms">
+				<?php esc_html_e( 'Filter by number of bedrooms. Leave blank to see all sizes.', 'lpnw-alerts' ); ?>
+			</p>
+			<div class="lpnw-price-range">
+				<div class="lpnw-price-range__field">
+					<label for="lpnw-min-bedrooms"><?php esc_html_e( 'Min bedrooms', 'lpnw-alerts' ); ?></label>
+					<input type="number" id="lpnw-min-bedrooms" name="min_bedrooms" value="<?php echo esc_attr( $min_bedrooms_display ); ?>" min="0" max="10" step="1" placeholder="<?php esc_attr_e( 'No minimum', 'lpnw-alerts' ); ?>">
+				</div>
+				<div class="lpnw-price-range__field">
+					<label for="lpnw-max-bedrooms"><?php esc_html_e( 'Max bedrooms', 'lpnw-alerts' ); ?></label>
+					<input type="number" id="lpnw-max-bedrooms" name="max_bedrooms" value="<?php echo esc_attr( $max_bedrooms_display ); ?>" min="0" max="10" step="1" placeholder="<?php esc_attr_e( 'No maximum', 'lpnw-alerts' ); ?>">
+				</div>
+			</div>
+		</fieldset>
+
+		<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-listing-channel">
+			<legend class="lpnw-fieldset__legend"><?php esc_html_e( 'Listing channel', 'lpnw-alerts' ); ?></legend>
+			<p class="lpnw-field__help" id="lpnw-help-listing-channel">
+				<?php esc_html_e( 'Choose which listing types you want alerts for. Leave both unchecked to see everything.', 'lpnw-alerts' ); ?>
+			</p>
+			<div class="lpnw-checkbox-group">
+				<?php foreach ( $listing_channel_options as $value => $label ) : ?>
+					<label class="lpnw-checkbox-group__item">
+						<input type="checkbox" name="listing_channels[]" value="<?php echo esc_attr( $value ); ?>"
+							<?php checked( in_array( $value, $listing_channels, true ) ); ?>>
+						<span><?php echo esc_html( $label ); ?></span>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</fieldset>
+
+		<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-tenure">
+			<legend class="lpnw-fieldset__legend"><?php esc_html_e( 'Tenure', 'lpnw-alerts' ); ?></legend>
+			<p class="lpnw-field__help" id="lpnw-help-tenure">
+				<?php esc_html_e( 'Filter by tenure type. Leave unchecked to see all tenure types.', 'lpnw-alerts' ); ?>
+			</p>
+			<div class="lpnw-checkbox-group">
+				<?php foreach ( $tenure_options as $value => $label ) : ?>
+					<label class="lpnw-checkbox-group__item">
+						<input type="checkbox" name="tenure_preferences[]" value="<?php echo esc_attr( $value ); ?>"
+							<?php checked( in_array( $value, $tenure_preferences, true ) ); ?>>
+						<span><?php echo esc_html( $label ); ?></span>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</fieldset>
+
+		<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-features">
+			<legend class="lpnw-fieldset__legend"><?php esc_html_e( 'Features', 'lpnw-alerts' ); ?></legend>
+			<p class="lpnw-field__help" id="lpnw-help-features">
+				<?php esc_html_e( 'Only show properties that have ALL selected features. Leave unchecked to see everything.', 'lpnw-alerts' ); ?>
+			</p>
+			<div class="lpnw-checkbox-group">
+				<?php foreach ( $feature_options as $value => $label ) : ?>
+					<label class="lpnw-checkbox-group__item">
+						<input type="checkbox" name="required_features[]" value="<?php echo esc_attr( $value ); ?>"
+							<?php checked( in_array( $value, $required_features, true ) ); ?>>
 						<span><?php echo esc_html( $label ); ?></span>
 					</label>
 				<?php endforeach; ?>

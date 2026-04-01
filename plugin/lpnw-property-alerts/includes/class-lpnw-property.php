@@ -47,6 +47,14 @@ class LPNW_Property {
 			'longitude'        => isset( $data['longitude'] ) ? floatval( $data['longitude'] ) : null,
 			'price'            => isset( $data['price'] ) ? absint( $data['price'] ) : null,
 			'property_type'    => sanitize_text_field( $data['property_type'] ?? '' ),
+			'bedrooms'         => isset( $data['bedrooms'] ) ? absint( $data['bedrooms'] ) : null,
+			'bathrooms'        => isset( $data['bathrooms'] ) ? absint( $data['bathrooms'] ) : null,
+			'tenure_type'      => sanitize_text_field( $data['tenure_type'] ?? '' ),
+			'price_frequency'  => sanitize_text_field( $data['price_frequency'] ?? '' ),
+			'floor_area_sqft'  => isset( $data['floor_area_sqft'] ) ? absint( $data['floor_area_sqft'] ) : null,
+			'first_listed_date' => isset( $data['first_listed_date'] ) ? sanitize_text_field( $data['first_listed_date'] ) : null,
+			'agent_name'       => sanitize_text_field( $data['agent_name'] ?? '' ),
+			'key_features_text' => sanitize_text_field( $data['key_features_text'] ?? '' ),
 			'description'      => wp_kses_post( $data['description'] ?? '' ),
 			'application_type' => sanitize_text_field( $data['application_type'] ?? '' ),
 			'auction_date'     => isset( $data['auction_date'] ) ? sanitize_text_field( $data['auction_date'] ) : null,
@@ -111,7 +119,8 @@ class LPNW_Property {
 	 * Build WHERE clause and placeholder args for property filters.
 	 *
 	 * @param array<string, mixed> $filters source, auction_sources, postcode_prefix, min_price, max_price,
-	 *                                        property_type, property_type_category, channel (sale|rent), since.
+	 *                                        property_type, property_type_category, channel (sale|rent), since,
+	 *                                        bedrooms (1-5; 5 means five or more), tenure (Freehold|Leasehold).
 	 * @return array{0: string, 1: array<int, mixed>}
 	 */
 	private static function build_filter_where_clause( array $filters ): array {
@@ -160,6 +169,22 @@ class LPNW_Property {
 				$where[] = 'COALESCE(LOWER(TRIM(application_type)), \'\') <> %s';
 				$args[]  = 'rent';
 			}
+		}
+
+		if ( isset( $filters['bedrooms'] ) && '' !== $filters['bedrooms'] && null !== $filters['bedrooms'] ) {
+			$br = absint( $filters['bedrooms'] );
+			if ( $br >= 1 && $br <= 4 ) {
+				$where[] = 'bedrooms = %d';
+				$args[]  = $br;
+			} elseif ( 5 === $br ) {
+				$where[] = 'bedrooms >= %d';
+				$args[]  = 5;
+			}
+		}
+
+		if ( ! empty( $filters['tenure'] ) ) {
+			$where[] = 'tenure_type = %s';
+			$args[]  = sanitize_text_field( $filters['tenure'] );
 		}
 
 		if ( ! empty( $filters['since'] ) ) {
@@ -535,6 +560,179 @@ class LPNW_Property {
 		) );
 
 		return $match ? (int) $match : null;
+	}
+
+	/**
+	 * Property IDs that likely refer to the same physical listing as the given row.
+	 *
+	 * Matches when: same postcode + similar address + same price + same application_type, OR
+	 * same price + same application_type + lat/lng within 0.001 degrees.
+	 *
+	 * @param int $property_id Seed property ID.
+	 * @return array<int>
+	 */
+	public static function find_same_property( int $property_id ): array {
+		$prop = self::get( $property_id );
+		if ( ! $prop ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$table    = $wpdb->prefix . 'lpnw_properties';
+		$postcode = trim( (string) ( $prop->postcode ?? '' ) );
+		$price    = isset( $prop->price ) ? absint( $prop->price ) : 0;
+		$app_type = (string) ( $prop->application_type ?? '' );
+
+		$lat = ( isset( $prop->latitude ) && '' !== $prop->latitude && null !== $prop->latitude ) ? (float) $prop->latitude : null;
+		$lng = ( isset( $prop->longitude ) && '' !== $prop->longitude && null !== $prop->longitude ) ? (float) $prop->longitude : null;
+
+		if ( '' === $postcode && ( null === $lat || null === $lng ) ) {
+			return array( $property_id );
+		}
+
+		if ( 0 === $price ) {
+			return array( $property_id );
+		}
+
+		$candidates = array();
+
+		if ( '' !== $postcode ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
+				WHERE postcode = %s AND price = %d AND COALESCE(application_type, '') = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$postcode,
+				$price,
+				$app_type
+			) );
+			if ( is_array( $rows ) ) {
+				foreach ( $rows as $row ) {
+					$candidates[ (int) $row->id ] = $row;
+				}
+			}
+		}
+
+		if ( null !== $lat && null !== $lng ) {
+			$rows2 = $wpdb->get_results( $wpdb->prepare(
+				"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
+				WHERE price = %d AND COALESCE(application_type, '') = %s
+				AND latitude IS NOT NULL AND longitude IS NOT NULL
+				AND ABS(latitude - %f) <= 0.001 AND ABS(longitude - %f) <= 0.001", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$price,
+				$app_type,
+				$lat,
+				$lng
+			) );
+			if ( is_array( $rows2 ) ) {
+				foreach ( $rows2 as $row ) {
+					$candidates[ (int) $row->id ] = $row;
+				}
+			}
+		}
+
+		$matches = array();
+		foreach ( $candidates as $row ) {
+			$ok = false;
+			if ( '' !== $postcode && (string) $row->postcode === $postcode && self::addresses_similar( (string) $row->address, (string) $prop->address ) ) {
+				$ok = true;
+			}
+			if ( null !== $lat && null !== $lng && null !== $row->latitude && null !== $row->longitude && '' !== $row->latitude && '' !== $row->longitude ) {
+				$rlat = (float) $row->latitude;
+				$rlng = (float) $row->longitude;
+				if ( abs( $rlat - $lat ) <= 0.001 && abs( $rlng - $lng ) <= 0.001 ) {
+					$ok = true;
+				}
+			}
+			if ( $ok ) {
+				$matches[] = (int) $row->id;
+			}
+		}
+
+		$matches[] = $property_id;
+		$matches = array_values( array_unique( $matches ) );
+		sort( $matches, SORT_NUMERIC );
+
+		return $matches;
+	}
+
+	/**
+	 * Human-readable source names for all listings matching the same physical property as this ID.
+	 *
+	 * @param int $property_id Property ID.
+	 * @return array<int, string> Unique display labels (e.g. Rightmove, Zoopla).
+	 */
+	public static function get_source_list( int $property_id ): array {
+		$ids = self::find_same_property( $property_id );
+		if ( empty( $ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$table        = $wpdb->prefix . 'lpnw_properties';
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$sources      = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT source FROM {$table} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			...$ids
+		) );
+
+		if ( ! is_array( $sources ) ) {
+			return array();
+		}
+
+		$labels = array();
+		foreach ( $sources as $src ) {
+			$labels[] = self::source_to_display_name( (string) $src );
+		}
+
+		$labels = array_values( array_unique( $labels ) );
+		sort( $labels, SORT_STRING );
+
+		return $labels;
+	}
+
+	/**
+	 * Normalise address text for comparison.
+	 */
+	private static function normalize_address_for_match( string $address ): string {
+		$a = strtoupper( trim( preg_replace( '/\s+/', ' ', $address ) ) );
+		$a = preg_replace( '/[^A-Z0-9 ]/', '', $a );
+		return is_string( $a ) ? $a : '';
+	}
+
+	/**
+	 * Lightweight similarity check for cross-portal address strings.
+	 */
+	private static function addresses_similar( string $a, string $b ): bool {
+		$na = self::normalize_address_for_match( $a );
+		$nb = self::normalize_address_for_match( $b );
+		if ( '' === $na || '' === $nb ) {
+			return false;
+		}
+		if ( $na === $nb ) {
+			return true;
+		}
+		$min = (int) min( strlen( $na ), strlen( $nb ) );
+		if ( $min < 8 ) {
+			return false;
+		}
+		similar_text( $na, $nb, $pct );
+		return $pct >= 85.0;
+	}
+
+	/**
+	 * Map internal source keys to portal-style labels for UI copy.
+	 */
+	private static function source_to_display_name( string $source ): string {
+		$map = array(
+			'rightmove'   => 'Rightmove',
+			'zoopla'      => 'Zoopla',
+			'onthemarket' => 'OnTheMarket',
+		);
+		if ( isset( $map[ $source ] ) ) {
+			return $map[ $source ];
+		}
+		return ucwords( str_replace( array( '_', '-' ), ' ', $source ) );
 	}
 
 	/**

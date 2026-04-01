@@ -49,7 +49,9 @@ class LPNW_Matcher {
 	 *
 	 * @param object $property   Row from {@see LPNW_Property::get()}.
 	 * @param object $subscriber Row shaped like lpnw_subscriber_preferences: areas, property_types,
-	 *                           alert_types as JSON strings; min_price, max_price optional.
+	 *                           alert_types, listing_channels, tenure_preferences, required_features as JSON strings
+	 *                           (or decoded arrays when from {@see LPNW_Subscriber::get_preferences()});
+	 *                           min_price, max_price, min_bedrooms, max_bedrooms optional.
 	 */
 	public function property_matches_subscriber( object $property, object $subscriber ): bool {
 		return $this->matches( $property, $subscriber );
@@ -73,6 +75,160 @@ class LPNW_Matcher {
 
 		if ( ! $this->matches_alert_type( $property, $subscriber ) ) {
 			return false;
+		}
+
+		if ( ! $this->matches_bedrooms( $property, $subscriber ) ) {
+			return false;
+		}
+
+		if ( ! $this->matches_channel( $property, $subscriber ) ) {
+			return false;
+		}
+
+		if ( ! $this->matches_tenure( $property, $subscriber ) ) {
+			return false;
+		}
+
+		if ( ! $this->matches_features( $property, $subscriber ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Decode a subscriber column that may be a JSON string (raw DB row) or an array (get_preferences).
+	 *
+	 * @param mixed $value Stored value.
+	 * @return array<int|string, mixed>
+	 */
+	private function decode_subscriber_json_array( $value ): array {
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+		if ( is_string( $value ) && '' !== $value ) {
+			$decoded = json_decode( $value, true );
+			return is_array( $decoded ) ? $decoded : array();
+		}
+		return array();
+	}
+
+	/**
+	 * Match bedroom count when both subscriber bounds and property data exist.
+	 *
+	 * @param object $property   Property row.
+	 * @param object $subscriber Preferences row.
+	 * @return bool
+	 */
+	private function matches_bedrooms( object $property, object $subscriber ): bool {
+		$prop_beds = $property->bedrooms ?? null;
+		if ( null === $prop_beds || '' === $prop_beds ) {
+			return true;
+		}
+
+		$prop_beds = (int) $prop_beds;
+
+		$min = $subscriber->min_bedrooms ?? null;
+		if ( null !== $min && '' !== $min ) {
+			$min = (int) $min;
+			if ( $prop_beds < $min ) {
+				return false;
+			}
+		}
+
+		$max = $subscriber->max_bedrooms ?? null;
+		if ( null !== $max && '' !== $max ) {
+			$max = (int) $max;
+			if ( $prop_beds > $max ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Match listing channel (sale/rent) when subscriber restricts channels.
+	 *
+	 * @param object $property   Property row.
+	 * @param object $subscriber Preferences row.
+	 * @return bool
+	 */
+	private function matches_channel( object $property, object $subscriber ): bool {
+		$channels = $this->decode_subscriber_json_array( $subscriber->listing_channels ?? null );
+		if ( empty( $channels ) ) {
+			return true;
+		}
+
+		$app = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
+		$allowed = array();
+		foreach ( $channels as $ch ) {
+			$allowed[] = strtolower( trim( (string) $ch ) );
+		}
+		$allowed = array_filter( $allowed );
+
+		if ( empty( $allowed ) ) {
+			return true;
+		}
+
+		return in_array( $app, $allowed, true );
+	}
+
+	/**
+	 * Match tenure when subscriber restricts tenure; unknown property tenure passes.
+	 *
+	 * @param object $property   Property row.
+	 * @param object $subscriber Preferences row.
+	 * @return bool
+	 */
+	private function matches_tenure( object $property, object $subscriber ): bool {
+		$prefs = $this->decode_subscriber_json_array( $subscriber->tenure_preferences ?? null );
+		if ( empty( $prefs ) ) {
+			return true;
+		}
+
+		$tenure = trim( (string) ( $property->tenure_type ?? '' ) );
+		if ( '' === $tenure ) {
+			return true;
+		}
+
+		$tenure_lc = strtolower( $tenure );
+		foreach ( $prefs as $pref ) {
+			if ( strtolower( trim( (string) $pref ) ) === $tenure_lc ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Match required feature substrings against pipe-delimited key_features_text.
+	 *
+	 * @param object $property   Property row.
+	 * @param object $subscriber Preferences row.
+	 * @return bool
+	 */
+	private function matches_features( object $property, object $subscriber ): bool {
+		$required = $this->decode_subscriber_json_array( $subscriber->required_features ?? null );
+		if ( empty( $required ) ) {
+			return true;
+		}
+
+		$haystack = trim( (string) ( $property->key_features_text ?? '' ) );
+		if ( '' === $haystack ) {
+			return false;
+		}
+
+		$haystack_lc = strtolower( $haystack );
+		foreach ( $required as $feat ) {
+			$needle = strtolower( trim( (string) $feat ) );
+			if ( '' === $needle ) {
+				continue;
+			}
+			if ( false === strpos( $haystack_lc, $needle ) ) {
+				return false;
+			}
 		}
 
 		return true;
