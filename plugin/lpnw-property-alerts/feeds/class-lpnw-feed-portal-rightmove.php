@@ -420,6 +420,20 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		$address  = sanitize_text_field( $raw_item['displayAddress'] ?? '' );
 		$postcode = $this->extract_postcode_from_address( $address );
 
+		$lat = null;
+		$lng = null;
+		if ( isset( $raw_item['location']['latitude'], $raw_item['location']['longitude'] ) ) {
+			$lat = floatval( $raw_item['location']['latitude'] );
+			$lng = floatval( $raw_item['location']['longitude'] );
+		}
+
+		if ( '' === $postcode && null !== $lat && null !== $lng && is_finite( $lat ) && is_finite( $lng ) ) {
+			$resolved = LPNW_Geocoder::reverse_geocode( $lat, $lng );
+			if ( null !== $resolved && '' !== $resolved ) {
+				$postcode = $resolved;
+			}
+		}
+
 		if ( ! empty( $postcode ) && ! $this->is_nw_postcode( $postcode ) ) {
 			return array();
 		}
@@ -440,13 +454,6 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		$rm_id = sanitize_text_field( (string) ( $raw_item['id'] ?? '' ) );
 		if ( empty( $rm_id ) ) {
 			return array();
-		}
-
-		$lat = null;
-		$lng = null;
-		if ( isset( $raw_item['location']['latitude'] ) ) {
-			$lat = floatval( $raw_item['location']['latitude'] );
-			$lng = floatval( $raw_item['location']['longitude'] );
 		}
 
 		$beds  = isset( $raw_item['bedrooms'] ) ? absint( $raw_item['bedrooms'] ) : null;

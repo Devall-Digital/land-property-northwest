@@ -20,6 +20,7 @@ class LPNW_Public {
 		add_shortcode( 'lpnw_contact_form', array( __CLASS__, 'render_contact_form' ) );
 		add_shortcode( 'lpnw_area_stats', array( __CLASS__, 'render_area_stats' ) );
 		add_shortcode( 'lpnw_total_sources', array( __CLASS__, 'render_total_sources' ) );
+		add_shortcode( 'lpnw_property_search', array( __CLASS__, 'render_property_search' ) );
 
 		add_action( 'wp_ajax_lpnw_save_preferences', array( __CLASS__, 'ajax_save_preferences' ) );
 		add_action( 'wp_ajax_lpnw_contact_form', array( __CLASS__, 'ajax_contact_form' ) );
@@ -197,6 +198,176 @@ class LPNW_Public {
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/latest-properties.php';
 		return ob_get_clean();
+	}
+
+	/**
+	 * [lpnw_property_search] - Filterable property browser (URL query params, paginated).
+	 *
+	 * @param array<string, mixed> $atts Shortcode attributes (unused).
+	 * @return string HTML.
+	 */
+	public static function render_property_search( array $atts = array() ): string {
+		defined( 'DONOTCACHEPAGE' ) || define( 'DONOTCACHEPAGE', true );
+
+		$per_page = 12;
+		$state    = self::get_property_search_state( $per_page );
+
+		$filters                 = $state['filters'];
+		$properties              = $state['properties'];
+		$lpnw_show_latest_cta    = false;
+		$lpnw_search_form        = $state['form_values'];
+		$lpnw_search_total       = $state['total'];
+		$lpnw_search_page        = $state['page'];
+		$lpnw_search_total_pages = $state['total_pages'];
+		$lpnw_search_per_page    = $per_page;
+		$lpnw_search_gated       = $state['gate_overlay'];
+		$lpnw_search_range_start = $state['range_start'];
+		$lpnw_search_range_end   = $state['range_end'];
+		$lpnw_search_base_url    = $state['base_url'];
+		$lpnw_area_labels        = LPNW_Property::get_nw_area_labels();
+
+		ob_start();
+		include LPNW_PLUGIN_DIR . 'public/views/property-search.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Parse GET params and run the property search query.
+	 *
+	 * @param int $per_page Results per page.
+	 * @return array<string, mixed>
+	 */
+	private static function get_property_search_state( int $per_page ): array {
+		$area = isset( $_GET['area'] ) ? strtoupper( trim( sanitize_text_field( wp_unslash( $_GET['area'] ) ) ) ) : '';
+		if ( '' !== $area && ! in_array( $area, LPNW_NW_POSTCODES, true ) ) {
+			$area = '';
+		}
+
+		$type_allowed = array( 'Detached', 'Semi-detached', 'Terraced', 'Flat', 'Other' );
+		$type         = isset( $_GET['type'] ) ? sanitize_text_field( wp_unslash( $_GET['type'] ) ) : '';
+		if ( ! in_array( $type, $type_allowed, true ) ) {
+			$type = '';
+		}
+
+		$channel = isset( $_GET['channel'] ) ? strtolower( trim( sanitize_text_field( wp_unslash( $_GET['channel'] ) ) ) ) : '';
+		if ( ! in_array( $channel, array( 'sale', 'rent' ), true ) ) {
+			$channel = '';
+		}
+
+		$min_price = isset( $_GET['min_price'] ) ? absint( wp_unslash( $_GET['min_price'] ) ) : 0;
+		$max_price = isset( $_GET['max_price'] ) ? absint( wp_unslash( $_GET['max_price'] ) ) : 0;
+
+		$source         = isset( $_GET['source'] ) ? sanitize_key( wp_unslash( $_GET['source'] ) ) : '';
+		$source_allowed = array( 'rightmove', 'zoopla', 'onthemarket', 'planning', 'auction' );
+		if ( '' !== $source && ! in_array( $source, $source_allowed, true ) ) {
+			$source = '';
+		}
+
+		$raw_page = isset( $_GET['page'] ) ? max( 1, absint( wp_unslash( $_GET['page'] ) ) ) : 1;
+
+		$filters = array();
+		if ( '' !== $area ) {
+			$filters['postcode_prefix'] = $area;
+		}
+		if ( '' !== $type ) {
+			$filters['property_type_category'] = $type;
+		}
+		if ( '' !== $channel ) {
+			$filters['channel'] = $channel;
+		}
+		if ( $min_price > 0 ) {
+			$filters['min_price'] = $min_price;
+		}
+		if ( $max_price > 0 ) {
+			$filters['max_price'] = $max_price;
+		}
+		if ( 'auction' === $source ) {
+			$filters['auction_sources'] = true;
+		} elseif ( '' !== $source ) {
+			$filters['source'] = $source;
+		}
+
+		$logged_in = is_user_logged_in();
+		$gated     = ! $logged_in && $raw_page > 1;
+
+		$total       = LPNW_Property::count_with_filters( $filters );
+		$total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 1;
+		$page        = $raw_page;
+		if ( $page > $total_pages && $total_pages > 0 ) {
+			$page = $total_pages;
+		}
+
+		$properties    = array();
+		$gate_overlay  = $gated && $total > 0;
+		if ( $gate_overlay ) {
+			// Guests on page 2+ still see the first page of results (blurred) as a preview.
+			$properties = LPNW_Property::query( $filters, $per_page, 0 );
+		} elseif ( ! $gated ) {
+			$offset     = ( $page - 1 ) * $per_page;
+			$properties = LPNW_Property::query( $filters, $per_page, $offset );
+		}
+
+		$range_start = 0;
+		$range_end   = 0;
+		if ( $total > 0 ) {
+			if ( $gate_overlay ) {
+				$range_start = 1;
+				$range_end   = min( $total, $per_page );
+			} else {
+				$range_start = ( $page - 1 ) * $per_page + 1;
+				$range_end   = min( $total, $page * $per_page );
+			}
+		}
+
+		$base_url = '';
+		if ( is_singular() ) {
+			$base_url = get_permalink();
+		}
+		if ( ! is_string( $base_url ) || '' === $base_url ) {
+			$base_url = home_url( '/' );
+		}
+
+		return array(
+			'form_values' => array(
+				'area'       => $area,
+				'type'       => $type,
+				'channel'    => $channel,
+				'min_price'  => $min_price,
+				'max_price'  => $max_price,
+				'source'     => $source,
+			),
+			'filters'     => $filters,
+			'properties'  => $properties,
+			'total'       => $total,
+			'page'        => $gated ? $raw_page : $page,
+			'total_pages'  => $total_pages,
+			'gated'        => $gated,
+			'gate_overlay' => $gate_overlay,
+			'range_start'  => $range_start,
+			'range_end'   => $range_end,
+			'base_url'    => $base_url,
+		);
+	}
+
+	/**
+	 * Build URL for property search with given query args (strips empties).
+	 *
+	 * @param string               $base Base URL.
+	 * @param array<string, mixed> $args Query args; page omitted resets to 1 when merging.
+	 * @return string
+	 */
+	public static function property_search_url( string $base, array $args ): string {
+		$clean = array();
+		foreach ( $args as $key => $val ) {
+			if ( 'page' === $key && 1 === (int) $val ) {
+				continue;
+			}
+			if ( '' === $val || null === $val || 0 === $val ) {
+				continue;
+			}
+			$clean[ $key ] = $val;
+		}
+		return esc_url( add_query_arg( $clean, $base ) );
 	}
 
 	public static function ajax_save_preferences(): void {

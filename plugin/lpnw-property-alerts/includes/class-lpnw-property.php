@@ -75,10 +75,55 @@ class LPNW_Property {
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'lpnw_properties';
+		list( $where_clause, $args ) = self::build_filter_where_clause( $filters );
+		$args[] = $limit;
+		$args[] = $offset;
+
+		return $wpdb->get_results( $wpdb->prepare(
+			"SELECT * FROM {$table} WHERE {$where_clause} ORDER BY created_at DESC LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			...$args
+		) );
+	}
+
+	/**
+	 * Count properties matching the same filters as query().
+	 *
+	 * @param array<string, mixed> $filters Same keys as query().
+	 * @return int
+	 */
+	public static function count_with_filters( array $filters = array() ): int {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_properties';
+		list( $where_clause, $args ) = self::build_filter_where_clause( $filters );
+
+		if ( empty( $args ) ) {
+			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		return (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			...$args
+		) );
+	}
+
+	/**
+	 * Build WHERE clause and placeholder args for property filters.
+	 *
+	 * @param array<string, mixed> $filters source, auction_sources, postcode_prefix, min_price, max_price,
+	 *                                        property_type, property_type_category, channel (sale|rent), since.
+	 * @return array{0: string, 1: array<int, mixed>}
+	 */
+	private static function build_filter_where_clause( array $filters ): array {
+		global $wpdb;
+
 		$where = array( '1=1' );
 		$args  = array();
 
-		if ( ! empty( $filters['source'] ) ) {
+		if ( ! empty( $filters['auction_sources'] ) ) {
+			$where[] = 'source LIKE %s';
+			$args[]  = $wpdb->esc_like( 'auction_' ) . '%';
+		} elseif ( ! empty( $filters['source'] ) ) {
 			$where[] = 'source = %s';
 			$args[]  = sanitize_text_field( $filters['source'] );
 		}
@@ -102,19 +147,98 @@ class LPNW_Property {
 			$args[]  = sanitize_text_field( $filters['property_type'] );
 		}
 
+		if ( ! empty( $filters['property_type_category'] ) ) {
+			self::append_property_type_category_sql( $filters['property_type_category'], $where, $args );
+		}
+
+		if ( ! empty( $filters['channel'] ) ) {
+			$ch = strtolower( trim( sanitize_text_field( $filters['channel'] ) ) );
+			if ( 'rent' === $ch ) {
+				$where[] = 'LOWER(TRIM(COALESCE(application_type, \'\'))) = %s';
+				$args[]  = 'rent';
+			} elseif ( 'sale' === $ch ) {
+				$where[] = 'COALESCE(LOWER(TRIM(application_type)), \'\') <> %s';
+				$args[]  = 'rent';
+			}
+		}
+
 		if ( ! empty( $filters['since'] ) ) {
 			$where[] = 'created_at >= %s';
 			$args[]  = sanitize_text_field( $filters['since'] );
 		}
 
-		$where_clause = implode( ' AND ', $where );
-		$args[]       = $limit;
-		$args[]       = $offset;
+		return array( implode( ' AND ', $where ), $args );
+	}
 
-		return $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE {$where_clause} ORDER BY created_at DESC LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			...$args
-		) );
+	/**
+	 * Restrict by broad property type category (portal-style wording).
+	 *
+	 * @param string               $category One of Detached, Semi-detached, Terraced, Flat, Other.
+	 * @param array<int, string>   $where    WHERE fragments.
+	 * @param array<int, mixed>    $args     prepare args.
+	 */
+	private static function append_property_type_category_sql( string $category, array &$where, array &$args ): void {
+		$category = trim( $category );
+		$allowed  = array( 'Detached', 'Semi-detached', 'Terraced', 'Flat', 'Other' );
+		if ( ! in_array( $category, $allowed, true ) ) {
+			return;
+		}
+
+		$pt = 'LOWER(TRIM(COALESCE(property_type, \'\')))';
+
+		if ( 'Detached' === $category ) {
+			$where[] = "({$pt} LIKE %s AND {$pt} NOT LIKE %s)";
+			$args[]  = '%detached%';
+			$args[]  = '%semi%';
+			return;
+		}
+
+		if ( 'Semi-detached' === $category ) {
+			$where[] = "({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)";
+			$args[]  = '%semi-detached%';
+			$args[]  = '%semi detached%';
+			$args[]  = '%semi-detached %';
+			return;
+		}
+
+		if ( 'Terraced' === $category ) {
+			$where[] = "({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)";
+			$args[]  = '%terraced%';
+			$args[]  = '%terrace%';
+			$args[]  = '%end of terrace%';
+			$args[]  = '%town house%';
+			return;
+		}
+
+		if ( 'Flat' === $category ) {
+			$where[] = "({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)";
+			$args[]  = '%flat%';
+			$args[]  = '%apartment%';
+			$args[]  = '%maisonette%';
+			$args[]  = '%penthouse%';
+			return;
+		}
+
+		// Other: has a type label but not one of the main portal buckets above.
+		$where[] = "TRIM(COALESCE(property_type, '')) <> '' AND NOT (
+			(({$pt} LIKE %s AND {$pt} NOT LIKE %s))
+			OR ({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)
+			OR ({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)
+			OR ({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)
+		)";
+		$args[] = '%detached%';
+		$args[] = '%semi%';
+		$args[] = '%semi-detached%';
+		$args[] = '%semi detached%';
+		$args[] = '%semi-detached %';
+		$args[] = '%terraced%';
+		$args[] = '%terrace%';
+		$args[] = '%end of terrace%';
+		$args[] = '%town house%';
+		$args[] = '%flat%';
+		$args[] = '%apartment%';
+		$args[] = '%maisonette%';
+		$args[] = '%penthouse%';
 	}
 
 	/**

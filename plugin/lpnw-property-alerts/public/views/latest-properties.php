@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+$lpnw_show_latest_cta = isset( $lpnw_show_latest_cta ) ? (bool) $lpnw_show_latest_cta : true;
+
 if ( empty( $properties ) ) : ?>
 	<p><?php esc_html_e( 'No properties found yet. Data feeds are running and will populate shortly.', 'lpnw-alerts' ); ?></p>
 <?php else : ?>
@@ -141,7 +143,7 @@ if ( empty( $properties ) ) : ?>
 		<?php endforeach; ?>
 	</ul>
 	<?php
-	if ( ! empty( $properties ) && ! is_user_logged_in() ) {
+	if ( $lpnw_show_latest_cta && ! empty( $properties ) && ! is_user_logged_in() ) {
 		global $wpdb;
 
 		$shown = count( $properties );
