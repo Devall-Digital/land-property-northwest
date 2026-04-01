@@ -19,21 +19,75 @@ class LPNW_Feed_Auction_Pugh extends LPNW_Feed_Base {
 	}
 
 	protected function fetch(): array {
-		$response = wp_remote_get( self::CATALOGUE_URL, array(
-			'timeout' => 30,
-			'headers' => array(
-				'User-Agent' => 'LPNW-PropertyAlerts/1.0 (land-property-northwest.co.uk)',
-			),
-		) );
+		$response = wp_remote_get(
+			self::CATALOGUE_URL,
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'User-Agent'      => 'Mozilla/5.0 (compatible; LPNW-PropertyAlerts/1.0; +https://land-property-northwest.co.uk)',
+					'Accept'          => 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+					'Accept-Encoding' => 'gzip, deflate',
+					'Accept-Language' => 'en-GB,en;q=0.9',
+				),
+				'decompress' => true,
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
-			error_log( 'LPNW Pugh feed error: ' . $response->get_error_message() );
+			$this->lpnw_diag_log( 'WP_Error: ' . $response->get_error_message(), 0, 0 );
 			return array();
 		}
 
+		$code = (int) wp_remote_retrieve_response_code( $response );
 		$html = wp_remote_retrieve_body( $response );
+		$html = is_string( $html ) ? $html : '';
+		$len  = strlen( $html );
 
-		return $this->extract_lots( $html );
+		if ( 200 !== $code ) {
+			$this->lpnw_diag_log(
+				sprintf( 'non-200 response for catalogue %s; skipping parse', self::CATALOGUE_URL ),
+				$code,
+				$len
+			);
+			return array();
+		}
+
+		$lots = $this->extract_lots( $html );
+
+		if ( array() === $lots && $len > 400 ) {
+			$this->lpnw_diag_log(
+				'HTTP 200 but no lot cards matched XPath; Pugh site HTML structure may have changed (check lot-card / lot selectors).',
+				$code,
+				$len
+			);
+		} elseif ( array() === $lots && $len <= 400 ) {
+			$this->lpnw_diag_log(
+				'HTTP 200 but body very small; possible block or error page.',
+				$code,
+				$len
+			);
+		}
+
+		return $lots;
+	}
+
+	/**
+	 * @param string $message   Context.
+	 * @param int    $http_code HTTP status or 0.
+	 * @param int    $resp_len  Body length.
+	 */
+	private function lpnw_diag_log( string $message, int $http_code, int $resp_len ): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
+		error_log(
+			sprintf(
+				'[LPNW feed=%s] ts=%s http=%d len=%d %s',
+				$this->get_source_name(),
+				gmdate( 'c' ),
+				$http_code,
+				$resp_len,
+				$message
+			)
+		);
 	}
 
 	/**

@@ -21,14 +21,14 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 	 * NW England local planning authority boundary entity IDs.
 	 *
 	 * Each value is the `entity` field from the `local-planning-authority` dataset
-	 * (626xxx series), not ONS codes and not planning-application `organisation-entity`.
+	 * (626xxx series), not ONS codes.
 	 *
 	 * List from: /entity.json?dataset=local-planning-authority&limit=500&field=name&field=entity
 	 *
 	 * Scope planning applications to each LPA using `geometry_entity` (the boundary
 	 * entity id) and `geometry_relation=within`, per Planning Data documentation.
-	 * The `organisation_entity` parameter expects a different publisher id and must not
-	 * be set to these LPA boundary values.
+	 * If `geometry_entity` returns no rows for an LPA, we retry with `organisation_entity`
+	 * as a fallback (same numeric id); results may overlap or be empty depending on provider data.
 	 */
 	private const NW_LPA_ENTITIES = array(
 		// Verified against planning.data.gov.uk on 1 April 2026
@@ -78,6 +78,49 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 		626335, // Westmorland and Furness
 	);
 
+	/**
+	 * Human labels for feed logs (entity id => name).
+	 *
+	 * @var array<int, string>
+	 */
+	private const NW_LPA_ENTITY_LABELS = array(
+		626025 => 'Bolton',
+		626026 => 'Bury',
+		626027 => 'Manchester',
+		626028 => 'Oldham',
+		626029 => 'Rochdale',
+		626030 => 'Salford',
+		626031 => 'Stockport',
+		626032 => 'Tameside',
+		626033 => 'Trafford',
+		626034 => 'Wigan',
+		626047 => 'Knowsley',
+		626048 => 'Liverpool',
+		626050 => 'St. Helens',
+		626049 => 'Sefton',
+		626051 => 'Wirral',
+		626017 => 'Halton',
+		626018 => 'Warrington',
+		626015 => 'Cheshire East',
+		626016 => 'Cheshire West and Chester',
+		626013 => 'Blackburn with Darwen',
+		626014 => 'Blackpool',
+		626035 => 'Burnley',
+		626036 => 'Chorley',
+		626037 => 'Fylde',
+		626038 => 'Hyndburn',
+		626039 => 'Lancaster',
+		626040 => 'Pendle',
+		626041 => 'Preston',
+		626042 => 'Ribble Valley',
+		626043 => 'Rossendale',
+		626044 => 'South Ribble',
+		626045 => 'West Lancashire',
+		626046 => 'Wyre',
+		626334 => 'Cumberland',
+		626335 => 'Westmorland and Furness',
+	);
+
 	public function get_source_name(): string {
 		return 'planning';
 	}
@@ -104,41 +147,170 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function fetch_authority( int $lpa_entity, \DateTime $since ): array {
-		$results = array();
-		$offset  = 0;
-		$limit   = 500;
+		$lpa_name = self::NW_LPA_ENTITY_LABELS[ $lpa_entity ] ?? (string) $lpa_entity;
 
-		do {
-			$url = add_query_arg(
+		$date_args = array(
+			'start_date_year'  => $since->format( 'Y' ),
+			'start_date_month' => $since->format( 'n' ),
+			'start_date_day'   => $since->format( 'j' ),
+			'start_date_match' => 'since',
+		);
+
+		$geom_pack = $this->fetch_planning_application_pages(
+			array_merge(
 				array(
 					'dataset'           => 'planning-application',
 					'geometry_entity'   => $lpa_entity,
 					'geometry_relation' => 'within',
-					'start_date_year'   => $since->format( 'Y' ),
-					'start_date_month'  => $since->format( 'n' ),
-					'start_date_day'    => $since->format( 'j' ),
-					'start_date_match'  => 'since',
-					'limit'             => $limit,
-					'offset'            => $offset,
+				),
+				$date_args
+			),
+			$lpa_entity,
+			$lpa_name,
+			'geometry_entity'
+		);
+
+		$n_geom = count( $geom_pack['entities'] );
+		$this->lpnw_diag_log(
+			sprintf(
+				'LPA %s (entity %d) geometry_entity returned %d row(s)',
+				$lpa_name,
+				$lpa_entity,
+				$n_geom
+			),
+			$geom_pack['last_http'],
+			$geom_pack['last_len']
+		);
+
+		if ( $n_geom > 0 ) {
+			return $geom_pack['entities'];
+		}
+
+		$this->lpnw_diag_log(
+			sprintf(
+				'LPA %s (entity %d) geometry empty; trying organisation_entity fallback',
+				$lpa_name,
+				$lpa_entity
+			),
+			$geom_pack['last_http'],
+			$geom_pack['last_len']
+		);
+
+		$org_pack = $this->fetch_planning_application_pages(
+			array_merge(
+				array(
+					'dataset'             => 'planning-application',
+					'organisation_entity' => $lpa_entity,
+				),
+				$date_args
+			),
+			$lpa_entity,
+			$lpa_name,
+			'organisation_entity'
+		);
+
+		$n_org = count( $org_pack['entities'] );
+		$this->lpnw_diag_log(
+			sprintf(
+				'LPA %s (entity %d) organisation_entity returned %d row(s)',
+				$lpa_name,
+				$lpa_entity,
+				$n_org
+			),
+			$org_pack['last_http'],
+			$org_pack['last_len']
+		);
+
+		return $org_pack['entities'];
+	}
+
+	/**
+	 * Paginate planning-application entities for one query shape.
+	 *
+	 * @param array<string, scalar> $query_base Dataset + filters (excluding limit/offset).
+	 * @param int                   $lpa_entity Entity id for logs.
+	 * @param string                $lpa_name   Human label.
+	 * @param string                $mode       geometry_entity|organisation_entity (log only).
+	 * @return array{entities: array<int, array<string, mixed>>, last_http: int, last_len: int}
+	 */
+	private function fetch_planning_application_pages( array $query_base, int $lpa_entity, string $lpa_name, string $mode ): array {
+		$results    = array();
+		$offset     = 0;
+		$limit      = 500;
+		$last_http  = 0;
+		$last_len   = 0;
+
+		$headers = array(
+			'User-Agent' => 'LPNW-PropertyAlerts/1.0 (+https://land-property-northwest.co.uk)',
+			'Accept'     => 'application/json',
+		);
+
+		do {
+			$url = add_query_arg(
+				array_merge(
+					$query_base,
+					array(
+						'limit'  => $limit,
+						'offset' => $offset,
+					)
 				),
 				self::API_BASE
 			);
 
-			$response = wp_remote_get( $url, array( 'timeout' => 45 ) );
+			$response = wp_remote_get(
+				$url,
+				array(
+					'timeout' => 45,
+					'headers' => $headers,
+				)
+			);
 
 			if ( is_wp_error( $response ) ) {
-				error_log( 'LPNW Planning feed error for entity ' . $lpa_entity . ': ' . $response->get_error_message() );
+				$this->lpnw_diag_log(
+					sprintf(
+						'WP_Error LPA %s entity %d mode=%s: %s',
+						$lpa_name,
+						$lpa_entity,
+						$mode,
+						$response->get_error_message()
+					),
+					0,
+					0
+				);
 				break;
 			}
 
-			$code = wp_remote_retrieve_response_code( $response );
-			if ( 200 !== $code ) {
-				error_log( 'LPNW Planning feed HTTP ' . $code . ' for entity ' . $lpa_entity );
+			$last_http = (int) wp_remote_retrieve_response_code( $response );
+			$raw       = wp_remote_retrieve_body( $response );
+			$raw       = is_string( $raw ) ? $raw : '';
+			$last_len  = strlen( $raw );
+
+			if ( 200 !== $last_http ) {
+				$this->lpnw_diag_log(
+					sprintf(
+						'non-200 LPA %s entity %d mode=%s',
+						$lpa_name,
+						$lpa_entity,
+						$mode
+					),
+					$last_http,
+					$last_len
+				);
 				break;
 			}
 
-			$body = json_decode( wp_remote_retrieve_body( $response ), true );
-			if ( empty( $body ) || ! isset( $body['entities'] ) ) {
+			$body = json_decode( $raw, true );
+			if ( empty( $body ) || ! isset( $body['entities'] ) || ! is_array( $body['entities'] ) ) {
+				$this->lpnw_diag_log(
+					sprintf(
+						'missing entities key or empty JSON LPA %s entity %d mode=%s',
+						$lpa_name,
+						$lpa_entity,
+						$mode
+					),
+					$last_http,
+					$last_len
+				);
 				break;
 			}
 
@@ -153,7 +325,30 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 			}
 		} while ( $has_more );
 
-		return $results;
+		return array(
+			'entities'   => $results,
+			'last_http'  => $last_http,
+			'last_len'   => $last_len,
+		);
+	}
+
+	/**
+	 * @param string $message   Context.
+	 * @param int    $http_code Last HTTP status or 0.
+	 * @param int    $resp_len  Raw body length.
+	 */
+	private function lpnw_diag_log( string $message, int $http_code, int $resp_len ): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
+		error_log(
+			sprintf(
+				'[LPNW feed=%s] ts=%s http=%d len=%d %s',
+				$this->get_source_name(),
+				gmdate( 'c' ),
+				$http_code,
+				$resp_len,
+				$message
+			)
+		);
 	}
 
 	/**

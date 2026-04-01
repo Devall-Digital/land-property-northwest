@@ -43,8 +43,20 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 		$creds = $this->lpnw_get_epc_credentials( $settings );
 
 		if ( '' === $creds['email'] || '' === $creds['api_key'] ) {
+			$missing = array();
+			if ( '' === $creds['email'] ) {
+				$missing[] = 'epc_api_email';
+			}
+			if ( '' === $creds['api_key'] ) {
+				$missing[] = 'epc_api_key';
+			}
 			$this->lpnw_log(
-				'Missing EPC API credentials. The Open Data Communities API requires HTTP Basic auth (email as username, API key as password). Set epc_api_email and epc_api_key in LPNW settings, or store email:key in epc_api_key.'
+				sprintf(
+					'No EPC API credentials configured (missing %s). Open Data Communities requires HTTP Basic auth (email + API key). Skipping fetch.',
+					implode( ' and ', $missing )
+				),
+				0,
+				0
 			);
 			return array();
 		}
@@ -174,24 +186,30 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 			if ( is_wp_error( $response ) ) {
 				$this->lpnw_log(
 					sprintf(
-						'EPC request failed for prefix %s (page %d): %s',
+						'request failed for prefix %s (page %d): %s',
 						$prefix,
 						$page,
 						$response->get_error_message()
-					)
+					),
+					0,
+					0
 				);
 				break;
 			}
 
-			$code = (int) wp_remote_retrieve_response_code( $response );
+			$code     = (int) wp_remote_retrieve_response_code( $response );
+			$body_raw = wp_remote_retrieve_body( $response );
+			$body_raw = is_string( $body_raw ) ? $body_raw : '';
+			$body_len = strlen( $body_raw );
 
 			if ( 401 === $code || 403 === $code ) {
 				$this->lpnw_log(
 					sprintf(
-						'EPC authentication or authorisation failed (HTTP %d) for prefix %s. Verify epc_api_email and epc_api_key match your Open Data Communities account.',
-						$code,
+						'authentication or authorisation failed for prefix %s. Verify epc_api_email and epc_api_key match your Open Data Communities account.',
 						$prefix
-					)
+					),
+					$code,
+					$body_len
 				);
 				break;
 			}
@@ -199,32 +217,34 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 			if ( 429 === $code ) {
 				$this->lpnw_log(
 					sprintf(
-						'EPC rate limited (HTTP 429) for prefix %s page %d. Stopping this prefix; retry later.',
+						'rate limited for prefix %s page %d. Stopping this prefix; retry later.',
 						$prefix,
 						$page
-					)
+					),
+					$code,
+					$body_len
 				);
 				break;
 			}
 
 			if ( 200 !== $code ) {
-				$snippet = wp_remote_retrieve_body( $response );
-				$snippet = is_string( $snippet ) ? wp_strip_all_tags( substr( $snippet, 0, 300 ) ) : '';
+				$snippet = wp_strip_all_tags( substr( $body_raw, 0, 300 ) );
 				$this->lpnw_log(
 					sprintf(
-						'EPC HTTP %d for prefix %s page %d. Body snippet: %s',
+						'unexpected HTTP %d for prefix %s page %d. Body snippet: %s',
 						$code,
 						$prefix,
 						$page,
 						$snippet
-					)
+					),
+					$code,
+					$body_len
 				);
 				break;
 			}
 
-			$body_raw = wp_remote_retrieve_body( $response );
-			if ( ! is_string( $body_raw ) || '' === $body_raw ) {
-				$this->lpnw_log( sprintf( 'EPC empty response body for prefix %s page %d.', $prefix, $page ) );
+			if ( '' === $body_raw ) {
+				$this->lpnw_log( sprintf( 'empty response body for prefix %s page %d.', $prefix, $page ), $code, 0 );
 				break;
 			}
 
@@ -233,24 +253,26 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				$this->lpnw_log(
 					sprintf(
-						'EPC JSON decode error for prefix %s page %d: %s',
+						'JSON decode error for prefix %s page %d: %s',
 						$prefix,
 						$page,
 						json_last_error_msg()
-					)
+					),
+					$code,
+					$body_len
 				);
 				break;
 			}
 
 			if ( ! is_array( $body ) ) {
-				$this->lpnw_log( sprintf( 'EPC decoded body is not an array for prefix %s page %d.', $prefix, $page ) );
+				$this->lpnw_log( sprintf( 'decoded body is not an array for prefix %s page %d.', $prefix, $page ), $code, $body_len );
 				break;
 			}
 
 			$rows = $this->lpnw_normalize_epc_rows( $body );
 			if ( array() === $rows ) {
 				if ( ! array_key_exists( 'rows', $body ) || ! is_array( $body['rows'] ) ) {
-					$this->lpnw_log( sprintf( 'EPC response missing or invalid rows key for prefix %s page %d.', $prefix, $page ) );
+					$this->lpnw_log( sprintf( 'response missing or invalid rows key for prefix %s page %d.', $prefix, $page ), $code, $body_len );
 				}
 				break;
 			}
@@ -275,10 +297,12 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 		if ( $truncated ) {
 			$this->lpnw_log(
 				sprintf(
-					'EPC prefix %s hit max page cap (%d); some rows may be missing.',
+					'prefix %s hit max page cap (%d); some rows may be missing.',
 					$prefix,
 					self::MAX_PAGES_PER_PREFIX
-				)
+				),
+				0,
+				0
 			);
 		}
 
@@ -288,11 +312,22 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 	/**
 	 * Log feed issues (no credentials or PII).
 	 *
-	 * @param string $message Log message.
+	 * @param string $message      Log message.
+	 * @param int    $http_code    Last HTTP status or 0 if N/A.
+	 * @param int    $response_len Response body length or 0.
 	 */
-	private function lpnw_log( string $message ): void {
+	private function lpnw_log( string $message, int $http_code = 0, int $response_len = 0 ): void {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
-		error_log( 'LPNW EPC feed: ' . $message );
+		error_log(
+			sprintf(
+				'[LPNW feed=%s] ts=%s http=%d len=%d %s',
+				$this->get_source_name(),
+				gmdate( 'c' ),
+				$http_code,
+				$response_len,
+				$message
+			)
+		);
 	}
 
 	/**
@@ -319,7 +354,7 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 
 		$columns = $body['column-names'] ?? $body['column_names'] ?? null;
 		if ( ! is_array( $columns ) || array() === $columns ) {
-			$this->lpnw_log( 'EPC JSON rows are indexed arrays but column-names are missing; cannot map fields.' );
+			$this->lpnw_log( 'JSON rows are indexed arrays but column-names are missing; cannot map fields.', 0, 0 );
 			return array();
 		}
 

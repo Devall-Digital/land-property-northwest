@@ -16,17 +16,30 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 
 	private const CSV_URL = 'http://prod.publicdata.landregistry.gov.uk/pp-monthly-update-new-version.csv';
 
+	/**
+	 * Option: Last-Modified header value from the last successful CSV download.
+	 * Used to skip re-download when the monthly file has not changed.
+	 */
+	private const OPTION_CSV_LAST_MODIFIED = 'lpnw_lr_csv_last_modified';
+
 	/** Minimum expected columns per Price Paid row. */
 	private const COLUMN_COUNT = 14;
 
 	/** HTTP timeout for large CSV download (seconds). */
 	private const DOWNLOAD_TIMEOUT = 600;
 
+	/** Timeout for HEAD probe (seconds). */
+	private const HEAD_TIMEOUT = 45;
+
 	public function get_source_name(): string {
 		return 'landregistry';
 	}
 
 	protected function fetch(): array {
+		if ( $this->lpnw_lr_should_skip_download() ) {
+			return array();
+		}
+
 		$tmp_file = wp_normalize_path(
 			trailingslashit( get_temp_dir() ) . 'lpnw-lr-' . wp_generate_password( 16, false, false ) . '.csv'
 		);
@@ -37,44 +50,67 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 			$response = wp_remote_get(
 				self::CSV_URL,
 				array(
-					'timeout'   => self::DOWNLOAD_TIMEOUT,
-					'stream'    => true,
-					'filename'  => $tmp_file,
-					'sslverify' => true,
+					'timeout'     => self::DOWNLOAD_TIMEOUT,
+					'stream'      => true,
+					'filename'    => $tmp_file,
+					'sslverify'   => true,
 					'redirection' => 5,
+					'headers'     => array(
+						'User-Agent' => 'LPNW-PropertyAlerts/1.0 (+https://land-property-northwest.co.uk)',
+						'Accept'     => 'text/csv,*/*;q=0.8',
+					),
 				)
 			);
 
 			if ( is_wp_error( $response ) ) {
-				$this->lpnw_log( 'Download failed: ' . $response->get_error_message() );
+				$this->lpnw_log( 'Download failed: ' . $response->get_error_message(), 0, 0 );
 				return array();
 			}
 
 			$code = (int) wp_remote_retrieve_response_code( $response );
+			$hdr  = wp_remote_retrieve_header( $response, 'content-length' );
+			$clen = is_numeric( $hdr ) ? (int) $hdr : 0;
+
 			if ( 200 !== $code ) {
-				$this->lpnw_log( sprintf( 'Download returned HTTP %d.', $code ) );
+				$body = wp_remote_retrieve_body( $response );
+				$blen = is_string( $body ) ? strlen( $body ) : 0;
+				$this->lpnw_log(
+					sprintf(
+						'CSV URL %s returned HTTP %d (file may have moved; check HM Land Registry Price Paid open data).',
+						self::CSV_URL,
+						$code
+					),
+					$code,
+					$blen > 0 ? $blen : $clen
+				);
 				return array();
 			}
 
 			if ( ! is_string( $tmp_file ) || '' === $tmp_file ) {
-				$this->lpnw_log( 'Invalid temp file path after download.' );
+				$this->lpnw_log( 'Invalid temp file path after download.', $code, $clen );
 				return array();
 			}
 
 			if ( ! is_readable( $tmp_file ) ) {
-				$this->lpnw_log( 'Temp file missing or not readable after download.' );
+				$this->lpnw_log( 'Temp file missing or not readable after download.', $code, $clen );
 				return array();
 			}
 
 			$size = @filesize( $tmp_file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- file may be absent in race conditions.
 			if ( false === $size || $size < 32 ) {
-				$this->lpnw_log( 'Downloaded file is empty or too small.' );
+				$this->lpnw_log( 'Downloaded file is empty or too small.', $code, (int) $size );
 				return array();
 			}
 
-			$results = $this->lpnw_parse_csv_file( $tmp_file );
+			$results = $this->lpnw_parse_csv_file( $tmp_file, $code, $size );
+
+			$last_mod = wp_remote_retrieve_header( $response, 'last-modified' );
+			$last_mod = is_string( $last_mod ) ? trim( $last_mod ) : '';
+			if ( '' !== $last_mod ) {
+				update_option( self::OPTION_CSV_LAST_MODIFIED, $last_mod, false );
+			}
 		} catch ( \Throwable $e ) {
-			$this->lpnw_log( 'Unexpected error during download or parse: ' . $e->getMessage() );
+			$this->lpnw_log( 'Unexpected error during download or parse: ' . $e->getMessage(), 0, 0 );
 			$results = array();
 		} finally {
 			$this->lpnw_delete_temp_file( $tmp_file );
@@ -84,15 +120,88 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 	}
 
 	/**
+	 * If Last-Modified matches the last successful run, skip streaming the CSV again.
+	 */
+	private function lpnw_lr_should_skip_download(): bool {
+		$stored = get_option( self::OPTION_CSV_LAST_MODIFIED, '' );
+		$stored = is_string( $stored ) ? trim( $stored ) : '';
+
+		$head = wp_remote_head(
+			self::CSV_URL,
+			array(
+				'timeout'     => self::HEAD_TIMEOUT,
+				'sslverify'   => true,
+				'redirection' => 5,
+				'headers'     => array(
+					'User-Agent' => 'LPNW-PropertyAlerts/1.0 (+https://land-property-northwest.co.uk)',
+				),
+			)
+		);
+
+		if ( is_wp_error( $head ) ) {
+			$this->lpnw_log(
+				'HEAD probe failed (will attempt full GET): ' . $head->get_error_message(),
+				0,
+				0
+			);
+			return false;
+		}
+
+		$hcode = (int) wp_remote_retrieve_response_code( $head );
+		$hbody = wp_remote_retrieve_body( $head );
+		$hlen  = is_string( $hbody ) ? strlen( $hbody ) : 0;
+
+		if ( 404 === $hcode ) {
+			$this->lpnw_log(
+				sprintf(
+					'HEAD returned 404 for %s; URL may be invalid or relocated.',
+					self::CSV_URL
+				),
+				$hcode,
+				$hlen
+			);
+			return false;
+		}
+
+		if ( 200 !== $hcode ) {
+			$this->lpnw_log(
+				sprintf( 'HEAD returned HTTP %d; proceeding with GET.', $hcode ),
+				$hcode,
+				$hlen
+			);
+			return false;
+		}
+
+		$lm = wp_remote_retrieve_header( $head, 'last-modified' );
+		$lm = is_string( $lm ) ? trim( $lm ) : '';
+
+		if ( '' !== $stored && '' !== $lm && $stored === $lm ) {
+			$this->lpnw_log(
+				sprintf(
+					'Skipping CSV download: Last-Modified unchanged (%s). Monthly file already processed.',
+					$lm
+				),
+				$hcode,
+				$hlen
+			);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * @param string $filepath Absolute path to CSV.
+	 * @param int    $http_code HTTP status from download response.
+	 * @param int    $file_size Downloaded file size in bytes.
 	 * @return array<int, array<string, mixed>>
 	 */
-	private function lpnw_parse_csv_file( string $filepath ): array {
+	private function lpnw_parse_csv_file( string $filepath, int $http_code, int $file_size ): array {
 		$results = array();
 
 		$handle = fopen( $filepath, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Streaming large gov.uk CSV.
 		if ( false === $handle ) {
-			$this->lpnw_log( 'Could not open CSV for reading.' );
+			$this->lpnw_log( 'Could not open CSV for reading.', $http_code, $file_size );
 			return $results;
 		}
 
@@ -137,15 +246,19 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 		} finally {
 			if ( is_resource( $handle ) ) {
 				if ( false === fclose( $handle ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
-					$this->lpnw_log( 'Warning: fclose failed for CSV handle.' );
+					$this->lpnw_log( 'Warning: fclose failed for CSV handle.', $http_code, $file_size );
 				}
 			}
 		}
 
 		if ( 0 === $line ) {
-			$this->lpnw_log( 'CSV contained no rows.' );
+			$this->lpnw_log( 'CSV contained no rows.', $http_code, $file_size );
 		} elseif ( 0 === $matched ) {
-			$this->lpnw_log( sprintf( 'CSV had %d rows but none matched NW postcode prefixes.', $line ) );
+			$this->lpnw_log(
+				sprintf( 'CSV had %d rows but none matched NW postcode prefixes.', $line ),
+				$http_code,
+				$file_size
+			);
 		}
 
 		return $results;
@@ -165,7 +278,7 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Fallback if wp_delete_file failed (permissions).
 			@unlink( $path );
 			if ( file_exists( $path ) ) {
-				$this->lpnw_log( 'Could not remove temp CSV file; delete manually if disk space is a concern.' );
+				$this->lpnw_log( 'Could not remove temp CSV file; delete manually if disk space is a concern.', 0, 0 );
 			}
 		}
 	}
@@ -173,11 +286,22 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 	/**
 	 * Log feed issues (no PII).
 	 *
-	 * @param string $message Log message.
+	 * @param string $message      Log message.
+	 * @param int    $http_code    HTTP status or 0.
+	 * @param int    $response_len Body or file length for context.
 	 */
-	private function lpnw_log( string $message ): void {
+	private function lpnw_log( string $message, int $http_code, int $response_len ): void {
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
-		error_log( 'LPNW Land Registry feed: ' . $message );
+		error_log(
+			sprintf(
+				'[LPNW feed=%s] ts=%s http=%d len=%d %s',
+				$this->get_source_name(),
+				gmdate( 'c' ),
+				$http_code,
+				$response_len,
+				$message
+			)
+		);
 	}
 
 	/**

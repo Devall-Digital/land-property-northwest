@@ -204,8 +204,7 @@ add_filter(
 );
 
 /**
- * GeneratePress: output one logo in the site title area (Customizer logo or bundled SVG).
- * Avoid duplicate marks: GP otherwise prints custom logo inside branding and again via the header "logo" item.
+ * GeneratePress: do not render Customizer logo in branding (avoids broken/empty logo box; title is text).
  */
 add_filter( 'generate_has_logo_site_branding', '__return_false' );
 
@@ -221,7 +220,213 @@ add_filter(
 );
 
 /**
- * GeneratePress: site title area shows the Custom Logo if set, otherwise the bundled SVG.
+ * URL for the Browse Properties page (published page if present, else canonical path).
+ *
+ * @return string
+ */
+function lpnw_theme_get_browse_properties_url(): string {
+	$page = get_page_by_path( 'properties' );
+	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
+		$permalink = get_permalink( $page );
+		if ( is_string( $permalink ) && '' !== $permalink ) {
+			return $permalink;
+		}
+	}
+
+	return home_url( '/properties/' );
+}
+
+/**
+ * Whether a nav item is the static front page / home link.
+ *
+ * @param object $item Menu item object.
+ * @return bool
+ */
+function lpnw_theme_nav_item_is_home( $item ): bool {
+	if ( ! is_object( $item ) ) {
+		return false;
+	}
+
+	$front_id = (int) get_option( 'page_on_front' );
+	if ( $front_id > 0 && isset( $item->object_id, $item->type, $item->object )
+		&& 'post_type' === $item->type && 'page' === $item->object
+		&& (int) $item->object_id === $front_id ) {
+		return true;
+	}
+
+	if ( ! empty( $item->url ) && is_string( $item->url ) ) {
+		$item_url = untrailingslashit( $item->url );
+		$home     = untrailingslashit( home_url( '/' ) );
+		if ( $item_url === $home ) {
+			return true;
+		}
+	}
+
+	if ( ! empty( $item->classes ) && is_array( $item->classes ) && in_array( 'menu-item-home', $item->classes, true ) ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Whether a nav item is Browse Properties.
+ *
+ * @param object $item Menu item object.
+ * @return bool
+ */
+function lpnw_theme_nav_item_is_browse_properties( $item ): bool {
+	if ( ! is_object( $item ) ) {
+		return false;
+	}
+
+	if ( isset( $item->object_id, $item->type, $item->object )
+		&& 'post_type' === $item->type && 'page' === $item->object ) {
+		$page = get_post( (int) $item->object_id );
+		if ( $page instanceof WP_Post && 'properties' === $page->post_name ) {
+			return true;
+		}
+	}
+
+	if ( ! empty( $item->url ) && is_string( $item->url ) ) {
+		$path = wp_parse_url( $item->url, PHP_URL_PATH );
+		if ( is_string( $path ) && preg_match( '#(^|/)properties/?$#', $path ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Whether a nav item is the Pricing page.
+ *
+ * @param object $item Menu item object.
+ * @return bool
+ */
+function lpnw_theme_nav_item_is_pricing( $item ): bool {
+	if ( ! is_object( $item ) ) {
+		return false;
+	}
+
+	if ( isset( $item->object_id, $item->type, $item->object )
+		&& 'post_type' === $item->type && 'page' === $item->object ) {
+		$page = get_post( (int) $item->object_id );
+		if ( $page instanceof WP_Post && 'pricing' === $page->post_name ) {
+			return true;
+		}
+	}
+
+	if ( ! empty( $item->url ) && is_string( $item->url ) ) {
+		$path = wp_parse_url( $item->url, PHP_URL_PATH );
+		if ( is_string( $path ) && false !== strpos( $path, 'pricing' ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Synthetic primary-menu item: Browse Properties.
+ *
+ * @return stdClass
+ */
+function lpnw_theme_nav_browse_properties_item(): stdClass {
+	$url  = lpnw_theme_get_browse_properties_url();
+	$item = new stdClass();
+
+	$item->ID                    = 91000001;
+	$item->db_id                 = 91000001;
+	$item->menu_item_parent      = 0;
+	$item->object_id             = 91000001;
+	$item->post_parent           = 0;
+	$item->type                  = 'custom';
+	$item->object                = 'custom';
+	$item->type_label            = __( 'Custom Link', 'lpnw-theme' );
+	$item->title                 = __( 'Browse Properties', 'lpnw-theme' );
+	$item->url                   = $url;
+	$item->target                = '';
+	$item->attr_title            = '';
+	$item->description           = '';
+	$item->xfn                   = '';
+	$item->classes               = array(
+		'menu-item',
+		'menu-item-type-custom',
+		'menu-item-object-custom',
+		'lpnw-menu-browse-properties',
+	);
+	$item->current               = false;
+	$item->current_item_ancestor = false;
+	$item->current_item_parent   = false;
+
+	return $item;
+}
+
+/**
+ * Primary menu: Home, Browse Properties, Pricing, then other items in original order.
+ *
+ * @param array<int, object> $items Sorted menu items.
+ * @param object             $args  wp_nav_menu() arguments.
+ * @return array<int, object>
+ */
+function lpnw_theme_nav_order_primary( array $items, $args ): array {
+	if ( empty( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+		return $items;
+	}
+
+	$home_items   = array();
+	$browse_items = array();
+	$pricing_items = array();
+	$rest         = array();
+
+	foreach ( $items as $item ) {
+		if ( ! is_object( $item ) || ! isset( $item->ID ) ) {
+			continue;
+		}
+		if ( lpnw_theme_nav_item_is_home( $item ) ) {
+			$home_items[] = $item;
+		} elseif ( lpnw_theme_nav_item_is_browse_properties( $item ) ) {
+			$browse_items[] = $item;
+		} elseif ( lpnw_theme_nav_item_is_pricing( $item ) ) {
+			$pricing_items[] = $item;
+		} else {
+			$rest[] = $item;
+		}
+	}
+
+	$ordered = array();
+
+	if ( ! empty( $home_items ) ) {
+		$ordered[] = $home_items[0];
+		for ( $i = 1, $c = count( $home_items ); $i < $c; $i++ ) {
+			$rest[] = $home_items[ $i ];
+		}
+	}
+
+	if ( ! empty( $browse_items ) ) {
+		$ordered[] = $browse_items[0];
+		for ( $i = 1, $c = count( $browse_items ); $i < $c; $i++ ) {
+			$rest[] = $browse_items[ $i ];
+		}
+	} else {
+		$ordered[] = lpnw_theme_nav_browse_properties_item();
+	}
+
+	if ( ! empty( $pricing_items ) ) {
+		$ordered[] = $pricing_items[0];
+		for ( $i = 1, $c = count( $pricing_items ); $i < $c; $i++ ) {
+			$rest[] = $pricing_items[ $i ];
+		}
+	}
+
+	return array_merge( $ordered, $rest );
+}
+
+add_filter( 'wp_nav_menu_objects', 'lpnw_theme_nav_order_primary', 15, 2 );
+
+/**
+ * GeneratePress: site title is text only (no Custom Logo / SVG in header).
  *
  * @param string $output Default title HTML.
  * @return string
@@ -232,28 +437,13 @@ add_filter(
 		$schema = function_exists( 'generate_get_schema_type' ) && 'microdata' === generate_get_schema_type() ? ' itemprop="headline"' : '';
 		$tag    = ( is_front_page() && is_home() ) ? 'h1' : 'p';
 		$href   = esc_url( apply_filters( 'generate_site_title_href', home_url( '/' ) ) );
-
-		if ( function_exists( 'has_custom_logo' ) && has_custom_logo() ) {
-			$logo = get_custom_logo();
-			if ( '' !== $logo ) {
-				return sprintf(
-					'<%1$s class="main-title lpnw-site-logo"%3$s>%2$s</%1$s>',
-					tag_escape( $tag ),
-					$logo, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core returns escaped custom logo HTML.
-					$schema
-				);
-			}
-		}
-
-		$logo_url = get_stylesheet_directory_uri() . '/assets/img/logo-full.svg';
-		$alt      = esc_attr( get_bloginfo( 'name', 'display' ) );
+		$name   = esc_html__( 'Land & Property Northwest', 'lpnw-theme' );
 
 		return sprintf(
-			'<%1$s class="main-title lpnw-site-logo"%5$s><a href="%2$s" rel="home" class="lpnw-site-logo__link"><img src="%3$s" alt="%4$s" class="lpnw-site-logo__img" width="380" height="72" loading="eager" decoding="async" /></a></%1$s>',
+			'<%1$s class="main-title lpnw-site-title"%4$s><a href="%2$s" class="lpnw-site-title__link" rel="home">%3$s</a></%1$s>',
 			tag_escape( $tag ),
 			$href,
-			esc_url( $logo_url ),
-			$alt,
+			$name,
 			$schema
 		);
 	},

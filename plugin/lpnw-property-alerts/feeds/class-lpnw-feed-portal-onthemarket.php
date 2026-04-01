@@ -16,6 +16,19 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 
 	private const BASE_URL = 'https://www.onthemarket.com';
 
+	private const MOBILE_BASE_URL = 'https://m.onthemarket.com';
+
+	/**
+	 * Rotate User-Agents to reduce single-fingerprint blocks.
+	 *
+	 * @var array<string, string>
+	 */
+	private const USER_AGENTS = array(
+		'chrome'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+		'firefox' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+		'safari'  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+	);
+
 	/**
 	 * NW location URL slugs (lowercase) and labels for logging.
 	 *
@@ -44,20 +57,6 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	private const OPTION_CURSOR = 'lpnw_otm_cursor';
 
 	private const TIME_BUDGET_SECONDS = 25.0;
-
-	private const REQUEST_HEADERS = array(
-		'User-Agent'                => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-		'Accept'                    => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-		'Accept-Language'           => 'en-GB,en;q=0.9',
-		'Accept-Encoding'           => 'gzip, deflate, br',
-		'Cache-Control'             => 'no-cache',
-		'Connection'                => 'keep-alive',
-		'Sec-Fetch-Dest'            => 'document',
-		'Sec-Fetch-Mode'            => 'navigate',
-		'Sec-Fetch-Site'            => 'none',
-		'Sec-Fetch-User'            => '?1',
-		'Upgrade-Insecure-Requests' => '1',
-	);
 
 	public function get_source_name(): string {
 		return 'onthemarket';
@@ -118,8 +117,7 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 
 		for ( $n = 0; $n < $batch_size; $n++ ) {
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'LPNW OnTheMarket: stopping batch early (time budget)' );
+				$this->lpnw_diag_log( 'stopping batch early (time budget)', 0, 0 );
 				break;
 			}
 
@@ -131,15 +129,13 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			}
 
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'LPNW OnTheMarket: stopping batch early (time budget before fetch)' );
+				$this->lpnw_diag_log( 'stopping batch early (time budget before fetch)', 0, 0 );
 				break;
 			}
 
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW OnTheMarket: fetching %s %s [%s] [pair %d/%d, batch %d/%d]',
+					'fetching %s %s [%s] [pair %d/%d, batch %d/%d]',
 					$pair['label'],
 					$pair['section'],
 					$pair['slug'],
@@ -147,7 +143,9 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 					$total_pairs,
 					$processed + 1,
 					$batch_size
-				)
+				),
+				0,
+				0
 			);
 
 			$rows = $this->fetch_area_section( $pair['slug'], $pair['label'], $pair['section'] );
@@ -164,15 +162,16 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 		$all_properties = $this->deduplicate( $all_properties );
 
 		$next_idx = ( $new_last + 1 ) % $total_pairs;
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log(
+		$this->lpnw_diag_log(
 			sprintf(
-				'LPNW OnTheMarket: batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
+				'batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
 				$processed,
 				$new_last,
 				$next_idx,
 				count( $all_properties )
-			)
+			),
+			0,
+			0
 		);
 
 		return $all_properties;
@@ -185,91 +184,166 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function fetch_area_section( string $slug, string $label, string $section ): array {
-		$path    = '/' . $section . '/property/' . rawurlencode( $slug ) . '/';
-		$url     = self::BASE_URL . $path;
-		$url     = add_query_arg(
-			array(
-				'sort' => 'recently-added',
-			),
-			$url
-		);
-		$headers = self::REQUEST_HEADERS;
-		$headers['Referer'] = self::BASE_URL . '/';
+		$strategies = array();
+		foreach ( array( 'www' => self::BASE_URL, 'mobile' => self::MOBILE_BASE_URL ) as $host_label => $base ) {
+			foreach ( self::USER_AGENTS as $ua_label => $ua ) {
+				$strategies[] = array(
+					'host'     => $host_label,
+					'ua_label' => $ua_label,
+					'base'     => $base,
+					'ua'       => $ua,
+				);
+			}
+		}
 
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout'    => 30,
-				'headers'    => $headers,
-				'decompress' => true,
-			)
-		);
+		$last_http = 0;
+		$last_len  = 0;
 
-		if ( is_wp_error( $response ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+		foreach ( $strategies as $s ) {
+			$path = '/' . $section . '/property/' . rawurlencode( $slug ) . '/';
+			$url  = untrailingslashit( $s['base'] ) . $path;
+			$url  = add_query_arg( array( 'sort' => 'recently-added' ), $url );
+
+			$response = wp_remote_get(
+				$url,
+				array(
+					'timeout'    => 30,
+					'headers'    => $this->otm_request_headers( $s['ua'], $s['base'] ),
+					'decompress' => true,
+				)
+			);
+
+			if ( is_wp_error( $response ) ) {
+				$this->lpnw_diag_log(
+					sprintf(
+						'WP_Error %s %s (%s) host=%s ua=%s: %s',
+						$label,
+						$section,
+						$slug,
+						$s['host'],
+						$s['ua_label'],
+						$response->get_error_message()
+					),
+					0,
+					0
+				);
+				continue;
+			}
+
+			$code      = (int) wp_remote_retrieve_response_code( $response );
+			$body      = wp_remote_retrieve_body( $response );
+			$body      = is_string( $body ) ? $body : '';
+			$last_http = $code;
+			$last_len  = strlen( $body );
+
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW OnTheMarket: HTTP error for %s %s (%s): %s',
+					'response %s %s (%s) host=%s ua=%s',
 					$label,
 					$section,
 					$slug,
-					$response->get_error_message()
-				)
-			);
-			return array();
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log(
-			sprintf(
-				'LPNW OnTheMarket: %s %s (%s) - HTTP %d, body length %d',
-				$label,
-				$section,
-				$slug,
+					$s['host'],
+					$s['ua_label']
+				),
 				$code,
-				strlen( $body )
-			)
-		);
+				$last_len
+			);
 
-		if ( 200 !== $code ) {
 			if ( 403 === $code || 429 === $code ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'LPNW OnTheMarket: rate limited or blocked, backing off 5s' );
-				sleep( 5 );
-			} else {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log(
+				$this->lpnw_diag_log(
 					sprintf(
-						'LPNW OnTheMarket: non-200 for %s %s (%s), skipping pair',
-						$label,
-						$section,
-						$slug
-					)
+						'rate limited or blocked (HTTP %d) host=%s ua=%s — backing off 5s then trying next strategy',
+						$code,
+						$s['host'],
+						$s['ua_label']
+					),
+					$code,
+					$last_len
 				);
+				sleep( 5 );
+				continue;
 			}
-			return array();
+
+			if ( 200 !== $code ) {
+				continue;
+			}
+
+			$extracted = $this->extract_listings_with_method( $body, $label, $section, $slug );
+			$listings  = $extracted['listings'];
+			$method    = $extracted['method'];
+
+			$this->lpnw_diag_log(
+				sprintf(
+					'parsed %s %s (%s) host=%s ua=%s method=%s count=%d',
+					$label,
+					$section,
+					$slug,
+					$s['host'],
+					$s['ua_label'],
+					$method,
+					count( $listings )
+				),
+				$code,
+				$last_len
+			);
+
+			return $listings;
 		}
 
-		$extracted = $this->extract_listings_with_method( $body, $label, $section, $slug );
-		$listings  = $extracted['listings'];
-		$method    = $extracted['method'];
-
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log(
+		$this->lpnw_diag_log(
 			sprintf(
-				'LPNW OnTheMarket: %s %s (%s) - method %s, extracted %d properties',
+				'all fetch strategies exhausted for %s %s (%s); last http=%d',
 				$label,
 				$section,
 				$slug,
-				$method,
-				count( $listings )
-			)
+				$last_http
+			),
+			$last_http,
+			$last_len
 		);
 
-		return $listings;
+		return array();
+	}
+
+	/**
+	 * @param string $user_agent User-Agent string.
+	 * @param string $base       Host base URL for Referer.
+	 * @return array<string, string>
+	 */
+	private function otm_request_headers( string $user_agent, string $base ): array {
+		return array(
+			'User-Agent'                => $user_agent,
+			'Accept'                    => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+			'Accept-Language'           => 'en-GB,en;q=0.9',
+			'Accept-Encoding'           => 'gzip, deflate',
+			'Cache-Control'             => 'no-cache',
+			'Connection'                => 'keep-alive',
+			'Referer'                   => untrailingslashit( $base ) . '/',
+			'Sec-Fetch-Dest'            => 'document',
+			'Sec-Fetch-Mode'            => 'navigate',
+			'Sec-Fetch-Site'            => 'none',
+			'Sec-Fetch-User'            => '?1',
+			'Upgrade-Insecure-Requests' => '1',
+		);
+	}
+
+	/**
+	 * @param string $message   Context.
+	 * @param int    $http_code HTTP status or 0.
+	 * @param int    $resp_len  Body length.
+	 */
+	private function lpnw_diag_log( string $message, int $http_code, int $resp_len ): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
+		error_log(
+			sprintf(
+				'[LPNW feed=%s] ts=%s http=%d len=%d %s',
+				$this->get_source_name(),
+				gmdate( 'c' ),
+				$http_code,
+				$resp_len,
+				$message
+			)
+		);
 	}
 
 	/**
@@ -282,7 +356,8 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @return array{listings: array<int, array<string, mixed>>, method: string}
 	 */
 	private function extract_listings_with_method( string $html, string $label, string $section, string $slug ): array {
-		$from_next = $this->extract_from_next_data( $html, $label, $section, $slug );
+		$html_len  = strlen( $html );
+		$from_next = $this->extract_from_next_data( $html, $label, $section, $slug, $html_len );
 
 		if ( ! empty( $from_next['listings'] ) ) {
 			return array(
@@ -295,16 +370,17 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 
 		if ( empty( $listings ) ) {
 			$has_next = ( strpos( $html, '__NEXT_DATA__' ) !== false );
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW OnTheMarket: no property data for %s %s (%s). __NEXT_DATA__ present: %s, HTML snippet: %s',
+					'no property data for %s %s (%s). __NEXT_DATA__ present: %s, HTML snippet: %s',
 					$label,
 					$section,
 					$slug,
 					$has_next ? 'yes' : 'no',
 					substr( $html, 0, 500 )
-				)
+				),
+				0,
+				$html_len
 			);
 			return array(
 				'listings' => array(),
@@ -325,9 +401,10 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @param string $label   Area label for logging.
 	 * @param string $section Section for logging.
 	 * @param string $slug    Slug for logging.
+	 * @param int    $html_len Cached strlen( html ).
 	 * @return array{listings: array<int, array<string, mixed>>, method: string}
 	 */
-	private function extract_from_next_data( string $html, string $label, string $section, string $slug ): array {
+	private function extract_from_next_data( string $html, string $label, string $section, string $slug, int $html_len ): array {
 		$empty = array( 'listings' => array(), 'method' => '' );
 
 		if ( ! preg_match( '/<script\s+id="__NEXT_DATA__"[^>]*type="application\/json"[^>]*>(.*?)<\/script>/s', $html, $matches ) ) {
@@ -336,21 +413,21 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			}
 		}
 
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log(
+		$this->lpnw_diag_log(
 			sprintf(
-				'LPNW OnTheMarket: found __NEXT_DATA__ for %s %s (%s), JSON length %d',
+				'found __NEXT_DATA__ for %s %s (%s), JSON length %d',
 				$label,
 				$section,
 				$slug,
 				strlen( $matches[1] )
-			)
+			),
+			0,
+			$html_len
 		);
 
 		$data = json_decode( $matches[1], true );
 		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $data ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'LPNW OnTheMarket: __NEXT_DATA__ JSON decode error: ' . json_last_error_msg() );
+			$this->lpnw_diag_log( '__NEXT_DATA__ JSON decode error: ' . json_last_error_msg(), 0, $html_len );
 			return array( 'listings' => array(), 'method' => '__NEXT_DATA___decode_failed' );
 		}
 
@@ -360,14 +437,15 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 		}
 
 		if ( ! is_array( $list ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW OnTheMarket: __NEXT_DATA__ found but no results.list for %s %s (%s)',
+					'__NEXT_DATA__ found but no results.list for %s %s (%s)',
 					$label,
 					$section,
 					$slug
-				)
+				),
+				0,
+				$html_len
 			);
 			return array( 'listings' => array(), 'method' => '__NEXT_DATA__' );
 		}
@@ -455,10 +533,7 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 
 		$dupes_removed = count( $rows ) - count( $uniq );
 		if ( $dupes_removed > 0 ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
-				sprintf( 'LPNW OnTheMarket: deduplicated %d duplicate properties', $dupes_removed )
-			);
+			$this->lpnw_diag_log( sprintf( 'deduplicated %d duplicate properties', $dupes_removed ), 0, 0 );
 		}
 
 		return $uniq;

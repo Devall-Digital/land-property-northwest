@@ -7,9 +7,9 @@
  *
  * Zoopla uses Cloudflare protection which may block server-side requests.
  * Each cron run processes a batch of area+section pairs (see lpnw_zoopla_cursor)
- * with a time budget so shared hosting limits are respected. If Cloudflare
- * blocks a request, that pair is skipped and the cursor advances so the same
- * area is not retried indefinitely on the next run.
+ * with a time budget so shared hosting limits are respected. Fetches rotate
+ * Chrome/Firefox/Safari User-Agents and try www and m.zoopla.co.uk before giving up.
+ * If all strategies fail, logs explain why and the cursor still advances.
  *
  * @package LPNW_Property_Alerts
  */
@@ -19,6 +19,20 @@ defined( 'ABSPATH' ) || exit;
 class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 
 	private const BASE_URL = 'https://www.zoopla.co.uk';
+
+	/** Mobile host; sometimes less aggressively protected than www. */
+	private const MOBILE_BASE_URL = 'https://m.zoopla.co.uk';
+
+	/**
+	 * Browser-like User-Agents to rotate (Cloudflare often blocks a single fingerprint).
+	 *
+	 * @var array<string, string>
+	 */
+	private const USER_AGENTS = array(
+		'chrome'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+		'firefox' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
+		'safari'  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+	);
 
 	/**
 	 * Zoopla uses URL path slugs for locations.
@@ -50,15 +64,6 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	private const OPTION_CURSOR = 'lpnw_zoopla_cursor';
 
 	private const TIME_BUDGET_SECONDS = 25.0;
-
-	private const REQUEST_HEADERS = array(
-		'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-		'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-		'Accept-Language' => 'en-GB,en;q=0.9',
-		'Accept-Encoding' => 'gzip, deflate',
-		'Connection'      => 'keep-alive',
-		'Cache-Control'   => 'no-cache',
-	);
 
 	public function get_source_name(): string {
 		return 'zoopla';
@@ -116,7 +121,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 
 		for ( $n = 0; $n < $batch_size; $n++ ) {
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				error_log( 'LPNW Zoopla: stopping batch early (time budget)' );
+				$this->lpnw_diag_log( 'stopping batch early (time budget)', 0, 0 );
 				break;
 			}
 
@@ -128,13 +133,13 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 			}
 
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				error_log( 'LPNW Zoopla: stopping batch early (time budget before fetch)' );
+				$this->lpnw_diag_log( 'stopping batch early (time budget before fetch)', 0, 0 );
 				break;
 			}
 
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW Zoopla: fetching %s %s [%s] [pair %d/%d, batch %d/%d]',
+					'fetching %s %s [%s] [pair %d/%d, batch %d/%d]',
 					$pair['area_name'],
 					$pair['section'],
 					$pair['slug'],
@@ -142,7 +147,9 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 					$total_pairs,
 					$processed + 1,
 					$batch_size
-				)
+				),
+				0,
+				0
 			);
 
 			$properties     = $this->fetch_area( $pair['slug'], $pair['area_name'], $pair['section'] );
@@ -156,14 +163,16 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 		$all_properties = $this->deduplicate( $all_properties );
 
 		$next_idx = ( $new_last + 1 ) % $total_pairs;
-		error_log(
+		$this->lpnw_diag_log(
 			sprintf(
-				'LPNW Zoopla: batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
+				'batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
 				$processed,
 				$new_last,
 				$next_idx,
 				count( $all_properties )
-			)
+			),
+			0,
+			0
 		);
 
 		return $all_properties;
@@ -178,100 +187,192 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function fetch_area( string $slug, string $area_name, string $section ): array {
-		$url = sprintf(
-			'%s/%s/property/%s/?results_sort=newest_listings&search_source=home',
-			self::BASE_URL,
-			$section,
-			rawurlencode( $slug )
-		);
+		$strategies = array();
 
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout' => 30,
-				'headers' => self::REQUEST_HEADERS,
-			)
-		);
+		foreach ( array( 'www' => self::BASE_URL, 'mobile' => self::MOBILE_BASE_URL ) as $host_label => $base ) {
+			foreach ( self::USER_AGENTS as $ua_label => $ua ) {
+				$strategies[] = array(
+					'host'     => $host_label,
+					'ua_label' => $ua_label,
+					'base'     => $base,
+					'ua'       => $ua,
+				);
+			}
+		}
 
-		if ( is_wp_error( $response ) ) {
-			error_log(
+		$last_http = 0;
+		$last_len  = 0;
+
+		foreach ( $strategies as $s ) {
+			$url = $this->zoopla_build_listing_url( $s['base'], $slug, $section );
+
+			$response = wp_remote_get(
+				$url,
+				array(
+					'timeout'    => 30,
+					'headers'    => $this->zoopla_request_headers( $s['ua'] ),
+					'decompress' => true,
+				)
+			);
+
+			if ( is_wp_error( $response ) ) {
+				$this->lpnw_diag_log(
+					sprintf(
+						'WP_Error %s %s (%s) host=%s ua=%s: %s',
+						$area_name,
+						$section,
+						$slug,
+						$s['host'],
+						$s['ua_label'],
+						$response->get_error_message()
+					),
+					0,
+					0
+				);
+				continue;
+			}
+
+			$code      = (int) wp_remote_retrieve_response_code( $response );
+			$body      = wp_remote_retrieve_body( $response );
+			$body      = is_string( $body ) ? $body : '';
+			$last_http = $code;
+			$last_len  = strlen( $body );
+
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW Zoopla: HTTP error for %s %s (%s): %s',
+					'response %s %s (%s) host=%s ua=%s url=%s',
 					$area_name,
 					$section,
 					$slug,
-					$response->get_error_message()
-				)
-			);
-			return array();
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-
-		error_log(
-			sprintf(
-				'LPNW Zoopla: %s %s (%s) - HTTP %d, body length %d',
-				$area_name,
-				$section,
-				$slug,
+					$s['host'],
+					$s['ua_label'],
+					$url
+				),
 				$code,
-				strlen( $body )
-			)
-		);
+				$last_len
+			);
 
-		if ( 403 === $code || 503 === $code ) {
-			error_log(
-				sprintf(
-					'LPNW Zoopla: Cloudflare or edge block (HTTP %d) for %s %s — advancing cursor; will retry another cycle',
+			if ( 403 === $code || 503 === $code ) {
+				$this->lpnw_diag_log(
+					sprintf(
+						'Cloudflare or edge block (HTTP %d) host=%s ua=%s for %s %s — trying next strategy',
+						$code,
+						$s['host'],
+						$s['ua_label'],
+						$area_name,
+						$section
+					),
 					$code,
-					$area_name,
-					$section
-				)
-			);
-			return array();
-		}
+					$last_len
+				);
+				continue;
+			}
 
-		if ( 200 !== $code ) {
-			error_log(
+			if ( 200 !== $code ) {
+				continue;
+			}
+
+			if ( $this->is_cloudflare_challenge( $body ) ) {
+				$this->lpnw_diag_log(
+					sprintf(
+						'Cloudflare challenge host=%s ua=%s for %s %s (%s) — trying next strategy',
+						$s['host'],
+						$s['ua_label'],
+						$area_name,
+						$section,
+						$slug
+					),
+					$code,
+					$last_len
+				);
+				continue;
+			}
+
+			$extracted = $this->extract_listings( $body, $section );
+			$listings  = $extracted['listings'];
+			$method    = $extracted['method'];
+
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW Zoopla: non-200 response for %s %s (%s), skipping pair this run',
+					'parsed %s %s (%s) host=%s ua=%s method=%s count=%d',
 					$area_name,
 					$section,
-					$slug
-				)
+					$slug,
+					$s['host'],
+					$s['ua_label'],
+					$method,
+					count( $listings )
+				),
+				$code,
+				$last_len
 			);
-			return array();
+
+			return $listings;
 		}
 
-		if ( $this->is_cloudflare_challenge( $body ) ) {
-			error_log(
-				sprintf(
-					'LPNW Zoopla: Cloudflare challenge page detected for %s %s (%s) — advancing cursor; not retrying same pair next',
-					$area_name,
-					$section,
-					$slug
-				)
-			);
-			return array();
-		}
-
-		$extracted = $this->extract_listings( $body, $section );
-		$listings  = $extracted['listings'];
-		$method    = $extracted['method'];
-
-		error_log(
+		$this->lpnw_diag_log(
 			sprintf(
-				'LPNW Zoopla: %s %s (%s) - method %s, extracted %d properties',
+				'all fetch strategies exhausted for %s %s (%s); no usable HTML (last http=%d)',
 				$area_name,
 				$section,
 				$slug,
-				$method,
-				count( $listings )
-			)
+				$last_http
+			),
+			$last_http,
+			$last_len
 		);
 
-		return $listings;
+		return array();
+	}
+
+	/**
+	 * Build listing search URL for a given host base.
+	 */
+	private function zoopla_build_listing_url( string $base, string $slug, string $section ): string {
+		return sprintf(
+			'%s/%s/property/%s/?results_sort=newest_listings&search_source=home',
+			untrailingslashit( $base ),
+			$section,
+			rawurlencode( $slug )
+		);
+	}
+
+	/**
+	 * Request headers for one User-Agent (gzip/deflate only; avoid br on PHP stacks without brotli).
+	 *
+	 * @param string $user_agent Full User-Agent string.
+	 * @return array<string, string>
+	 */
+	private function zoopla_request_headers( string $user_agent ): array {
+		return array(
+			'User-Agent'      => $user_agent,
+			'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+			'Accept-Language' => 'en-GB,en;q=0.9',
+			'Accept-Encoding' => 'gzip, deflate',
+			'Connection'      => 'keep-alive',
+			'Cache-Control'   => 'no-cache',
+		);
+	}
+
+	/**
+	 * Structured diagnostic line for server logs.
+	 *
+	 * @param string $message   Context (no PII).
+	 * @param int    $http_code Response code or 0 if N/A.
+	 * @param int    $resp_len  Body length or 0.
+	 */
+	private function lpnw_diag_log( string $message, int $http_code, int $resp_len ): void {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
+		error_log(
+			sprintf(
+				'[LPNW feed=%s] ts=%s http=%d len=%d %s',
+				$this->get_source_name(),
+				gmdate( 'c' ),
+				$http_code,
+				$resp_len,
+				$message
+			)
+		);
 	}
 
 	/**
@@ -300,19 +401,22 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	private function extract_listings( string $html, string $section ): array {
 		$listings = array();
 		$method   = 'none';
+		$html_len = strlen( $html );
 
 		if ( preg_match( '/<script\s+id="__NEXT_DATA__"[^>]*type="application\/json"[^>]*>(.*?)<\/script>/s', $html, $matches ) ) {
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW Zoopla: found __NEXT_DATA__ in HTML for %s, JSON length %d',
+					'found __NEXT_DATA__ in HTML for %s, JSON length %d',
 					$section,
 					strlen( $matches[1] )
-				)
+				),
+				0,
+				$html_len
 			);
 
 			$next_data = json_decode( $matches[1], true );
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
-				error_log( 'LPNW Zoopla: __NEXT_DATA__ JSON decode error: ' . json_last_error_msg() );
+				$this->lpnw_diag_log( '__NEXT_DATA__ JSON decode error: ' . json_last_error_msg(), 0, $html_len );
 			} elseif ( is_array( $next_data ) ) {
 				$results = $next_data['props']['pageProps']['regularListingsFormatted'] ?? array();
 				if ( empty( $results ) ) {
@@ -326,16 +430,18 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 				$method = '__NEXT_DATA__';
 			}
 		} elseif ( preg_match( '/<script\s+id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s', $html, $matches ) ) {
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW Zoopla: found __NEXT_DATA__ (alt) for %s, JSON length %d',
+					'found __NEXT_DATA__ (alt) for %s, JSON length %d',
 					$section,
 					strlen( $matches[1] )
-				)
+				),
+				0,
+				$html_len
 			);
 			$next_data = json_decode( $matches[1], true );
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
-				error_log( 'LPNW Zoopla: __NEXT_DATA__ (alt) JSON decode error: ' . json_last_error_msg() );
+				$this->lpnw_diag_log( '__NEXT_DATA__ (alt) JSON decode error: ' . json_last_error_msg(), 0, $html_len );
 			} elseif ( is_array( $next_data ) ) {
 				$results = $next_data['props']['pageProps']['regularListingsFormatted'] ?? array();
 				if ( empty( $results ) ) {
@@ -369,6 +475,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 */
 	private function extract_from_html_dom( string $html, string $section ): array {
 		$listings = array();
+		$html_len = strlen( $html );
 
 		$dom = new \DOMDocument();
 		@$dom->loadHTML( mb_convert_encoding( $html, 'HTML-ENTITIES', 'UTF-8' ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -378,12 +485,14 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 
 		if ( ! $cards || 0 === $cards->length ) {
 			$has_next = ( strpos( $html, '__NEXT_DATA__' ) !== false );
-			error_log(
+			$this->lpnw_diag_log(
 				sprintf(
-					'LPNW Zoopla: DOM fallback found no cards; __NEXT_DATA__ string in body: %s, HTML snippet: %s',
+					'DOM fallback found no cards; __NEXT_DATA__ in body: %s, HTML snippet: %s',
 					$has_next ? 'yes' : 'no',
 					substr( $html, 0, 500 )
-				)
+				),
+				0,
+				$html_len
 			);
 			return $listings;
 		}
@@ -465,9 +574,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 
 		$dupes_removed = count( $properties ) - count( $unique );
 		if ( $dupes_removed > 0 ) {
-			error_log(
-				sprintf( 'LPNW Zoopla: deduplicated %d duplicate properties', $dupes_removed )
-			);
+			$this->lpnw_diag_log( sprintf( 'deduplicated %d duplicate properties', $dupes_removed ), 0, 0 );
 		}
 
 		return $unique;
