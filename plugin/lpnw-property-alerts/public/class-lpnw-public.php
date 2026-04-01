@@ -111,7 +111,7 @@ class LPNW_Public {
 			$filters['source'] = $atts['source'];
 		}
 
-		$properties = LPNW_Property::query( $filters, (int) $atts['limit'] );
+		$properties = LPNW_Property::query_diverse( $filters, (int) $atts['limit'] );
 
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/latest-properties.php';

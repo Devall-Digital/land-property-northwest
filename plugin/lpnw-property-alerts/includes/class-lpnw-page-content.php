@@ -43,7 +43,7 @@ class LPNW_Page_Content {
 	<h2 id="lpnw-stats-bar-title" class="screen-reader-text">Coverage and update frequency</h2>
 	<ul class="lpnw-stats-bar__list" role="list">
 		<li><span class="lpnw-stats-bar__value">[lpnw_property_count]</span> properties tracked</li>
-		<li><span class="lpnw-stats-bar__value">16</span> NW postcode districts covered</li>
+		<li><span class="lpnw-stats-bar__value">14</span> NW postcode prefixes covered</li>
 		<li>Listing checks and alert runs every <span class="lpnw-stats-bar__value">15 minutes</span></li>
 	</ul>
 </section>

@@ -42,7 +42,7 @@ if ( empty( $saved ) ) : ?>
 				$baths = (int) $bath_m[1];
 			}
 			$price_raw   = isset( $item->price ) ? (int) $item->price : 0;
-			$is_pcm      = $price_raw > 0 && $price_raw < 1000;
+			$is_pcm      = 'rent' === strtolower( trim( (string) ( $item->application_type ?? '' ) ) );
 			$source      = sanitize_key( $item->source ?? '' );
 			$source_root = '' !== $source ? explode( '_', $source, 2 )[0] : '';
 

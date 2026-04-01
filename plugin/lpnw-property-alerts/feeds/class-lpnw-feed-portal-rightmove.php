@@ -5,6 +5,8 @@
  * Fetches Rightmove's HTML search results pages and extracts the embedded
  * __NEXT_DATA__ JSON to get property listings across Northwest England.
  * Checks every 15 minutes for new-to-market properties (sales and rentals).
+ * Each cron run processes a batch of region/channel pairs (see cursor option
+ * lpnw_rightmove_cursor) so execution stays within shared-hosting time limits.
  *
  * Uses individual NW city/area region IDs rather than a broad region to
  * maximise coverage and avoid Rightmove's server-side request blocking
@@ -48,6 +50,18 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		283   => 'Carlisle',
 	);
 
+	/**
+	 * WordPress option storing the zero-based index of the last processed
+	 * region+channel pair. Next run continues at (last + 1) % total_pairs.
+	 */
+	private const OPTION_CURSOR = 'lpnw_rightmove_cursor';
+
+	/**
+	 * Stop starting new pairs if elapsed time approaches this (seconds).
+	 * Leaves room for parsing, deduplication, and shutdown.
+	 */
+	private const TIME_BUDGET_SECONDS = 25.0;
+
 	private const REQUEST_HEADERS = array(
 		'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
 		'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -66,47 +80,122 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		return 'rightmove';
 	}
 
-	protected function fetch(): array {
-		$all_properties = array();
-		$area_count     = 0;
-		$total_areas    = count( self::NW_AREA_REGIONS ) * 2;
+	/**
+	 * Max region+channel pairs to process in one fetch() invocation.
+	 *
+	 * @return int Positive count.
+	 */
+	protected function get_batch_size(): int {
+		return 6;
+	}
+
+	/**
+	 * Flat list of region/channel pairs in stable crawl order.
+	 *
+	 * @return array<int, array{region_id: int, area_name: string, channel: string}>
+	 */
+	private function get_region_channel_pairs(): array {
+		$pairs = array();
 
 		foreach ( self::NW_AREA_REGIONS as $region_id => $area_name ) {
 			foreach ( array( 'BUY', 'RENT' ) as $channel ) {
-				++$area_count;
-
-				if ( $area_count > 1 ) {
-					$delay = wp_rand( 1000000, 2000000 );
-					usleep( $delay );
-				}
-
-				error_log(
-					sprintf(
-						'LPNW Rightmove: fetching %s %s (region %d) [%d/%d]',
-						$area_name,
-						$channel,
-						$region_id,
-						$area_count,
-						$total_areas
-					)
+				$pairs[] = array(
+					'region_id'  => $region_id,
+					'area_name'  => $area_name,
+					'channel'    => $channel,
 				);
-
-				$properties     = $this->fetch_search( $region_id, $area_name, $channel, 0 );
-				$all_properties = array_merge( $all_properties, $properties );
-
-				if ( count( $properties ) >= 24 ) {
-					usleep( wp_rand( 800000, 1500000 ) );
-					$page2          = $this->fetch_search( $region_id, $area_name, $channel, 24 );
-					$all_properties = array_merge( $all_properties, $page2 );
-				}
 			}
+		}
+
+		return $pairs;
+	}
+
+	protected function fetch(): array {
+		$all_properties = array();
+		$pairs          = $this->get_region_channel_pairs();
+		$total_pairs    = count( $pairs );
+
+		if ( $total_pairs < 1 ) {
+			return array();
+		}
+
+		$last_processed = (int) get_option( self::OPTION_CURSOR, -1 );
+		if ( $last_processed < -1 || $last_processed >= $total_pairs ) {
+			$last_processed = -1;
+		}
+
+		$start_index    = ( $last_processed + 1 ) % $total_pairs;
+		$batch_size     = $this->get_batch_size();
+		$time_started   = microtime( true );
+		$processed      = 0;
+		$new_last       = $last_processed;
+
+		for ( $n = 0; $n < $batch_size; $n++ ) {
+			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
+				error_log( 'LPNW Rightmove: stopping batch early (time budget)' );
+				break;
+			}
+
+			$idx  = ( $start_index + $n ) % $total_pairs;
+			$pair = $pairs[ $idx ];
+
+			if ( $processed > 0 ) {
+				usleep( wp_rand( 1000000, 2000000 ) );
+			}
+
+			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
+				error_log( 'LPNW Rightmove: stopping batch early (time budget before fetch)' );
+				break;
+			}
+
+			error_log(
+				sprintf(
+					'LPNW Rightmove: fetching %s %s (region %d) [pair %d/%d, batch %d/%d]',
+					$pair['area_name'],
+					$pair['channel'],
+					$pair['region_id'],
+					$idx + 1,
+					$total_pairs,
+					$processed + 1,
+					$batch_size
+				)
+			);
+
+			$properties     = $this->fetch_search( $pair['region_id'], $pair['area_name'], $pair['channel'], 0 );
+			$all_properties = array_merge( $all_properties, $properties );
+
+			if ( count( $properties ) >= 24 ) {
+				if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
+					error_log( 'LPNW Rightmove: skipping page 2 (time budget); will retry pair next run' );
+					$new_last = $idx - 1;
+					update_option( self::OPTION_CURSOR, $new_last, false );
+					break;
+				}
+				usleep( wp_rand( 800000, 1500000 ) );
+				if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
+					error_log( 'LPNW Rightmove: skipping page 2 (time budget after delay); will retry pair next run' );
+					$new_last = $idx - 1;
+					update_option( self::OPTION_CURSOR, $new_last, false );
+					break;
+				}
+				$page2          = $this->fetch_search( $pair['region_id'], $pair['area_name'], $pair['channel'], 24 );
+				$all_properties = array_merge( $all_properties, $page2 );
+			}
+
+			$new_last = $idx;
+			update_option( self::OPTION_CURSOR, $new_last, false );
+			$processed++;
 		}
 
 		$all_properties = $this->deduplicate( $all_properties );
 
+		$next_idx = ( $new_last + 1 ) % $total_pairs;
 		error_log(
 			sprintf(
-				'LPNW Rightmove: finished all areas. Total properties: %d',
+				'LPNW Rightmove: batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
+				$processed,
+				$new_last,
+				$next_idx,
 				count( $all_properties )
 			)
 		);
@@ -350,6 +439,16 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		$baths = isset( $raw_item['bathrooms'] ) ? absint( $raw_item['bathrooms'] ) : null;
 		$type  = sanitize_text_field( $raw_item['propertySubType'] ?? $raw_item['propertyTypeFullDescription'] ?? '' );
 
+		$channel_raw = strtoupper( (string) ( $raw_item['channel'] ?? '' ) );
+		$price_freq  = strtolower( (string) ( $raw_item['price']['frequency'] ?? '' ) );
+
+		$application_type = 'sale';
+		$desc_prefix      = 'For sale. ';
+		if ( 'RENT' === $channel_raw || 'monthly' === $price_freq ) {
+			$application_type = 'rent';
+			$desc_prefix      = 'To let. ';
+		}
+
 		$desc_parts = array();
 		if ( $beds ) {
 			$desc_parts[] = $beds . ' bed';
@@ -364,26 +463,21 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			$desc_parts[] = wp_trim_words( $raw_item['summary'], 20, '...' );
 		}
 
-		$channel = '';
-		if ( ! empty( $raw_item['channel'] ) ) {
-			$channel = 'RENT' === strtoupper( $raw_item['channel'] ) ? 'To let' : 'For sale';
-		}
-		if ( $channel ) {
-			$desc_parts[] = $channel;
-		}
+		$description = $desc_prefix . implode( '. ', $desc_parts );
 
 		return array(
-			'source'        => $this->get_source_name(),
-			'source_ref'    => 'rm-' . $rm_id,
-			'address'       => $address,
-			'postcode'      => $postcode,
-			'latitude'      => $lat,
-			'longitude'     => $lng,
-			'price'         => $price > 0 ? $price : null,
-			'property_type' => $type,
-			'description'   => implode( '. ', $desc_parts ),
-			'source_url'    => esc_url_raw( $property_url ),
-			'raw_data'      => $raw_item,
+			'source'             => $this->get_source_name(),
+			'source_ref'         => 'rm-' . $rm_id,
+			'address'            => $address,
+			'postcode'           => $postcode,
+			'latitude'           => $lat,
+			'longitude'          => $lng,
+			'price'              => $price > 0 ? $price : null,
+			'property_type'      => $type,
+			'description'        => $description,
+			'application_type'   => $application_type,
+			'source_url'         => esc_url_raw( $property_url ),
+			'raw_data'           => $raw_item,
 		);
 	}
 

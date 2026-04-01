@@ -88,6 +88,12 @@ class LPNW_Matcher {
 	}
 
 	private function matches_price( object $property, object $subscriber ): bool {
+		// Monthly rent shares the same price column as sale prices; do not apply sale filters to lets.
+		$application_type = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
+		if ( 'rent' === $application_type ) {
+			return true;
+		}
+
 		$price = $property->price ?? null;
 		if ( null === $price ) {
 			return true;

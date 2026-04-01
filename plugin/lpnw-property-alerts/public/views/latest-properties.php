@@ -26,7 +26,7 @@ if ( empty( $properties ) ) : ?>
 				$baths = (int) $bath_m[1];
 			}
 			$price_raw   = isset( $prop->price ) ? (int) $prop->price : 0;
-			$is_pcm      = $price_raw > 0 && $price_raw < 1000;
+			$is_pcm      = 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) );
 			$source      = sanitize_key( $prop->source ?? '' );
 			$source_root = '' !== $source ? explode( '_', $source, 2 )[0] : '';
 
