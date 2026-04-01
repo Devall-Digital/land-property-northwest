@@ -20,6 +20,7 @@ class LPNW_Cron {
 		add_action( 'lpnw_cron_auctions', array( __CLASS__, 'run_auction_feeds' ) );
 		add_action( 'lpnw_cron_portals', array( __CLASS__, 'run_portal_feeds' ) );
 		add_action( 'lpnw_cron_dispatch_alerts', array( __CLASS__, 'dispatch_alerts' ) );
+		add_action( 'lpnw_cron_free_digest', array( __CLASS__, 'run_free_digest' ) );
 	}
 
 	/**
@@ -109,5 +110,10 @@ class LPNW_Cron {
 	public static function dispatch_alerts(): void {
 		$dispatcher = new LPNW_Dispatcher();
 		$dispatcher->process_queue();
+	}
+
+	public static function run_free_digest(): void {
+		$dispatcher = new LPNW_Dispatcher();
+		$dispatcher->send_free_digest();
 	}
 }

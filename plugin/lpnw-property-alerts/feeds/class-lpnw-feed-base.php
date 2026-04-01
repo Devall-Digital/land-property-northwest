@@ -57,6 +57,18 @@ abstract class LPNW_Feed_Base {
 						}
 					}
 
+					$postcode_trimmed = isset( $parsed['postcode'] ) ? trim( (string) $parsed['postcode'] ) : '';
+					if ( '' === $postcode_trimmed && empty( $parsed['latitude'] ) && empty( $parsed['longitude'] ) ) {
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed diagnostics.
+						error_log(
+							sprintf(
+								'LPNW feed base (%s): skipped item with no postcode and no coordinates.',
+								$this->get_source_name()
+							)
+						);
+						continue;
+					}
+
 					$property_id = LPNW_Property::upsert( $parsed );
 
 					if ( $property_id ) {

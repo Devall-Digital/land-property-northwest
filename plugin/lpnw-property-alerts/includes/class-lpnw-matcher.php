@@ -124,6 +124,8 @@ class LPNW_Matcher {
 			'epc'          => 'epc',
 			'landregistry' => 'price',
 			'auction'      => 'auction',
+			'rightmove'    => 'listing',
+			'zoopla'       => 'listing',
 		);
 
 		$source = $property->source ?? '';

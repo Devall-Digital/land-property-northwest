@@ -109,8 +109,9 @@ class LPNW_Dispatcher {
 
 		if ( ! empty( $ids ) ) {
 			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+			$sent_at_sql = ( 'sent' === $status ) ? 'NOW()' : 'NULL';
 			$wpdb->query( $wpdb->prepare(
-				"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NOW() WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$status,
 				...$ids
 			) );

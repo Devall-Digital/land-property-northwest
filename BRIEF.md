@@ -42,7 +42,7 @@ Do NOT spend time on things that don't directly serve these five priorities.
 - WordPress on 20i shared hosting (PHP 8.0+)
 - Custom plugin: lpnw-property-alerts (the core product)
 - GeneratePress theme + LPNW child theme
-- WooCommerce + Subscriptions for billing
+- WooCommerce with simple virtual products for billing (subscription plugin can be added later for auto-renewal)
 - Stripe for payment processing
 - Mautic at marketing.land-property-northwest.co.uk for email delivery
 - Leaflet.js for interactive maps
@@ -54,6 +54,11 @@ Do NOT spend time on things that don't directly serve these five priorities.
 2. EPC Open Data (opendatacommunities.org) - indicates property coming to market
 3. HM Land Registry Price Paid Data - monthly transaction data
 4. Auction houses (Pugh, SDL, Allsop, AHNW) - upcoming lots
+5. Property portals - **Rightmove** and **Zoopla** as primary "new to market" listing sources (subject to access, robots, and site terms)
+
+## Alert types (subscriber preferences)
+
+Valid values: `planning`, `epc`, `price`, `auction`, `listing` (portal and on-market property alerts).
 
 ## NW Coverage
 

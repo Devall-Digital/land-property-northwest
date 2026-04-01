@@ -93,34 +93,64 @@ class LPNW_Subscriber {
 	}
 
 	/**
-	 * Determine a user's subscription tier based on WooCommerce subscriptions.
+	 * Determine a user's tier from completed WooCommerce orders (simple products).
+	 *
+	 * VIP wins over Pro if both appear in order history.
 	 *
 	 * @param int $user_id WordPress user ID.
 	 * @return string One of: free, pro, vip
 	 */
 	public static function get_tier( int $user_id ): string {
-		if ( ! function_exists( 'wcs_get_users_subscriptions' ) ) {
+		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return 'free';
 		}
 
-		$subscriptions = wcs_get_users_subscriptions( $user_id );
+		$orders = wc_get_orders(
+			array(
+				'customer_id' => $user_id,
+				'status'      => array( 'completed' ),
+				'limit'       => -1,
+				'return'      => 'objects',
+			)
+		);
 
-		foreach ( $subscriptions as $subscription ) {
-			if ( 'active' !== $subscription->get_status() ) {
+		if ( ! is_array( $orders ) ) {
+			return 'free';
+		}
+
+		$has_vip = false;
+		$has_pro = false;
+
+		foreach ( $orders as $order ) {
+			if ( ! is_object( $order ) || ! method_exists( $order, 'get_items' ) ) {
 				continue;
 			}
 
-			foreach ( $subscription->get_items() as $item ) {
-				$product_id = $item->get_product_id();
-				$slug       = get_post_field( 'post_name', $product_id );
+			foreach ( $order->get_items() as $item ) {
+				if ( ! is_object( $item ) || ! method_exists( $item, 'get_product' ) ) {
+					continue;
+				}
 
+				$product = $item->get_product();
+				if ( ! $product || ! is_object( $product ) || ! method_exists( $product, 'get_slug' ) ) {
+					continue;
+				}
+
+				$slug = $product->get_slug();
 				if ( str_contains( $slug, 'vip' ) ) {
-					return 'vip';
+					$has_vip = true;
 				}
 				if ( str_contains( $slug, 'pro' ) ) {
-					return 'pro';
+					$has_pro = true;
 				}
 			}
+		}
+
+		if ( $has_vip ) {
+			return 'vip';
+		}
+		if ( $has_pro ) {
+			return 'pro';
 		}
 
 		return 'free';

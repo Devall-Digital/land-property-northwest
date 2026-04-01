@@ -1,143 +1,118 @@
 # Project Status
 
-Last updated: 31 March 2026
+Last updated: 1 April 2026
 
 ## What Is This
 
-Property intelligence and alert platform for Northwest England at `land-property-northwest.co.uk`. Aggregates data from free public sources (planning applications, EPCs, Land Registry, auction houses) and sends instant alerts to paid subscribers.
+Property intelligence and alert platform for Northwest England at `land-property-northwest.co.uk`. Aggregates data from public sources (planning, EPC, Land Registry, auctions, property portals) and sends alerts to subscribers by tier.
 
 ## Live Infrastructure
 
 | Component | URL | Status |
 |-----------|-----|--------|
 | WordPress site | https://land-property-northwest.co.uk | Live, configured |
-| Mautic (email) | https://marketing.land-property-northwest.co.uk | Installed |
+| Mautic (email) | https://marketing.land-property-northwest.co.uk | Installed; API not wired for dispatch yet |
 | WordPress REST API | https://land-property-northwest.co.uk/wp-json/ | Accessible (200 OK) |
 | FTP | ftp.gb.stackcp.com | Working |
 
-## What's Deployed and Active
+## What Is Deployed and Working
 
-### WordPress Plugins (all active)
-- **lpnw-property-alerts** - Our custom alert engine (5 DB tables created)
-- **WooCommerce** - Payments and subscriptions
-- **Wordfence** - Security
-- **WPForms Lite** - Contact/lead forms
-- **UpdraftPlus** - Backups
-- **Cookie Notice** - GDPR consent
-- **Business Directory Plugin** - Professional directory
-- **Redirection** - 301 redirects
+### WordPress and theme
 
-### Theme
-- **GeneratePress** parent theme installed
-- **LPNW Theme** child theme active (navy/amber branding)
+- **GeneratePress** parent theme installed.
+- **LPNW Theme** child theme active (navy/amber branding).
 
-### Pages Created
-Home (static front page), Dashboard, Preferences, Property Map, Saved Properties, Pricing, About, Contact, Privacy Policy, Terms of Service
+### Plugins (active)
 
-### WordPress Settings Configured
-- Site name: Land & Property Northwest
-- Tagline: NW Property Intelligence & Alerts
-- Timezone: Europe/London
-- Permalinks: /%postname%/
-- User registration: enabled (subscriber role)
-- Search engines: discouraged (turn on at launch)
+- **lpnw-property-alerts** (custom): alert engine, feeds, matcher, dispatcher, subscriber UI; custom DB tables in place.
+- **WooCommerce**: checkout and Stripe; **simple virtual products** used for tiers (no WooCommerce Subscriptions extension required for first launch).
+- **Wordfence**, **WPForms Lite**, **UpdraftPlus**, **Cookie Notice**, **Business Directory Plugin**, **Redirection** (and other standard stack as on live).
 
-## What Still Needs Doing
+### Pages
 
-Tasks are numbered by priority. Do them in order. Each task should be done in its own branch or as an isolated change. Do not bundle unrelated work.
+Home (front page), Dashboard, Preferences, Property Map, Saved Properties, Pricing, About, Contact, Privacy Policy, Terms of Service.
 
-### CRITICAL PATH (must be done to start charging users)
+### Content
 
-**Task 1: Test and fix the Planning Portal data feed**
-The Planning Portal feed class exists at `plugin/lpnw-property-alerts/feeds/class-lpnw-feed-planning.php`. It needs to be tested against the real API. Create a temporary PHP script that calls `$feed = new LPNW_Feed_Planning(); $feed->run();` and verify properties are stored in the DB. Fix any issues with the API response format, field mapping, or error handling. The planning.data.gov.uk API may have changed or may use different endpoints than assumed. Research the current API docs and update the feed class accordingly.
+Blog is available and posts publish as on the live site (ongoing SEO content is a separate backlog item).
 
-**Task 2: Test and fix remaining data feeds (EPC, Land Registry, Auctions)**
-Same as Task 1 but for the other three feeds. Each is a separate class in `plugin/lpnw-property-alerts/feeds/`. Test each one individually. The EPC feed needs an API key (stored in plugin settings). The Land Registry feed downloads a CSV. The Pugh auction feed scrapes HTML. Fix any issues found.
+### Site settings (typical)
 
-**Task 3: Test the matching engine end-to-end**
-With real data in the DB from Tasks 1-2, test that `LPNW_Matcher::match_and_queue()` correctly matches properties to subscriber preferences and creates entries in the alert queue table. Create a test subscriber preference and verify matching works.
+Site name Land & Property Northwest, Europe/London, pretty permalinks, registration for subscribers as configured.
 
-**Task 4: Test alert dispatch (email sending)**
-Test that `LPNW_Dispatcher::process_queue()` picks up queued alerts and sends emails. Initially test with wp_mail (Mautic integration can come later). Verify the email templates render correctly. The fallback plain email builder in the dispatcher should work without Mautic configured.
+### Plugin load and cron (codebase)
 
-**Task 5: Install RankMath SEO**
-The WordPress.org slug is `seo-by-rank-math`. Create a setup script to install and activate it. Configure basic SEO settings (site title, meta description template, sitemap).
+Main plugin loads core includes (property, subscriber, matcher, dispatcher, Mautic helper, geocoder), all feed classes (planning, EPC, Land Registry, four auction feeds, **Rightmove and Zoopla portal feeds**), admin when in admin, and public/dashboard/map on the front.
 
-**Task 6: Configure WooCommerce for UK subscriptions**
-Set WooCommerce currency to GBP, store location to UK. Create 3 subscription products: Free (GBP 0), Pro (GBP 19.99/month), VIP (GBP 79.99/month). Use WooCommerce's built-in simple products initially if WooCommerce Subscriptions plugin is not available. The subscription tier detection in `LPNW_Subscriber::get_tier()` checks product slugs containing 'pro' or 'vip'.
+Scheduled hooks on activation:
 
-**Task 7: Build the home page properly**
-Replace the current shortcode-only home page with a proper landing page. Must include: hero section with headline "Get NW Property Alerts Before Anyone Else", subheadline about the speed USP, CTA button to sign up, live property count via `[lpnw_property_count]`, latest properties teaser `[lpnw_latest_properties limit="5"]`, 3-step "How it works" section, pricing summary, trust signals. Use the theme CSS classes in `theme/lpnw-theme/style.css`. No page builder plugins. Either use WordPress block editor content or a custom page template.
+- `lpnw_cron_planning` every 6 hours  
+- `lpnw_cron_epc` daily  
+- `lpnw_cron_landregistry` daily  
+- `lpnw_cron_auctions` daily  
+- `lpnw_cron_portals` every 15 minutes  
+- `lpnw_cron_dispatch_alerts` every 15 minutes  
+- `lpnw_cron_free_digest` weekly (registered in code; see gaps below)
 
-**Task 8: Build the pricing page**
-Proper 3-tier comparison table using the CSS in the theme (`.lpnw-pricing`, `.lpnw-pricing-card`). Feature comparison list for each tier. CTA buttons linking to WooCommerce checkout for each product. FAQ section below.
+Production still needs **server-driven** triggering of `wp-cron.php` if WP-Cron is not reliable on 20i.
 
-**Task 9: Write page content (no AI signatures)**
-Write content for: About, Contact, Privacy Policy, Terms of Service. All copy must sound like a knowledgeable NW property professional. No em dashes. No filler. Direct, confident English. The About page should establish authority. Privacy policy needs GDPR basics for a sole trader collecting email and preferences.
+## What Is Not Working Yet
 
-**Task 10: Clean up navigation menu**
-Remove WooCommerce default pages (Shop, Cart, Checkout, My Account) from the primary navigation. Keep: Home, Pricing, About, Contact. Add logged-in-only menu items: Dashboard, Preferences, Property Map, Saved Properties. Use WordPress menu system.
+- **Rightmove feed:** Runs but returns **zero** ingestible results (needs investigation: URLs, parsing, or upstream behaviour).
+- **Zoopla feed:** Likely **blocked or challenged by Cloudflare**; not a dependable source until access is solved or an alternative is agreed.
+- **Planning Portal:** Feed runs against planning.data.gov.uk-style data; **authority or application IDs are not fully verified** end-to-end against live API behaviour.
+- **Mautic:** Instance exists; **Mautic API is not enabled or connected** in the plugin for production sends (dispatcher may still use fallbacks such as `wp_mail` depending on settings).
+- **Free weekly digest:** **Not effectively scheduled or not running** in production (do not treat as live until server cron and `lpnw_cron_free_digest` are verified).
 
-### IMPORTANT (should be done soon after critical path)
+## Active Bugs Being Fixed
 
-**Task 11: Connect Mautic to the WordPress plugin**
-Configure the LPNW plugin settings with Mautic API credentials (URL: https://marketing.land-property-northwest.co.uk, same login as WP admin). Test contact sync and email sending via Mautic API. Update email templates in Mautic.
+- **Matcher:** Does not map **portal** property sources to subscriber `alert_types` correctly (portal listings not aligned with preference checks).
+- **Geography:** **Non-Northwest filter gap** (edge cases where non-NW records can slip through or NW boundaries need tightening).
+- **Queue integrity:** **`sent_at` set on failure** (or similar) so failed sends are not marked like successful ones; fix in dispatcher/queue handling.
 
-**Task 12: Set up server cron**
-Create a script or documentation for setting up real cron in 20i panel (not WP-Cron). Should hit wp-cron.php every 15 minutes to trigger data feed pulls and alert dispatch.
+## Outstanding Work (prioritised)
 
-**Task 13: Write 10 SEO blog posts**
-Topics are listed in the plan. NW property focused. No AI signatures. Target long-tail keywords like "planning applications manchester", "property auction northwest", "land for sale lancashire".
+Work in small branches. Skip items already done on live (landing copy, menu, Rank Math) unless you confirm otherwise.
 
-**Task 14: Create area landing pages**
-Template-driven pages for each NW district. Auto-populated with latest properties from that area. Target "[property type] in [area]" keywords.
+1. **Portal data:** Fix Rightmove to return real NW listings; resolve or replace Zoopla access.
+2. **Matcher and filters:** Map portal sources to alert types; close non-NW leakage; fix `sent_at` on failed dispatch.
+3. **Planning feed:** Verify IDs, fields, and authority coverage against current API docs.
+4. **Mautic:** Enable API in Mautic, store credentials (see `.cursor/rules/secrets.mdc`), test contact sync and template sends from `LPNW_Dispatcher`.
+5. **Free digest:** Ensure weekly digest actually runs (server cron + confirm `lpnw_cron_free_digest`).
+6. **WooCommerce:** Confirm GBP, UK store, and tier products match `LPNW_Subscriber::get_tier()` expectations; add subscription extension later if auto-renewal is required.
+7. **End-to-end test:** With real portal/planning data in `lpnw_properties`, prove match, queue, and email (Mautic or fallback) for Pro/VIP and then free digest.
 
-**Task 15: Configure Google Search Console + Analytics**
-Set up GA4 and GSC for the domain. Add tracking code. Submit sitemap.
+### Soon after core path
 
-### LATER (growth phase)
-
-16. Add SDL, Allsop, AHNW auction scrapers
-17. Add council-specific planning feeds beyond the central API
-18. Build out professional directory with seed listings
-19. Set up advertising slots
-20. Create hosting resale packages on 20i
-21. Add SMS alerts for VIP tier (Twilio)
-22. Consider PWA / push notifications
+8. Rank Math or equivalent SEO plugin if not already on live.  
+9. Google Search Console and GA4.  
+10. Area landing pages and additional auction sources (SDL, Allsop, AHNW) as in BRIEF.
 
 ## Known Issues / Workarounds
 
-### 20i Bot Protection
-20i's StackCP blocks automated access to wp-login.php and wp-admin. Workaround: use PHP setup scripts uploaded via FTP and accessed at custom URLs (not /wp-admin/). The WordPress REST API at /wp-json/ IS accessible and returns 200.
+### 20i bot protection
 
-### WooCommerce Subscriptions
-WooCommerce Subscriptions is a premium plugin (not free on WordPress.org). Options:
-- Purchase from WooCommerce.com (~$199/year)
-- Use the free alternative "SUMO Subscriptions" or "Subscriptions for WooCommerce" by WebToffee
-- Build a simple subscription system using WooCommerce + our custom plugin
+Automated access to `wp-login.php` and wp-admin is blocked. Use temporary PHP scripts over FTP and a one-off URL; **REST** at `/wp-json/` works.
+
+### Billing
+
+WooCommerce Subscriptions is optional. Simple virtual products suffice for manual or periodic renewal until a subscription plugin is added.
 
 ## Deployment
 
-Plugin and theme are deployed via FTP:
-- Plugin: FTP upload to `/public_html/wp-content/plugins/lpnw-property-alerts/`
-- Theme: FTP upload to `/public_html/wp-content/themes/lpnw-theme/`
-- Setup scripts: upload to `/public_html/`, access via browser, then delete
+- Plugin: `/public_html/wp-content/plugins/lpnw-property-alerts/`  
+- Theme: `/public_html/wp-content/themes/lpnw-theme/`  
 
-See `docs/DEPLOYMENT.md` for full instructions.
+See `docs/DEPLOYMENT.md`.
 
-## Secrets Required
+## Secrets (for agents)
 
-These should be set as Cursor Secrets for cloud agents:
-- FTP_HOST, FTP_USER, FTP_PASS
-- WP_URL, WP_ADMIN_USER, WP_ADMIN_PASS
-- MAUTIC_URL, MAUTIC_USER, MAUTIC_PASS
-- STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY
-- EPC_API_KEY
+See `.cursor/rules/secrets.mdc` for FTP, WordPress, Stripe, Mautic, and EPC API variables.
 
 ## Revenue Model
 
-- **Free tier**: Weekly NW property digest email
-- **Pro** (GBP 19.99/mo): Instant alerts, full filtering, planning + auction alerts
-- **VIP** (GBP 79.99/mo): Priority alerts, off-market deals, direct introductions
+- **Free:** weekly NW digest email (once digest is live).  
+- **Pro:** instant alerts, full filtering, multiple alert types.  
+- **VIP:** priority and higher-touch benefits as defined on Pricing.
 
-Secondary: professional directory listings, advertising, hosting resale.
+Secondary: directory, advertising, hosting resale.

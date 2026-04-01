@@ -32,6 +32,14 @@ Revenue first. Every task should be judged by: "Does this get us closer to charg
 - Leaflet.js for maps
 - Vanilla JS on frontend (no React, no Vue, no frameworks)
 
+**Primary on-market data:** portal feeds (**Rightmove**, **Zoopla**) in `feeds/class-lpnw-feed-portal-*.php`, scheduled with other cron jobs.
+
+**NW postcode prefixes:** M, L, PR, BB, LA, BL, OL, SK, WA, WN, CW, CH, CA, FY
+
+**Valid `alert_types` (subscriber preferences):** planning, epc, price, auction, listing
+
+**Credentials for deploy and APIs:** see `.cursor/rules/secrets.mdc` (FTP, WP, Stripe, Mautic, EPC).
+
 ## Strict Rules
 
 - Component-based architecture. One class per concern. No god classes.

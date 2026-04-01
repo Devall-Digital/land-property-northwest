@@ -117,6 +117,7 @@ class LPNW_Activator {
 	private static function set_default_options(): void {
 		$defaults = array(
 			'planning_enabled'     => true,
+			'portals_enabled'      => true,
 			'epc_enabled'          => true,
 			'epc_api_email'        => '',
 			'epc_api_key'          => '',
@@ -150,6 +151,9 @@ class LPNW_Activator {
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_dispatch_alerts' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
+		}
+		if ( ! wp_next_scheduled( 'lpnw_cron_free_digest' ) ) {
+			wp_schedule_event( time(), 'weekly', 'lpnw_cron_free_digest' );
 		}
 	}
 }

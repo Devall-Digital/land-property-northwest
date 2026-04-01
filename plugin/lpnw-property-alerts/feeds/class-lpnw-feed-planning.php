@@ -18,61 +18,64 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 	private const API_BASE = 'https://www.planning.data.gov.uk/entity.json';
 
 	/**
-	 * NW England local planning authority entity IDs.
+	 * NW England local planning authority boundary entity IDs.
 	 *
-	 * These are the numeric entity IDs used by planning.data.gov.uk,
-	 * NOT ONS codes. To find entity IDs for an LPA, query:
-	 * /entity.json?dataset=local-planning-authority&field=name&field=entity
+	 * Each value is the `entity` field from the `local-planning-authority` dataset
+	 * (626xxx series), not ONS codes and not planning-application `organisation-entity`.
 	 *
-	 * The API accepts organisation_entity (underscore) as the parameter name.
-	 * The values below are sourced from the planning.data.gov.uk dataset.
-	 * Some LPAs may not yet publish data via this platform.
+	 * List from: /entity.json?dataset=local-planning-authority&limit=500&field=name&field=entity
+	 *
+	 * Scope planning applications to each LPA using `geometry_entity` (the boundary
+	 * entity id) and `geometry_relation=within`, per Planning Data documentation.
+	 * The `organisation_entity` parameter expects a different publisher id and must not
+	 * be set to these LPA boundary values.
 	 */
 	private const NW_LPA_ENTITIES = array(
+		// Verified against planning.data.gov.uk on 1 April 2026
 		// Greater Manchester
-		64,   // Bolton
-		66,   // Bury
-		159,  // Manchester
-		176,  // Oldham
-		186,  // Rochdale
-		192,  // Salford
-		200,  // Stockport
-		203,  // Tameside
-		209,  // Trafford
-		220,  // Wigan
+		626025, // Bolton
+		626026, // Bury
+		626027, // Manchester
+		626028, // Oldham
+		626029, // Rochdale
+		626030, // Salford
+		626031, // Stockport
+		626032, // Tameside
+		626033, // Trafford
+		626034, // Wigan
 
 		// Merseyside
-		139,  // Knowsley
-		151,  // Liverpool
-		197,  // St Helens
-		194,  // Sefton
-		222,  // Wirral
+		626047, // Knowsley
+		626048, // Liverpool
+		626050, // St. Helens
+		626049, // Sefton
+		626051, // Wirral
 
 		// Cheshire / Warrington / Halton
-		72,   // Cheshire East
-		73,   // Cheshire West and Chester
-		115,  // Halton
-		216,  // Warrington
+		626017, // Halton
+		626018, // Warrington
+		626015, // Cheshire East
+		626016, // Cheshire West and Chester
 
 		// Lancashire
-		55,   // Blackburn with Darwen
-		57,   // Blackpool
-		68,   // Burnley
-		75,   // Chorley
-		96,   // Fylde
-		120,  // Hyndburn
-		143,  // Lancaster
-		178,  // Pendle
-		184,  // Preston
-		187,  // Ribble Valley
-		189,  // Rossendale
-		196,  // South Ribble
-		219,  // West Lancashire
-		224,  // Wyre
+		626013, // Blackburn with Darwen
+		626014, // Blackpool
+		626035, // Burnley
+		626036, // Chorley
+		626037, // Fylde
+		626038, // Hyndburn
+		626039, // Lancaster
+		626040, // Pendle
+		626041, // Preston
+		626042, // Ribble Valley
+		626043, // Rossendale
+		626044, // South Ribble
+		626045, // West Lancashire
+		626046, // Wyre
 
 		// Cumbria
-		86,   // Cumberland
-		221,  // Westmorland and Furness
+		626334, // Cumberland
+		626335, // Westmorland and Furness
 	);
 
 	public function get_source_name(): string {
@@ -108,14 +111,15 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 		do {
 			$url = add_query_arg(
 				array(
-					'dataset'            => 'planning-application',
-					'organisation_entity' => $lpa_entity,
-					'start_date_year'    => $since->format( 'Y' ),
-					'start_date_month'   => $since->format( 'n' ),
-					'start_date_day'     => $since->format( 'j' ),
-					'start_date_match'   => 'since',
-					'limit'              => $limit,
-					'offset'             => $offset,
+					'dataset'           => 'planning-application',
+					'geometry_entity'   => $lpa_entity,
+					'geometry_relation' => 'within',
+					'start_date_year'   => $since->format( 'Y' ),
+					'start_date_month'  => $since->format( 'n' ),
+					'start_date_day'    => $since->format( 'j' ),
+					'start_date_match'  => 'since',
+					'limit'             => $limit,
+					'offset'            => $offset,
 				),
 				self::API_BASE
 			);
