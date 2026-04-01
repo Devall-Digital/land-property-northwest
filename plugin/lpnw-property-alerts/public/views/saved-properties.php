@@ -162,6 +162,29 @@ if ( empty( $saved ) ) : ?>
 							<?php esc_html_e( 'Unsave', 'lpnw-alerts' ); ?>
 						</button>
 					</footer>
+					<?php
+					$lpnw_share_url = ! empty( $item->source_url ) ? esc_url_raw( (string) $item->source_url ) : '';
+					$lpnw_wa_text   = (string) $item->address;
+					if ( $price_raw > 0 ) {
+						$lpnw_wa_text .= ' - ' . ( $is_pcm ? '£' . number_format( $price_raw ) . ' pcm' : '£' . number_format_i18n( $price_raw ) );
+					}
+					if ( '' !== $lpnw_share_url ) {
+						$lpnw_wa_text .= ' ' . $lpnw_share_url;
+					}
+					$lpnw_mail_body = (string) $item->address;
+					if ( $price_raw > 0 ) {
+						$lpnw_mail_body .= "\n" . ( $is_pcm ? '£' . number_format( $price_raw ) . ' pcm' : '£' . number_format_i18n( $price_raw ) );
+					}
+					if ( '' !== $lpnw_share_url ) {
+						$lpnw_mail_body .= "\n" . $lpnw_share_url;
+					}
+					/* translators: %s: property address */
+					$lpnw_share_subject = sprintf( __( 'Property: %s', 'lpnw-alerts' ), $item->address );
+					?>
+					<div class="lpnw-property-card__share">
+						<a href="https://wa.me/?text=<?php echo rawurlencode( $lpnw_wa_text ); ?>" target="_blank" rel="noopener noreferrer" class="lpnw-share-link" title="<?php echo esc_attr__( 'Share on WhatsApp', 'lpnw-alerts' ); ?>"><?php esc_html_e( 'WhatsApp', 'lpnw-alerts' ); ?></a>
+						<a href="mailto:?subject=<?php echo rawurlencode( $lpnw_share_subject ); ?>&body=<?php echo rawurlencode( $lpnw_mail_body ); ?>" class="lpnw-share-link" title="<?php echo esc_attr__( 'Share via email', 'lpnw-alerts' ); ?>"><?php esc_html_e( 'Email', 'lpnw-alerts' ); ?></a>
+					</div>
 				</article>
 			</li>
 		<?php endforeach; ?>
