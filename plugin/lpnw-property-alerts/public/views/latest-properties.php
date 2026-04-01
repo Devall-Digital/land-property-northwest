@@ -4,6 +4,7 @@
  *
  * @package LPNW_Property_Alerts
  * @var array<object> $properties
+ * @var array<string, mixed> $filters Shortcode filters (source, postcode_prefix).
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -139,4 +140,83 @@ if ( empty( $properties ) ) : ?>
 			</li>
 		<?php endforeach; ?>
 	</ul>
+	<?php
+	if ( ! empty( $properties ) && ! is_user_logged_in() ) {
+		global $wpdb;
+
+		$shown = count( $properties );
+		$table = $wpdb->prefix . 'lpnw_properties';
+		$total = 0;
+
+		if ( ! empty( $filters['postcode_prefix'] ) ) {
+			$where = array( '1=1' );
+			$args  = array();
+			if ( ! empty( $filters['source'] ) ) {
+				$where[] = 'source = %s';
+				$args[]  = sanitize_text_field( $filters['source'] );
+			}
+			LPNW_Property::append_postcode_prefix_sql( 'UPPER(TRIM(postcode))', $filters['postcode_prefix'], $where, $args );
+			$where_clause = implode( ' AND ', $where );
+			if ( ! empty( $args ) ) {
+				$total = (int) $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					...$args
+				) );
+			} else {
+				$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+		} else {
+			$pc      = 'UPPER(TRIM(postcode))';
+			$bucket  = "CASE
+				WHEN {$pc} LIKE 'BB%' THEN 'BB'
+				WHEN {$pc} LIKE 'BL%' THEN 'BL'
+				WHEN {$pc} LIKE 'CA%' THEN 'CA'
+				WHEN {$pc} LIKE 'CH%' THEN 'CH'
+				WHEN {$pc} LIKE 'CW%' THEN 'CW'
+				WHEN {$pc} LIKE 'FY%' THEN 'FY'
+				WHEN {$pc} LIKE 'LA%' THEN 'LA'
+				WHEN {$pc} LIKE 'OL%' THEN 'OL'
+				WHEN {$pc} LIKE 'PR%' THEN 'PR'
+				WHEN {$pc} LIKE 'SK%' THEN 'SK'
+				WHEN {$pc} LIKE 'WA%' THEN 'WA'
+				WHEN {$pc} LIKE 'WN%' THEN 'WN'
+				WHEN {$pc} REGEXP '^M[0-9]' THEN 'M'
+				WHEN {$pc} REGEXP '^L[0-9]' THEN 'L'
+				ELSE ''
+			END";
+			$sql = "SELECT COUNT(*) FROM {$table} WHERE TRIM(postcode) <> '' AND ({$bucket}) <> ''";
+			if ( ! empty( $filters['source'] ) ) {
+				$sql  .= ' AND source = %s';
+				$total = (int) $wpdb->get_var( $wpdb->prepare( $sql, sanitize_text_field( $filters['source'] ) ) );
+			} else {
+				$total = (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			}
+		}
+
+		if ( $total < $shown ) {
+			$total = $shown;
+		}
+
+		$signup_url = wp_registration_url();
+		?>
+		<aside class="lpnw-latest-properties-signup-cta lpnw-cta-banner" role="complementary" aria-labelledby="lpnw-latest-properties-cta-heading">
+			<div class="lpnw-cta-banner__inner">
+				<p class="lpnw-cta-banner__text" id="lpnw-latest-properties-cta-heading">
+					<?php
+					printf(
+						/* translators: 1: number of properties shown, 2: total in database for this view. */
+						esc_html__( 'Showing %1$s of %2$s Northwest properties. Sign up to set your filters and get instant alerts.', 'lpnw-alerts' ),
+						esc_html( number_format_i18n( $shown ) ),
+						esc_html( number_format_i18n( $total ) )
+					);
+					?>
+				</p>
+				<div class="lpnw-cta-banner__actions">
+					<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( $signup_url ); ?>"><?php esc_html_e( 'Start free', 'lpnw-alerts' ); ?></a>
+				</div>
+			</div>
+		</aside>
+		<?php
+	}
+	?>
 <?php endif; ?>

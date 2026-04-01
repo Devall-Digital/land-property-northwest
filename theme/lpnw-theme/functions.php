@@ -636,3 +636,237 @@ function lpnw_output_json_ld_schema(): void {
 }
 add_action( 'wp_head', 'lpnw_output_json_ld_schema', 5 );
 
+/**
+ * Subscriber-only pages where sitewide signup prompts should not appear.
+ *
+ * @return bool
+ */
+function lpnw_theme_is_subscriber_shell_page(): bool {
+	if ( ! is_page() ) {
+		return false;
+	}
+
+	return is_page( array( 'dashboard', 'preferences', 'saved' ) );
+}
+
+/**
+ * Human-readable area phrase for post CTAs (title keyword match, else Northwest).
+ *
+ * @param WP_Post $post Post object.
+ * @return string
+ */
+function lpnw_theme_get_post_cta_area_label( WP_Post $post ): string {
+	$title = strtolower( get_the_title( $post ) );
+
+	$pairs = array(
+		'liverpool'          => __( 'Liverpool and Merseyside', 'lpnw-theme' ),
+		'merseyside'         => __( 'Merseyside', 'lpnw-theme' ),
+		'lancashire'         => __( 'Lancashire', 'lpnw-theme' ),
+		'greater manchester' => __( 'Greater Manchester', 'lpnw-theme' ),
+		'manchester'         => __( 'Greater Manchester', 'lpnw-theme' ),
+		'bolton'             => __( 'Bolton and Greater Manchester', 'lpnw-theme' ),
+		'stockport'          => __( 'Stockport and Cheshire', 'lpnw-theme' ),
+		'chester'            => __( 'Cheshire', 'lpnw-theme' ),
+		'cheshire'           => __( 'Cheshire', 'lpnw-theme' ),
+		'warrington'         => __( 'Warrington', 'lpnw-theme' ),
+		'preston'            => __( 'Preston and Lancashire', 'lpnw-theme' ),
+		'blackpool'          => __( 'Blackpool and the Fylde', 'lpnw-theme' ),
+		'carlisle'           => __( 'Carlisle and Cumbria', 'lpnw-theme' ),
+		'cumbria'            => __( 'Cumbria', 'lpnw-theme' ),
+		'wigan'              => __( 'Wigan', 'lpnw-theme' ),
+		'auction'            => __( 'the Northwest', 'lpnw-theme' ),
+	);
+
+	foreach ( $pairs as $needle => $label ) {
+		if ( str_contains( $title, $needle ) ) {
+			return $label;
+		}
+	}
+
+	return __( 'the Northwest', 'lpnw-theme' );
+}
+
+/**
+ * Inline styles for sticky signup bar and conversion CTAs.
+ */
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		if ( is_admin() ) {
+			return;
+		}
+
+		$css = '
+.lpnw-sticky-cta-bar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 5.5rem;
+	z-index: 999990;
+	background: linear-gradient(135deg, var(--lpnw-navy) 0%, var(--lpnw-navy-light) 100%);
+	color: var(--lpnw-white);
+	padding: 0.75rem 1rem;
+	box-shadow: 0 -4px 24px rgba(27, 42, 74, 0.25);
+	box-sizing: border-box;
+}
+.lpnw-sticky-cta-bar__inner {
+	max-width: 72rem;
+	margin: 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.75rem 1.25rem;
+}
+.lpnw-sticky-cta-bar__text {
+	margin: 0;
+	font-size: 0.9375rem;
+	font-weight: 600;
+	line-height: 1.35;
+	text-align: center;
+}
+.lpnw-sticky-cta-bar__dismiss {
+	flex-shrink: 0;
+	min-width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	border: 1px solid rgba(255,255,255,0.35);
+	border-radius: 6px;
+	background: transparent;
+	color: var(--lpnw-white);
+	font-size: 1.25rem;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lpnw-sticky-cta-bar__dismiss:hover {
+	background: rgba(255,255,255,0.1);
+	border-color: rgba(255,255,255,0.55);
+}
+.lpnw-sticky-cta-bar__dismiss:focus-visible {
+	outline: 2px solid var(--lpnw-amber);
+	outline-offset: 2px;
+}
+body.lpnw-sticky-cta-visible {
+	padding-bottom: 5rem;
+}
+@media (max-width: 600px) {
+	.lpnw-sticky-cta-bar {
+		bottom: 4.5rem;
+	}
+	.lpnw-sticky-cta-bar__inner {
+		flex-direction: column;
+		text-align: center;
+	}
+}
+.lpnw-property-list--grid + .lpnw-latest-properties-signup-cta {
+	margin-top: 1.5rem;
+}
+.lpnw-post-signup-cta {
+	margin-top: 2rem;
+}
+';
+
+		wp_add_inline_style( 'lpnw-child', $css );
+	},
+	25
+);
+
+/**
+ * Sticky bottom signup bar for guests (dismissible via cookie).
+ */
+add_action(
+	'wp_footer',
+	function () {
+		if ( is_admin() || wp_is_json_request() || is_feed() || is_embed() ) {
+			return;
+		}
+
+		if ( is_user_logged_in() ) {
+			return;
+		}
+
+		if ( lpnw_theme_is_subscriber_shell_page() ) {
+			return;
+		}
+
+		if ( ! empty( $_COOKIE['lpnw_sticky_cta_dismiss'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$register = wp_registration_url();
+		if ( '' === $register ) {
+			$register = home_url( '/pricing/' );
+		}
+		?>
+		<div id="lpnw-sticky-cta-bar" class="lpnw-sticky-cta-bar" role="region" aria-label="<?php echo esc_attr__( 'Sign up for property alerts', 'lpnw-theme' ); ?>">
+			<div class="lpnw-sticky-cta-bar__inner">
+				<p class="lpnw-sticky-cta-bar__text"><?php esc_html_e( 'Get instant NW property alerts', 'lpnw-theme' ); ?></p>
+				<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( $register ); ?>"><?php esc_html_e( 'Start free', 'lpnw-theme' ); ?></a>
+				<button type="button" class="lpnw-sticky-cta-bar__dismiss" aria-label="<?php esc_attr_e( 'Dismiss', 'lpnw-theme' ); ?>">&times;</button>
+			</div>
+		</div>
+		<script>
+		(function () {
+			document.body.classList.add('lpnw-sticky-cta-visible');
+			var bar = document.getElementById('lpnw-sticky-cta-bar');
+			if (!bar) return;
+			var btn = bar.querySelector('.lpnw-sticky-cta-bar__dismiss');
+			if (!btn) return;
+			btn.addEventListener('click', function () {
+				bar.style.display = 'none';
+				document.body.classList.remove('lpnw-sticky-cta-visible');
+				var maxAge = 180 * 24 * 60 * 60;
+				document.cookie = 'lpnw_sticky_cta_dismiss=1; path=/; max-age=' + maxAge + '; SameSite=Lax';
+			});
+		})();
+		</script>
+		<?php
+	},
+	5
+);
+
+/**
+ * CTA after single post content for guests.
+ *
+ * @param string $content Post content HTML.
+ * @return string
+ */
+add_filter(
+	'the_content',
+	function ( string $content ): string {
+		if ( ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
+			return $content;
+		}
+
+		if ( is_user_logged_in() ) {
+			return $content;
+		}
+
+		$post = get_post();
+		if ( ! $post instanceof WP_Post ) {
+			return $content;
+		}
+
+		$area   = lpnw_theme_get_post_cta_area_label( $post );
+		$signup = wp_registration_url();
+		if ( '' === $signup ) {
+			$signup = home_url( '/pricing/' );
+		}
+
+		$cta = sprintf(
+			'<aside class="lpnw-post-signup-cta lpnw-cta-banner" role="complementary" aria-labelledby="lpnw-post-signup-cta-heading"><div class="lpnw-cta-banner__inner"><h3 class="lpnw-cta-banner__title" id="lpnw-post-signup-cta-heading">%s</h3><div class="lpnw-cta-banner__actions"><a class="lpnw-btn lpnw-btn--primary" href="%s">%s</a></div></div></aside>',
+			sprintf(
+				/* translators: %s: geographic area phrase (e.g. "the Northwest"). */
+				esc_html__( 'Want to know about new properties in %s before anyone else? Set up free alerts now.', 'lpnw-theme' ),
+				esc_html( $area )
+			),
+			esc_url( $signup ),
+			esc_html__( 'Start free', 'lpnw-theme' )
+		);
+
+		return $content . $cta;
+	},
+	20
+);
+
