@@ -118,6 +118,8 @@ class LPNW_Activator {
 		$defaults = array(
 			'planning_enabled'     => true,
 			'epc_enabled'          => true,
+			'epc_api_email'        => '',
+			'epc_api_key'          => '',
 			'landregistry_enabled' => true,
 			'auctions_enabled'     => true,
 			'mautic_api_url'       => '',

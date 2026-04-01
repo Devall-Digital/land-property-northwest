@@ -10,6 +10,34 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Load a template part from `template-parts/{name}.php` with extracted variables.
+ *
+ * Keys in `$args` become variables in the template scope (same pattern as scoped `extract`
+ * before `require`, since `get_template_part()` does not inherit parent scope).
+ *
+ * @param string               $name Template basename without `.php` (e.g. `hero`, `pricing-table`). Alphanumeric, hyphens, underscores only.
+ * @param array<string, mixed> $args Variables to extract into the template.
+ */
+function lpnw_get_template_part( string $name, array $args = array() ): void {
+	$name = preg_replace( '/\.php$/i', '', $name );
+	if ( ! preg_match( '/^[a-z0-9_-]+$/', $name ) ) {
+		return;
+	}
+
+	$file = locate_template( 'template-parts/' . $name . '.php' );
+	if ( ! $file || ! is_readable( $file ) ) {
+		return;
+	}
+
+	if ( ! empty( $args ) ) {
+		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- Intentional template-local scope for theme partials.
+		extract( $args, EXTR_SKIP );
+	}
+
+	require $file;
+}
+
+/**
  * Enqueue parent and child styles, plus Google Fonts.
  */
 add_action( 'wp_enqueue_scripts', function () {
@@ -52,7 +80,10 @@ add_action( 'after_setup_theme', function () {
 	add_theme_support( 'html5', array(
 		'search-form', 'comment-form', 'comment-list', 'gallery', 'caption',
 	) );
-} );
+
+	// Subscriber-only nav; assign the "Subscriber" menu in Appearance > Menus (or via lpnw-woo-setup.php).
+	register_nav_menu( 'lpnw_subscriber', __( 'Subscriber', 'lpnw-theme' ) );
+}, 11 );
 
 /**
  * Register widget areas.

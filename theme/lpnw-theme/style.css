@@ -86,6 +86,89 @@ a:hover {
 	padding: 14px 32px;
 }
 
+/* Buttons (theme pages; matches plugin public styles when both load) */
+.lpnw-btn {
+	display: inline-block;
+	padding: 8px 16px;
+	border-radius: 6px;
+	font-size: 0.875rem;
+	font-weight: 600;
+	font-family: var(--lpnw-font-heading);
+	text-decoration: none;
+	text-align: center;
+	cursor: pointer;
+	border: none;
+	transition: background 0.15s ease, color 0.15s ease;
+	box-sizing: border-box;
+}
+
+.lpnw-btn:focus-visible {
+	outline: 2px solid var(--lpnw-amber);
+	outline-offset: 2px;
+}
+
+.lpnw-btn--primary {
+	background: var(--lpnw-amber);
+	color: var(--lpnw-white);
+}
+
+.lpnw-btn--primary:hover {
+	background: var(--lpnw-amber-light);
+	color: var(--lpnw-white);
+}
+
+.lpnw-btn--secondary {
+	background: var(--lpnw-navy);
+	color: var(--lpnw-white);
+}
+
+.lpnw-btn--secondary:hover {
+	background: var(--lpnw-navy-light);
+	color: var(--lpnw-white);
+}
+
+/* CTA banner (upgrade prompts) */
+.lpnw-cta-banner {
+	background: linear-gradient(135deg, var(--lpnw-navy) 0%, var(--lpnw-navy-light) 100%);
+	color: var(--lpnw-white);
+	padding: 48px 20px;
+	text-align: center;
+}
+
+.lpnw-cta-banner h2 {
+	color: var(--lpnw-white);
+	font-size: 1.75rem;
+	margin: 0 0 12px;
+	line-height: 1.25;
+}
+
+.lpnw-cta-banner p {
+	font-size: 1.0625rem;
+	opacity: 0.92;
+	max-width: 560px;
+	margin: 0 auto 24px;
+	line-height: 1.5;
+}
+
+.lpnw-cta-banner .lpnw-btn--primary {
+	font-size: 1rem;
+	padding: 12px 28px;
+}
+
+/* Section headings (pricing, how it works) */
+.lpnw-pricing-section__title,
+.lpnw-how-it-works__title {
+	text-align: center;
+	font-size: 1.75rem;
+	margin: 0 0 8px;
+}
+
+.lpnw-pricing-section,
+.lpnw-how-it-works {
+	padding: 24px 20px 40px;
+	background: var(--lpnw-offwhite);
+}
+
 /* Pricing table */
 .lpnw-pricing {
 	display: grid;
@@ -175,6 +258,11 @@ a:hover {
 	text-align: center;
 }
 
+.lpnw-step {
+	max-width: 320px;
+	margin: 0 auto;
+}
+
 .lpnw-step__number {
 	display: inline-flex;
 	align-items: center;
@@ -187,6 +275,18 @@ a:hover {
 	font-weight: 700;
 	font-size: 1.25rem;
 	margin-bottom: 16px;
+}
+
+.lpnw-step__title {
+	font-size: 1.125rem;
+	margin: 0 0 8px;
+}
+
+.lpnw-step__text {
+	font-size: 0.9375rem;
+	color: var(--lpnw-grey);
+	margin: 0;
+	line-height: 1.55;
 }
 
 /* Footer */
@@ -206,6 +306,14 @@ a:hover {
 	}
 
 	.lpnw-hero p {
+		font-size: 1rem;
+	}
+
+	.lpnw-cta-banner h2 {
+		font-size: 1.375rem;
+	}
+
+	.lpnw-cta-banner p {
 		font-size: 1rem;
 	}
 }

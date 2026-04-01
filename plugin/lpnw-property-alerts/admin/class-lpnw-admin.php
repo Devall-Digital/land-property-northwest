@@ -78,19 +78,26 @@ class LPNW_Admin {
 		$feed_fields = array(
 			'planning_enabled'     => 'Enable Planning Portal feed',
 			'epc_enabled'          => 'Enable EPC Open Data feed',
-			'epc_api_key'          => 'EPC API Key',
+			'epc_api_email'        => 'EPC account email (Basic auth username)',
+			'epc_api_key'          => 'EPC API key (Basic auth password)',
 			'landregistry_enabled' => 'Enable Land Registry feed',
 			'auctions_enabled'     => 'Enable Auction House feeds',
 		);
 
 		foreach ( $feed_fields as $key => $label ) {
+			$type = 'text';
+			if ( str_contains( $key, 'enabled' ) ) {
+				$type = 'checkbox';
+			} elseif ( 'epc_api_email' === $key ) {
+				$type = 'email';
+			}
 			add_settings_field(
 				$key,
 				__( $label, 'lpnw-alerts' ),
 				array( __CLASS__, 'render_field' ),
 				'lpnw-settings',
 				'lpnw_feeds_section',
-				array( 'key' => $key, 'type' => str_contains( $key, 'enabled' ) ? 'checkbox' : 'text' )
+				array( 'key' => $key, 'type' => $type )
 			);
 		}
 
@@ -127,6 +134,8 @@ class LPNW_Admin {
 		foreach ( $checkboxes as $key ) {
 			$sanitized[ $key ] = ! empty( $input[ $key ] );
 		}
+
+		$sanitized['epc_api_email'] = sanitize_email( $input['epc_api_email'] ?? '' );
 
 		$text_fields = array(
 			'epc_api_key', 'mautic_api_url', 'mautic_api_user', 'mautic_api_password',

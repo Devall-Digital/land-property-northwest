@@ -75,6 +75,9 @@ class LPNW_Cron {
 
 		$feeds = array(
 			new LPNW_Feed_Auction_Pugh(),
+			new LPNW_Feed_Auction_SDL(),
+			new LPNW_Feed_Auction_AHNW(),
+			new LPNW_Feed_Auction_Allsop(),
 		);
 
 		foreach ( $feeds as $feed ) {

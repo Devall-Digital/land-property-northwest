@@ -41,6 +41,10 @@ abstract class LPNW_Feed_Base {
 				try {
 					$parsed = $this->parse( $raw_item );
 
+					if ( empty( $parsed ) ) {
+						continue;
+					}
+
 					if ( empty( $parsed['source'] ) ) {
 						$parsed['source'] = $this->get_source_name();
 					}

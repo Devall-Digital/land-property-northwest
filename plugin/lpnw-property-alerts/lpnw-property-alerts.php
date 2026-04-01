@@ -72,6 +72,9 @@ final class LPNW_Property_Alerts {
 		require_once $feeds . 'class-lpnw-feed-epc.php';
 		require_once $feeds . 'class-lpnw-feed-landregistry.php';
 		require_once $feeds . 'class-lpnw-feed-auction-pugh.php';
+		require_once $feeds . 'class-lpnw-feed-auction-sdl.php';
+		require_once $feeds . 'class-lpnw-feed-auction-ahnw.php';
+		require_once $feeds . 'class-lpnw-feed-auction-allsop.php';
 
 		if ( is_admin() ) {
 			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin.php';
