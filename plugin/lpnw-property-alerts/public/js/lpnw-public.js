@@ -125,8 +125,94 @@
         setTimeout(function () { el.remove(); }, 3000);
     }
 
+    function getAjaxMessage(res) {
+        if (!res || typeof res.data === 'undefined') {
+            return '';
+        }
+        if (typeof res.data === 'string') {
+            return res.data;
+        }
+        if (res.data && typeof res.data.message === 'string') {
+            return res.data.message;
+        }
+        return '';
+    }
+
+    function initContactForm() {
+        var form = document.getElementById('lpnw-contact-form');
+        if (!form || !data.ajaxUrl) {
+            return;
+        }
+
+        var feedback = form.querySelector('.lpnw-contact-form__feedback');
+        var submitBtn = form.querySelector('#lpnw-contact-submit');
+        var defaultLabel = submitBtn ? submitBtn.textContent : '';
+
+        function setFeedback(text, isError) {
+            if (!feedback) {
+                return;
+            }
+            feedback.textContent = text || '';
+            feedback.hidden = !text;
+            feedback.classList.remove('lpnw-contact-form__feedback--error', 'lpnw-contact-form__feedback--success');
+            if (text) {
+                feedback.classList.add(isError ? 'lpnw-contact-form__feedback--error' : 'lpnw-contact-form__feedback--success');
+            }
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            setFeedback('');
+
+            var formData = new FormData(form);
+            var params = {};
+            formData.forEach(function (value, key) {
+                params[key] = value;
+            });
+            params.action = 'lpnw_contact_form';
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending…';
+            }
+
+            fetch(data.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(params).toString()
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (res) {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = defaultLabel;
+                    }
+                    var msg = getAjaxMessage(res);
+                    if (res.success) {
+                        setFeedback(msg || 'Thank you. We have received your message.', false);
+                        showNotice(msg || 'Message sent.', 'success');
+                        form.reset();
+                    } else {
+                        var err = msg || 'Something went wrong. Please try again.';
+                        setFeedback(err, true);
+                        showNotice(err, 'error');
+                    }
+                })
+                .catch(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = defaultLabel;
+                    }
+                    var err = 'Could not reach the server. Please try again.';
+                    setFeedback(err, true);
+                    showNotice(err, 'error');
+                });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initPreferencesForm();
+        initContactForm();
         initSaveButtons();
         initUnsaveButtons();
     });

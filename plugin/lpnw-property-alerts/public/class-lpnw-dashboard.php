@@ -64,7 +64,7 @@ class LPNW_Dashboard {
 		$user_id = get_current_user_id();
 
 		$saved = $wpdb->get_results( $wpdb->prepare(
-			"SELECT sp.*, p.address, p.postcode, p.price, p.source, p.property_type, p.source_url, p.description
+			"SELECT sp.*, p.address, p.postcode, p.price, p.source, p.property_type, p.source_url, p.description, p.raw_data
 			 FROM {$wpdb->prefix}lpnw_saved_properties sp
 			 INNER JOIN {$wpdb->prefix}lpnw_properties p ON p.id = sp.property_id
 			 WHERE sp.user_id = %d

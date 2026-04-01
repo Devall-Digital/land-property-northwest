@@ -65,9 +65,28 @@ if ( empty( $saved ) ) : ?>
 
 			$source_badge_label = ucwords( str_replace( '_', ' ', $source ) );
 			$type_label         = trim( (string) ( $item->property_type ?? '' ) );
+
+			$raw       = json_decode( (string) ( isset( $item->raw_data ) ? $item->raw_data : '' ), true );
+			$image_url = '';
+			if ( is_array( $raw ) ) {
+				if ( ! empty( $raw['propertyImages']['images'][0]['srcUrl'] ) ) {
+					$image_url = $raw['propertyImages']['images'][0]['srcUrl'];
+				} elseif ( ! empty( $raw['propertyImages']['mainImageSrc'] ) ) {
+					$image_url = $raw['propertyImages']['mainImageSrc'];
+				} elseif ( ! empty( $raw['images'][0]['srcUrl'] ) ) {
+					$image_url = $raw['images'][0]['srcUrl'];
+				}
+			}
 			?>
 			<li class="lpnw-property-list__item">
 				<article class="lpnw-property-card" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
+					<div class="lpnw-property-card__image">
+						<?php if ( '' !== $image_url ) : ?>
+							<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $item->address ); ?>" loading="lazy">
+						<?php else : ?>
+							<div class="lpnw-property-card__image-placeholder"><?php echo esc_html( '' !== $type_label ? $type_label : __( 'Property', 'lpnw-alerts' ) ); ?></div>
+						<?php endif; ?>
+					</div>
 					<header class="lpnw-property-card__header">
 						<h3 class="lpnw-property-card__title" id="<?php echo esc_attr( $title_id ); ?>"><?php echo esc_html( $item->address ); ?></h3>
 						<?php if ( ! empty( $item->postcode ) ) : ?>

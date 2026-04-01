@@ -19,6 +19,7 @@ add_action( 'init', function() {
 		'Home'    => LPNW_Page_Content::get_home_content(),
 		'About'   => LPNW_Page_Content::get_about_content(),
 		'Pricing' => LPNW_Page_Content::get_pricing_content(),
+		'Contact' => LPNW_Page_Content::get_contact_content(),
 	);
 
 	foreach ( $pages as $title => $content ) {

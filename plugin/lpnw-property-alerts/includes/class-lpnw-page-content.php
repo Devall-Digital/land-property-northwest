@@ -324,7 +324,7 @@ HTML;
 
 <p>For billing queries, technical issues, data questions, or partnership enquiries, use the form below. We aim to reply within two working days. If you already have an account, include the email on your subscription so we can find you quickly.</p>
 
-[wpforms id="X"]
+[lpnw_contact_form]
 
 </div>
 HTML;

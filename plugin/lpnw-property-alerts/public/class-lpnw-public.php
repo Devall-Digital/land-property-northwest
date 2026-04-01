@@ -17,8 +17,11 @@ class LPNW_Public {
 		add_shortcode( 'lpnw_property_count', array( __CLASS__, 'render_property_count' ) );
 		add_shortcode( 'lpnw_signup_form', array( __CLASS__, 'render_signup_form' ) );
 		add_shortcode( 'lpnw_latest_properties', array( __CLASS__, 'render_latest_properties' ) );
+		add_shortcode( 'lpnw_contact_form', array( __CLASS__, 'render_contact_form' ) );
 
 		add_action( 'wp_ajax_lpnw_save_preferences', array( __CLASS__, 'ajax_save_preferences' ) );
+		add_action( 'wp_ajax_lpnw_contact_form', array( __CLASS__, 'ajax_contact_form' ) );
+		add_action( 'wp_ajax_nopriv_lpnw_contact_form', array( __CLASS__, 'ajax_contact_form' ) );
 		add_action( 'wp_ajax_lpnw_save_property', array( __CLASS__, 'ajax_save_property' ) );
 		add_action( 'wp_ajax_lpnw_unsave_property', array( __CLASS__, 'ajax_unsave_property' ) );
 		add_action( 'wp_ajax_lpnw_load_properties', array( __CLASS__, 'ajax_load_properties' ) );
@@ -77,6 +80,18 @@ class LPNW_Public {
 	public static function render_signup_form(): string {
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/signup-form.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * [lpnw_contact_form] - Native contact form (AJAX to admin-ajax.php).
+	 *
+	 * @return string HTML.
+	 */
+	public static function render_contact_form(): string {
+		ob_start();
+		$nonce = wp_nonce_field( 'lpnw_contact', 'nonce', true, false );
+		include LPNW_PLUGIN_DIR . 'public/views/contact-form.php';
 		return ob_get_clean();
 	}
 
@@ -191,6 +206,79 @@ class LPNW_Public {
 		}
 
 		wp_send_json_success( 'Property removed from saved list.' );
+	}
+
+	/**
+	 * Handle public contact form submission.
+	 */
+	public static function ajax_contact_form(): void {
+		check_ajax_referer( 'lpnw_contact', 'nonce' );
+
+		$name    = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+		$email   = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$subject = isset( $_POST['subject'] ) ? sanitize_text_field( wp_unslash( $_POST['subject'] ) ) : '';
+		$message = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
+
+		if ( '' === $name || '' === $message || ! is_email( $email ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Please enter your name, a valid email, and a message.', 'lpnw-alerts' ),
+				)
+			);
+		}
+
+		$admin_email = get_option( 'admin_email' );
+		if ( ! is_email( $admin_email ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'The site cannot accept messages right now. Please try again later.', 'lpnw-alerts' ),
+				)
+			);
+		}
+
+		$site_name = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+
+		if ( '' !== $subject ) {
+			/* translators: 1: site name, 2: user-supplied subject line */
+			$mail_subject = sprintf( __( '[%1$s] %2$s', 'lpnw-alerts' ), $site_name, $subject );
+		} else {
+			/* translators: %s: site name */
+			$mail_subject = sprintf( __( '[%s] Contact form', 'lpnw-alerts' ), $site_name );
+		}
+
+		$body = sprintf(
+			"%s\n%s: %s\n%s: %s\n\n%s\n",
+			/* translators: email body header */
+			__( 'New message from the website contact form.', 'lpnw-alerts' ),
+			/* translators: email label */
+			__( 'Name', 'lpnw-alerts' ),
+			$name,
+			/* translators: email label */
+			__( 'Email', 'lpnw-alerts' ),
+			$email,
+			$message
+		);
+
+		$headers = array(
+			'Content-Type: text/plain; charset=UTF-8',
+			'Reply-To: ' . $email,
+		);
+
+		$sent = wp_mail( $admin_email, $mail_subject, $body, $headers );
+
+		if ( ! $sent ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Could not send your message. Please try again later.', 'lpnw-alerts' ),
+				)
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Thank you. We have received your message and will reply as soon as we can.', 'lpnw-alerts' ),
+			)
+		);
 	}
 
 	public static function ajax_load_properties(): void {
