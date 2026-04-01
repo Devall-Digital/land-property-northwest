@@ -83,6 +83,8 @@ class LPNW_Public {
 	 * [lpnw_latest_properties] - Shows recent properties (teaser for non-subscribers).
 	 */
 	public static function render_latest_properties( array $atts = array() ): string {
+		defined( 'DONOTCACHEPAGE' ) || define( 'DONOTCACHEPAGE', true );
+
 		$atts = shortcode_atts( array(
 			'limit'  => 5,
 			'source' => '',

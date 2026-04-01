@@ -126,6 +126,7 @@ class LPNW_Matcher {
 			'auction'      => 'auction',
 			'rightmove'    => 'listing',
 			'zoopla'       => 'listing',
+			'onthemarket'  => 'listing',
 		);
 
 		$source = $property->source ?? '';

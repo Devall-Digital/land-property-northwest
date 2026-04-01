@@ -88,7 +88,7 @@ class LPNW_Cron {
 	}
 
 	/**
-	 * Run property portal feeds (Rightmove, Zoopla).
+	 * Run property portal feeds (Rightmove, Zoopla, OnTheMarket).
 	 * These are the primary "new to market" data sources.
 	 */
 	public static function run_portal_feeds(): void {
@@ -98,6 +98,7 @@ class LPNW_Cron {
 			$feeds = array(
 				new LPNW_Feed_Portal_Rightmove(),
 				new LPNW_Feed_Portal_Zoopla(),
+				new LPNW_Feed_Portal_OnTheMarket(),
 			);
 
 			foreach ( $feeds as $feed ) {
