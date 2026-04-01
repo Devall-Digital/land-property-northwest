@@ -59,12 +59,71 @@ a:hover {
 	color: var(--lpnw-amber) !important;
 }
 
+/* Full-width main when sidebar is removed (GeneratePress no-sidebar) */
+body.no-sidebar .site-content .content-area {
+	width: 100%;
+	max-width: none;
+}
+
+body.no-sidebar .site-main {
+	margin-right: 0;
+	margin-left: 0;
+}
+
+@media (min-width: 769px) {
+	body.no-sidebar .site-content {
+		display: block;
+	}
+
+	body.no-sidebar .site-content .content-area {
+		float: none;
+	}
+}
+
+/* Header logo (bundled SVG or Customizer logo) */
+.site-header .lpnw-site-logo {
+	margin: 0;
+	line-height: 0;
+}
+
+.site-header .lpnw-site-logo__link,
+.site-header .lpnw-site-logo .custom-logo-link {
+	display: inline-flex;
+	align-items: center;
+	line-height: 0;
+}
+
+.site-header .lpnw-site-logo__img,
+.site-header .lpnw-site-logo .custom-logo {
+	height: 40px;
+	width: auto;
+	max-width: min(240px, 52vw);
+	display: block;
+}
+
+/* Default SVG is navy-on-transparent; invert for visibility on navy header */
+.site-header .lpnw-site-logo__img {
+	filter: brightness(0) invert(1);
+}
+
+.site-header .lpnw-site-logo .custom-logo,
+.site-header .lpnw-site-logo .custom-logo-link .custom-logo {
+	/* Uploaded logos: assume light artwork; no filter */
+	filter: none;
+}
+
 /* Hero section (used on home page) */
 .lpnw-hero {
 	background: linear-gradient(135deg, var(--lpnw-navy) 0%, var(--lpnw-navy-light) 100%);
 	color: var(--lpnw-white);
 	padding: 80px 20px;
 	text-align: center;
+	/* Break out of content grid to viewport width */
+	width: 100vw;
+	max-width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+	box-sizing: border-box;
 }
 
 .lpnw-hero h1 {
@@ -297,6 +356,25 @@ a:hover {
 
 .site-footer a {
 	color: var(--lpnw-white) !important;
+}
+
+.site-footer .lpnw-footer-links {
+	display: inline;
+	font-size: 0.9375rem;
+}
+
+.site-footer .lpnw-footer-links a {
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.site-footer .lpnw-footer-links a:hover {
+	color: var(--lpnw-amber-light) !important;
+}
+
+.site-footer .lpnw-footer-dot {
+	opacity: 0.65;
+	padding: 0 0.15em;
 }
 
 /* Responsive */

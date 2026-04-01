@@ -2,24 +2,143 @@
  * LPNW Property Alerts - Frontend Styles
  */
 
+/* Latest properties: responsive grid (shortcode only; other lists stay block layout). */
+.lpnw-property-list--grid {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+	.lpnw-property-list--grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+.lpnw-property-list__item {
+	margin: 0;
+}
+
 .lpnw-property-card {
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
 	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
-	border-radius: 8px;
-	padding: 16px;
+	border-radius: 10px;
+	padding: 1.125rem 1.25rem 1.25rem;
 	margin-bottom: 12px;
 	background: var(--lpnw-white, #FFFFFF);
-	transition: box-shadow 0.2s ease;
+	transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.lpnw-property-list--grid .lpnw-property-card {
+	margin-bottom: 0;
+	height: 100%;
 }
 
 .lpnw-property-card:hover {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 8px 24px rgba(27, 42, 74, 0.1);
+	border-color: var(--lpnw-grey, #D1D5DB);
 }
 
+.lpnw-property-card:focus-within {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(232, 163, 23, 0.35), 0 8px 24px rgba(27, 42, 74, 0.08);
+}
+
+.lpnw-property-card__header {
+	margin: 0 0 0.75rem;
+}
+
+.lpnw-property-card__title,
 .lpnw-property-card__address {
-	font-weight: 600;
-	font-size: 1rem;
-	margin: 0 0 4px;
+	font-family: inherit;
+	font-weight: 700;
+	font-size: 1.0625rem;
+	line-height: 1.35;
+	margin: 0 0 0.25rem;
 	color: var(--lpnw-navy, #1B2A4A);
+}
+
+.lpnw-property-card__postcode {
+	margin: 0;
+	font-size: 0.8125rem;
+	color: var(--lpnw-grey, #6B7280);
+	letter-spacing: 0.02em;
+}
+
+.lpnw-property-card__top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.75rem 1rem;
+	margin-bottom: 0.625rem;
+}
+
+.lpnw-property-card__badges {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem 0.5rem;
+	min-width: 0;
+}
+
+.lpnw-property-card__type-badge {
+	display: -webkit-box;
+	max-width: min(100%, 14rem);
+	padding: 0.2rem 0.5rem;
+	border-radius: 4px;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.25;
+	color: var(--lpnw-grey-dark, #374151);
+	background: var(--lpnw-offwhite, #F7F8FA);
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	white-space: normal;
+}
+
+.lpnw-property-card__price {
+	margin: 0;
+	text-align: right;
+	line-height: 1.15;
+	flex-shrink: 0;
+}
+
+.lpnw-property-card__price-currency {
+	font-size: 1.375rem;
+	font-weight: 700;
+	color: var(--lpnw-amber, #E8A317);
+	letter-spacing: -0.02em;
+}
+
+.lpnw-property-card__price--pcm .lpnw-property-card__price-currency {
+	font-size: 1.25rem;
+}
+
+.lpnw-property-card__price-suffix {
+	display: inline-block;
+	margin-left: 0.35rem;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--lpnw-grey-dark, #374151);
+	text-transform: lowercase;
+	vertical-align: middle;
+}
+
+.lpnw-property-card__rooms {
+	margin: 0 0 0.625rem;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--lpnw-navy-light, #2D4470);
 }
 
 .lpnw-property-card__meta {
@@ -32,14 +151,20 @@
 }
 
 .lpnw-property-card__description {
+	flex: 1 1 auto;
 	font-size: 0.875rem;
+	line-height: 1.55;
 	color: var(--lpnw-grey-dark, #374151);
-	margin-bottom: 8px;
+	margin: 0 0 1rem;
 }
 
 .lpnw-property-card__actions {
 	display: flex;
-	gap: 8px;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem 0.625rem;
+	margin-top: auto;
+	padding-top: 0.25rem;
 }
 
 .lpnw-source-badge {
@@ -70,6 +195,14 @@
 .lpnw-source-badge--auction {
 	background: #FEE2E2;
 	color: #991B1B;
+}
+
+/* Portal listing sources: blue badge */
+.lpnw-source-badge--rightmove,
+.lpnw-source-badge--zoopla,
+.lpnw-source-badge--onthemarket {
+	background: #DBEAFE;
+	color: #1E40AF;
 }
 
 .lpnw-btn {
@@ -112,6 +245,75 @@
 
 .lpnw-btn--outline:hover {
 	background: var(--lpnw-offwhite, #F7F8FA);
+}
+
+.lpnw-btn--amber-outline {
+	background: transparent;
+	border: 2px solid var(--lpnw-amber, #E8A317);
+	color: var(--lpnw-navy, #1B2A4A);
+	text-decoration: none;
+}
+
+.lpnw-btn--amber-outline:hover {
+	background: rgba(232, 163, 23, 0.12);
+	border-color: var(--lpnw-amber-light, #F5C04A);
+	color: var(--lpnw-navy, #1B2A4A);
+}
+
+.lpnw-btn--amber-outline:focus-visible {
+	outline: 2px solid var(--lpnw-amber, #E8A317);
+	outline-offset: 2px;
+}
+
+.lpnw-btn--bookmark {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	background: var(--lpnw-white, #FFFFFF);
+	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
+	color: var(--lpnw-navy, #1B2A4A);
+	padding: 8px 12px;
+}
+
+.lpnw-btn--bookmark:hover {
+	border-color: var(--lpnw-navy-light, #2D4470);
+	background: var(--lpnw-offwhite, #F7F8FA);
+}
+
+.lpnw-btn--bookmark:focus-visible {
+	outline: 2px solid var(--lpnw-navy, #1B2A4A);
+	outline-offset: 2px;
+}
+
+.lpnw-btn--bookmark__icon {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	background: currentColor;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M6 2h12a2 2 0 0 1 2 2v18l-8-5.33L4 22V4a2 2 0 0 1 2-2z'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M6 2h12a2 2 0 0 1 2 2v18l-8-5.33L4 22V4a2 2 0 0 1 2-2z'/%3E%3C/svg%3E") center / contain no-repeat;
+	vertical-align: -0.1em;
+}
+
+.lpnw-btn--bookmark__text {
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+/* Home feed: emphasise total count after the latest-properties grid (theme provides base .lpnw-home-feed__count). */
+.lpnw-home-feed .lpnw-property-list--grid + .lpnw-home-feed__count {
+	margin-top: 2rem;
+	padding-top: 1.5rem;
+}
+
+.lpnw-home-feed .lpnw-property-list--grid + .lpnw-home-feed__count strong {
+	display: inline-block;
+	font-size: clamp(2rem, 6vw, 3rem);
+	font-weight: 700;
+	line-height: 1.05;
+	color: var(--lpnw-navy, #1B2A4A);
+	margin: 0 0.2em;
+	vertical-align: middle;
 }
 
 .lpnw-dashboard-stats {

@@ -20,12 +20,117 @@ class LPNW_Page_Content {
 	public static function get_home_content(): string {
 		$register = esc_url( wp_registration_url() );
 		$pricing  = esc_url( home_url( '/pricing/' ) );
+		$shop_url = esc_url( home_url( '/shop/' ) );
+		if ( function_exists( 'wc_get_page_permalink' ) ) {
+			$shop_page = wc_get_page_permalink( 'shop' );
+			if ( $shop_page ) {
+				$shop_url = esc_url( $shop_page );
+			}
+		}
 
 		return <<<HTML
+<style id="lpnw-home-section-styles">
+/* Front-page sections: grid for latest properties + trust/stats strip (content ships with page body). */
+.lpnw-stats-bar .screen-reader-text {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+.lpnw-trust-bar {
+	margin: 0;
+	padding: 14px 20px;
+	text-align: center;
+	background: var(--lpnw-offwhite, #F7F8FA);
+	border-bottom: 1px solid var(--lpnw-grey-light, #E5E7EB);
+}
+.lpnw-trust-bar__text {
+	margin: 0 auto;
+	max-width: 56rem;
+	font-size: 0.8125rem;
+	line-height: 1.55;
+	color: var(--lpnw-grey, #6B7280);
+	letter-spacing: 0.01em;
+}
+.lpnw-stats-bar {
+	margin: 0;
+	padding: 22px 20px 26px;
+	background: var(--lpnw-white, #FFFFFF);
+	border-bottom: 1px solid var(--lpnw-grey-light, #E5E7EB);
+}
+.lpnw-stats-bar__list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 12px 28px;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 0;
+	list-style: none;
+	font-size: 0.9375rem;
+	line-height: 1.45;
+	color: var(--lpnw-grey-dark, #374151);
+}
+.lpnw-stats-bar__list li {
+	margin: 0;
+	text-align: center;
+}
+.lpnw-stats-bar__value,
+.lpnw-stats-bar__list .lpnw-property-count {
+	font-family: var(--lpnw-font-heading, 'Plus Jakarta Sans', sans-serif);
+	font-weight: 700;
+	font-size: 1.125rem;
+	color: var(--lpnw-navy, #1B2A4A);
+}
+.lpnw-home-feed .lpnw-property-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 1.25rem;
+	max-width: 1100px;
+	margin: 1.5rem auto 0;
+}
+.lpnw-home-feed .lpnw-property-card {
+	margin-bottom: 0;
+	border-radius: 12px;
+	border-width: 1px;
+	box-shadow: 0 2px 10px rgba(27, 42, 74, 0.06);
+}
+.lpnw-home-pricing-teaser__lead {
+	max-width: 40rem;
+	margin: 0 auto 28px;
+	text-align: center;
+	font-size: 1rem;
+	line-height: 1.6;
+	color: var(--lpnw-grey-dark, #374151);
+}
+.lpnw-home-pricing-teaser__foot {
+	margin-top: 28px;
+	text-align: center;
+}
+</style>
 <section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
-	<h1 id="lpnw-hero-heading">Get NW Property Alerts Before Anyone Else</h1>
-	<p>We monitor every planning application, auction lot, EPC filing, and land transaction across Northwest England. You get alerted the moment something matches your criteria. While others are still checking Rightmove, you are already making the call.</p>
-	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Sign up free</a>
+	<h1 id="lpnw-hero-heading">Get NW property alerts before anyone else</h1>
+	<p>We monitor planning, portals, auctions, EPCs, and Land Registry releases across Northwest England. When something matches your criteria, you get alerted fast so you can act while others are still searching manually.</p>
+	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
+</section>
+
+<section class="lpnw-trust-bar" aria-label="Data sources we monitor">
+	<p class="lpnw-trust-bar__text">Monitoring Rightmove, Zoopla, OnTheMarket, planning portals, auction houses, the EPC register, and HM Land Registry.</p>
+</section>
+
+<section class="lpnw-stats-bar" aria-labelledby="lpnw-stats-bar-title">
+	<h2 id="lpnw-stats-bar-title" class="screen-reader-text">Coverage and update frequency</h2>
+	<ul class="lpnw-stats-bar__list" role="list">
+		<li><span class="lpnw-stats-bar__value">[lpnw_property_count]</span> properties tracked</li>
+		<li><span class="lpnw-stats-bar__value">16</span> NW postcode districts covered</li>
+		<li>Listing checks and alert runs every <span class="lpnw-stats-bar__value">15 minutes</span></li>
+	</ul>
 </section>
 
 <section class="lpnw-how-it-works" id="lpnw-how-it-works" aria-labelledby="lpnw-how-it-works-title">
@@ -51,21 +156,57 @@ class LPNW_Page_Content {
 
 <section class="lpnw-home-feed" aria-labelledby="lpnw-home-feed-title">
 	<h2 id="lpnw-home-feed-title" class="lpnw-pricing-section__title">Latest activity</h2>
-	<p>Here is a sample of recent records from our database.</p>
-	[lpnw_latest_properties limit="5"]
-	<p class="lpnw-home-feed__count">We currently hold <strong>[lpnw_property_count]</strong> normalised records across our Northwest coverage.</p>
+	<p>A live sample of six recent records from our normalised Northwest database.</p>
+	<div class="lpnw-home-feed__properties">
+		[lpnw_latest_properties limit="6"]
+	</div>
 </section>
 
-<section class="lpnw-pricing-section" id="lpnw-home-pricing" aria-labelledby="lpnw-home-pricing-title">
-	<h2 id="lpnw-home-pricing-title" class="lpnw-pricing-section__title">Pricing</h2>
-	<p>Start free with a weekly digest, or upgrade to Pro for instant alerts and full filters. VIP adds priority delivery and extra intelligence. <a href="{$pricing}">Compare plans and pricing</a>.</p>
-	<a class="lpnw-btn lpnw-btn--secondary" href="{$pricing}">View pricing</a>
+<section class="lpnw-pricing-section lpnw-home-pricing-teaser" id="lpnw-home-pricing" aria-labelledby="lpnw-home-pricing-title">
+	<h2 id="lpnw-home-pricing-title" class="lpnw-pricing-section__title">Simple plans</h2>
+	<p class="lpnw-home-pricing-teaser__lead">Start on the weekly digest, upgrade when you want instant alerts and full control. <a href="{$pricing}">Full comparison and FAQ on the pricing page</a>.</p>
+	<div class="lpnw-pricing">
+		<article class="lpnw-pricing-card" aria-labelledby="lpnw-home-tier-free">
+			<h3 id="lpnw-home-tier-free" class="lpnw-pricing-card__name">Free</h3>
+			<p class="lpnw-pricing-card__price">&pound;0</p>
+			<p class="lpnw-pricing-card__period">forever</p>
+			<ul class="lpnw-pricing-card__features" role="list">
+				<li>Weekly digest email</li>
+				<li>Sample across data sources</li>
+				<li>Upgrade any time</li>
+			</ul>
+			<a class="lpnw-btn lpnw-btn--secondary" href="{$register}">Sign up free</a>
+		</article>
+		<article class="lpnw-pricing-card lpnw-pricing-card--featured" aria-labelledby="lpnw-home-tier-pro">
+			<h3 id="lpnw-home-tier-pro" class="lpnw-pricing-card__name">Pro</h3>
+			<p class="lpnw-pricing-card__price">&pound;19.99</p>
+			<p class="lpnw-pricing-card__period">per month</p>
+			<ul class="lpnw-pricing-card__features" role="list">
+				<li>Instant alerts when you want them</li>
+				<li>Full filters by area, price, and type</li>
+				<li>Dashboard and saved properties</li>
+			</ul>
+			<a class="lpnw-btn lpnw-btn--primary" href="{$shop_url}">Get Pro</a>
+		</article>
+		<article class="lpnw-pricing-card" aria-labelledby="lpnw-home-tier-vip">
+			<h3 id="lpnw-home-tier-vip" class="lpnw-pricing-card__name">VIP</h3>
+			<p class="lpnw-pricing-card__price">&pound;79.99</p>
+			<p class="lpnw-pricing-card__period">per month</p>
+			<ul class="lpnw-pricing-card__features" role="list">
+				<li>Priority delivery ahead of Pro</li>
+				<li>Off-market style deal alerts</li>
+				<li>Monthly report and introductions</li>
+			</ul>
+			<a class="lpnw-btn lpnw-btn--secondary" href="{$shop_url}">Get VIP</a>
+		</article>
+	</div>
+	<p class="lpnw-home-pricing-teaser__foot"><a class="lpnw-btn lpnw-btn--secondary" href="{$pricing}">Compare all features</a></p>
 </section>
 
 <aside class="lpnw-cta-banner" aria-labelledby="lpnw-home-cta-heading">
-	<h2 id="lpnw-home-cta-heading">Start getting alerts</h2>
-	<p>Create a free account, set your first rules, and see what hits your inbox this week.</p>
-	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Sign up</a>
+	<h2 id="lpnw-home-cta-heading">Get the next deal in your inbox first</h2>
+	<p>Create a free account in a minute, set your areas and alert types, and see Northwest opportunities as soon as we match them.</p>
+	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Create your free account</a>
 </aside>
 HTML;
 	}

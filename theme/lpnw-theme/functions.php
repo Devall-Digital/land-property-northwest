@@ -83,6 +83,16 @@ add_action( 'after_setup_theme', function () {
 
 	// Subscriber-only nav; assign the "Subscriber" menu in Appearance > Menus (or via lpnw-woo-setup.php).
 	register_nav_menu( 'lpnw_subscriber', __( 'Subscriber', 'lpnw-theme' ) );
+
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'      => 72,
+			'width'       => 380,
+			'flex-height' => true,
+			'flex-width'  => true,
+		)
+	);
 }, 11 );
 
 /**
@@ -160,3 +170,135 @@ add_action( 'login_enqueue_scripts', function () {
 add_filter( 'login_headerurl', function () {
 	return home_url();
 } );
+
+/**
+ * GeneratePress: full-width layout on pages and the front page (no sidebar).
+ *
+ * @param string $layout Sidebar layout slug.
+ * @return string
+ */
+add_filter(
+	'generate_sidebar_layout',
+	function ( $layout ) {
+		if ( is_page() || is_front_page() ) {
+			return 'no-sidebar';
+		}
+		return $layout;
+	}
+);
+
+/**
+ * GeneratePress: hide the redundant default page title on the static front page (hero supplies the heading).
+ *
+ * @param bool $show Whether to show the title.
+ * @return bool
+ */
+add_filter(
+	'generate_show_title',
+	function ( $show ) {
+		if ( is_front_page() ) {
+			return false;
+		}
+		return $show;
+	}
+);
+
+/**
+ * GeneratePress: output one logo in the site title area (Customizer logo or bundled SVG).
+ * Avoid duplicate marks: GP otherwise prints custom logo inside branding and again via the header "logo" item.
+ */
+add_filter( 'generate_has_logo_site_branding', '__return_false' );
+
+add_filter(
+	'generate_header_items_order',
+	function ( $order ) {
+		if ( ! is_array( $order ) ) {
+			return $order;
+		}
+
+		return array_values( array_diff( $order, array( 'logo' ) ) );
+	}
+);
+
+/**
+ * GeneratePress: site title area shows the Custom Logo if set, otherwise the bundled SVG.
+ *
+ * @param string $output Default title HTML.
+ * @return string
+ */
+add_filter(
+	'generate_site_title_output',
+	function ( $output ) {
+		$schema = function_exists( 'generate_get_schema_type' ) && 'microdata' === generate_get_schema_type() ? ' itemprop="headline"' : '';
+		$tag    = ( is_front_page() && is_home() ) ? 'h1' : 'p';
+		$href   = esc_url( apply_filters( 'generate_site_title_href', home_url( '/' ) ) );
+
+		if ( function_exists( 'has_custom_logo' ) && has_custom_logo() ) {
+			$logo = get_custom_logo();
+			if ( '' !== $logo ) {
+				return sprintf(
+					'<%1$s class="main-title lpnw-site-logo"%3$s>%2$s</%1$s>',
+					tag_escape( $tag ),
+					$logo, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core returns escaped custom logo HTML.
+					$schema
+				);
+			}
+		}
+
+		$logo_url = get_stylesheet_directory_uri() . '/assets/img/logo-full.svg';
+		$alt      = esc_attr( get_bloginfo( 'name', 'display' ) );
+
+		return sprintf(
+			'<%1$s class="main-title lpnw-site-logo"%5$s><a href="%2$s" rel="home" class="lpnw-site-logo__link"><img src="%3$s" alt="%4$s" class="lpnw-site-logo__img" width="380" height="72" loading="eager" decoding="async" /></a></%1$s>',
+			tag_escape( $tag ),
+			$href,
+			esc_url( $logo_url ),
+			$alt,
+			$schema
+		);
+	},
+	10,
+	1
+);
+
+/**
+ * GeneratePress: branded copyright line plus key links; remove theme credit.
+ *
+ * @return string
+ */
+add_filter(
+	'generate_copyright',
+	function () {
+		$year = (int) gmdate( 'Y' );
+		$text = sprintf(
+			/* translators: %d: current year (Gregorian). */
+			esc_html__( '&copy; %d Land & Property Northwest. NW Property Intelligence & Alerts.', 'lpnw-theme' ),
+			$year
+		);
+
+		$links_inner = sprintf(
+			'<a href="%1$s">%2$s</a><span class="lpnw-footer-dot" aria-hidden="true"> · </span><a href="%3$s">%4$s</a><span class="lpnw-footer-dot" aria-hidden="true"> · </span><a href="%5$s">%6$s</a>',
+			esc_url( home_url( '/pricing/' ) ),
+			esc_html__( 'Pricing', 'lpnw-theme' ),
+			esc_url( home_url( '/about/' ) ),
+			esc_html__( 'About', 'lpnw-theme' ),
+			esc_url( home_url( '/contact/' ) ),
+			esc_html__( 'Contact', 'lpnw-theme' )
+		);
+
+		$nav = sprintf(
+			'<nav class="lpnw-footer-links" aria-label="%1$s">%2$s</nav>',
+			esc_attr__( 'Footer quick links', 'lpnw-theme' ),
+			wp_kses(
+				$links_inner,
+				array(
+					'a'    => array( 'href' => true ),
+					'span' => array( 'class' => true, 'aria-hidden' => true ),
+				)
+			)
+		);
+
+		return '<span class="copyright">' . $text . '</span> ' . $nav;
+	}
+);
+
