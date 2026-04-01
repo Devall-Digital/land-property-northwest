@@ -28,6 +28,7 @@ abstract class LPNW_Feed_Base {
 	 * Run the full feed cycle: log start, fetch, parse, upsert, match, log end.
 	 */
 	public function run(): void {
+		$start_time = microtime( true );
 		$this->log_start();
 
 		try {
@@ -85,9 +86,11 @@ abstract class LPNW_Feed_Base {
 				$matcher->match_and_queue( $new_ids );
 			}
 
-			$this->log_end( count( $raw_items ), count( $new_ids ), $updated, $errors );
+			$elapsed = round( microtime( true ) - $start_time, 1 );
+			$this->log_end( count( $raw_items ), count( $new_ids ), $updated, $errors, 'completed', $elapsed );
 		} catch ( \Throwable $e ) {
-			$this->log_end( 0, 0, 0, array( $e->getMessage() ), 'failed' );
+			$elapsed = round( microtime( true ) - $start_time, 1 );
+			$this->log_end( 0, 0, 0, array( $e->getMessage() ), 'failed', $elapsed );
 		}
 	}
 
@@ -127,13 +130,29 @@ abstract class LPNW_Feed_Base {
 	}
 
 	/**
-	 * @param array<string> $errors Error messages.
+	 * @param array<string>    $errors          Error messages.
+	 * @param float|null       $elapsed_seconds Feed run duration in seconds (1 decimal), for operational logging.
 	 */
-	private function log_end( int $found, int $new, int $updated, array $errors = array(), string $status = 'completed' ): void {
+	private function log_end( int $found, int $new, int $updated, array $errors = array(), string $status = 'completed', ?float $elapsed_seconds = null ): void {
 		global $wpdb;
 
 		if ( ! $this->log_id ) {
 			return;
+		}
+
+		if ( null !== $elapsed_seconds ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational feed performance monitoring.
+			error_log(
+				sprintf(
+					'LPNW feed %s finished (%s) in %.1fs — found %d, new %d, updated %d.',
+					$this->get_source_name(),
+					$status,
+					$elapsed_seconds,
+					$found,
+					$new,
+					$updated
+				)
+			);
 		}
 
 		$wpdb->update(

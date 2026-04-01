@@ -62,18 +62,32 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 	 */
 	private const TIME_BUDGET_SECONDS = 25.0;
 
-	private const REQUEST_HEADERS = array(
-		'User-Agent'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-		'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-		'Accept-Language'  => 'en-GB,en;q=0.9',
-		'Accept-Encoding'  => 'gzip, deflate, br',
-		'Cache-Control'    => 'no-cache',
-		'Connection'       => 'keep-alive',
-		'Sec-Fetch-Dest'   => 'document',
-		'Sec-Fetch-Mode'   => 'navigate',
-		'Sec-Fetch-Site'   => 'none',
-		'Sec-Fetch-User'   => '?1',
+	/**
+	 * Base headers for HTML search requests (User-Agent added per request via rotation).
+	 */
+	private const REQUEST_HEADERS_BASE = array(
+		'Accept'                    => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+		'Accept-Language'           => 'en-GB,en;q=0.9',
+		'Accept-Encoding'           => 'gzip, deflate, br',
+		'Cache-Control'             => 'no-cache',
+		'Connection'                => 'keep-alive',
+		'Sec-Fetch-Dest'            => 'document',
+		'Sec-Fetch-Mode'            => 'navigate',
+		'Sec-Fetch-Site'            => 'none',
+		'Sec-Fetch-User'            => '?1',
 		'Upgrade-Insecure-Requests' => '1',
+	);
+
+	/**
+	 * Realistic browser User-Agent strings rotated per request to reduce pattern-based blocking.
+	 *
+	 * @var array<int, string>
+	 */
+	private const REQUEST_USER_AGENTS = array(
+		'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+		'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
 	);
 
 	public function get_source_name(): string {
@@ -232,7 +246,7 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			$base_url
 		);
 
-		$headers            = self::REQUEST_HEADERS;
+		$headers            = $this->get_search_request_headers();
 		$headers['Referer'] = 'https://www.rightmove.co.uk/';
 
 		$response = wp_remote_get( $url, array(
@@ -459,6 +473,22 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		if ( $type ) {
 			$desc_parts[] = strtolower( $type );
 		}
+
+		$listed_label = $this->format_rightmove_listed_date_label( $raw_item );
+		if ( '' !== $listed_label ) {
+			$desc_parts[] = 'Listed: ' . $listed_label;
+		}
+
+		$agent_name = $this->extract_rightmove_agent_name( $raw_item );
+		if ( '' !== $agent_name ) {
+			$desc_parts[] = 'Agent: ' . $agent_name;
+		}
+
+		$features_text = $this->extract_rightmove_key_features_text( $raw_item );
+		if ( '' !== $features_text ) {
+			$desc_parts[] = $features_text;
+		}
+
 		if ( ! empty( $raw_item['summary'] ) ) {
 			$desc_parts[] = wp_trim_words( $raw_item['summary'], 20, '...' );
 		}
@@ -479,6 +509,96 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			'source_url'         => esc_url_raw( $property_url ),
 			'raw_data'           => $raw_item,
 		);
+	}
+
+	/**
+	 * Headers for a single search HTML request, including a rotated User-Agent.
+	 *
+	 * @return array<string, string>
+	 */
+	private function get_search_request_headers(): array {
+		$headers               = self::REQUEST_HEADERS_BASE;
+		$headers['User-Agent'] = self::REQUEST_USER_AGENTS[ wp_rand( 0, count( self::REQUEST_USER_AGENTS ) - 1 ) ];
+		return $headers;
+	}
+
+	/**
+	 * Build DD/MM/YYYY label from firstVisibleDate or listingUpdate.listingUpdateDate.
+	 *
+	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
+	 */
+	private function format_rightmove_listed_date_label( array $raw_item ): string {
+		$raw = $raw_item['firstVisibleDate'] ?? '';
+		if ( ( '' === $raw || null === $raw ) && isset( $raw_item['listingUpdate'] ) && is_array( $raw_item['listingUpdate'] ) ) {
+			$raw = $raw_item['listingUpdate']['listingUpdateDate'] ?? '';
+		}
+		if ( '' === $raw || null === $raw ) {
+			return '';
+		}
+		if ( ! is_scalar( $raw ) ) {
+			return '';
+		}
+		$str = trim( (string) $raw );
+		if ( '' === $str ) {
+			return '';
+		}
+		$ts = strtotime( $str );
+		if ( false === $ts ) {
+			return '';
+		}
+		return wp_date( 'd/m/Y', $ts );
+	}
+
+	/**
+	 * Estate agent display name from customer branch fields.
+	 *
+	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
+	 */
+	private function extract_rightmove_agent_name( array $raw_item ): string {
+		$customer = $raw_item['customer'] ?? null;
+		if ( ! is_array( $customer ) ) {
+			return '';
+		}
+		$brand = isset( $customer['brandTradingName'] ) ? trim( (string) $customer['brandTradingName'] ) : '';
+		if ( '' !== $brand ) {
+			return sanitize_text_field( $brand );
+		}
+		$branch = isset( $customer['branchDisplayName'] ) ? trim( (string) $customer['branchDisplayName'] ) : '';
+		if ( '' !== $branch ) {
+			return sanitize_text_field( $branch );
+		}
+		return '';
+	}
+
+	/**
+	 * First three key features as comma-separated text.
+	 *
+	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
+	 */
+	private function extract_rightmove_key_features_text( array $raw_item ): string {
+		if ( empty( $raw_item['keyFeatures'] ) || ! is_array( $raw_item['keyFeatures'] ) ) {
+			return '';
+		}
+		$out = array();
+		foreach ( $raw_item['keyFeatures'] as $feature ) {
+			if ( count( $out ) >= 3 ) {
+				break;
+			}
+			if ( is_array( $feature ) ) {
+				$feature = $feature['text'] ?? $feature['value'] ?? '';
+			}
+			if ( ! is_scalar( $feature ) ) {
+				continue;
+			}
+			$text = sanitize_text_field( trim( (string) $feature ) );
+			if ( '' !== $text ) {
+				$out[] = $text;
+			}
+		}
+		if ( empty( $out ) ) {
+			return '';
+		}
+		return implode( ', ', $out );
 	}
 
 	private function extract_postcode_from_address( string $address ): string {
