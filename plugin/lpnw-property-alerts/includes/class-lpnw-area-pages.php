@@ -302,7 +302,7 @@ class LPNW_Area_Pages {
 <section class="lpnw-area-landing__map" aria-labelledby="lpnw-area-map-title-{$pref}">
 	<h2 id="lpnw-area-map-title-{$pref}" class="lpnw-pricing-section__title">Map: {$name_esc}</h2>
 	<p>Interactive map centred on {$name_esc}, showing geocoded properties in the {$pref} area (Rightmove by default; change source in the control).</p>
-	[lpnw_property_map source="rightmove" postcode_prefix="{$pref}" lat="{$lat}" lng="{$lng}" zoom="{$zoom}" height="420px"]
+	[lpnw_property_map source="rightmove" postcode_prefix="{$pref}" lat="{$lat}" lng="{$lng}" zoom="{$zoom}" height="420px" limit="100"]
 </section>
 
 <aside class="lpnw-area-landing__cta lpnw-cta-banner" aria-labelledby="lpnw-area-cta-heading-{$pref}">

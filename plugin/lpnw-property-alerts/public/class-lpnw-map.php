@@ -322,12 +322,20 @@ class LPNW_Map {
 	}
 	function fetchMarkers(root, cluster, cfg, source, offset, append) {
 		setBusy(root, true);
+		var maxTotal = typeof cfg.maxTotalMarkers === 'number' ? cfg.maxTotalMarkers : 500;
+		var chunk = Math.min(cfg.batchSize, Math.max(0, maxTotal - offset));
+		if (chunk < 1) {
+			setBusy(root, false);
+			var moreBtnEmpty = root.querySelector('.lpnw-map-load-more');
+			if (moreBtnEmpty) { moreBtnEmpty.style.display = 'none'; }
+			return;
+		}
 		var body = new URLSearchParams();
 		body.set('action', 'lpnw_map_properties');
 		body.set('nonce', cfg.nonce);
 		body.set('source', source);
 		body.set('offset', String(offset));
-		body.set('limit', String(cfg.batchSize));
+		body.set('limit', String(chunk));
 		if (cfg.postcodePrefix) {
 			body.set('postcode_prefix', cfg.postcodePrefix);
 		}
@@ -342,11 +350,13 @@ class LPNW_Map {
 			var markers = data.data.markers || [];
 			if (!append) { cluster.clearLayers(); }
 			addMarkers(cluster, markers);
-			root.dataset.lpnwOffset = String(offset + markers.length);
+			var newOffset = offset + markers.length;
+			root.dataset.lpnwOffset = String(newOffset);
 			root.dataset.lpnwSource = source;
-			root.dataset.lpnwHasMore = data.data.has_more ? '1' : '0';
+			var canMore = !!(data.data.has_more && newOffset < maxTotal);
+			root.dataset.lpnwHasMore = canMore ? '1' : '0';
 			var moreBtn = root.querySelector('.lpnw-map-load-more');
-			if (moreBtn) { moreBtn.style.display = data.data.has_more ? '' : 'none'; }
+			if (moreBtn) { moreBtn.style.display = canMore ? '' : 'none'; }
 		}).catch(function () { setBusy(root, false); });
 	}
 	function initRoot(root) {
@@ -364,8 +374,10 @@ class LPNW_Map {
 		var cluster = buildClusterGroup();
 		cluster.addTo(map);
 		addMarkers(cluster, cfg.initialMarkers || []);
-		root.dataset.lpnwOffset = String((cfg.initialMarkers || []).length);
+		var initLen = (cfg.initialMarkers || []).length;
+		root.dataset.lpnwOffset = String(initLen);
 		root.dataset.lpnwSource = cfg.initialSource || '';
+		root.dataset.lpnwMaxTotal = String(typeof cfg.maxTotalMarkers === 'number' ? cfg.maxTotalMarkers : 500);
 		root.dataset.lpnwHasMore = cfg.initialHasMore ? '1' : '0';
 		var moreBtn = root.querySelector('.lpnw-map-load-more');
 		if (moreBtn) {
@@ -414,8 +426,10 @@ JS;
 			'lpnw_property_map'
 		);
 
-		$batch = (int) $atts['batch_size'];
-		$batch = min( 500, max( 1, $batch ) );
+		$max_total = min( 500, max( 1, (int) $atts['limit'] ) );
+		$batch     = (int) $atts['batch_size'];
+		$batch     = min( 500, max( 1, $batch ) );
+		$batch     = min( $batch, $max_total );
 
 		$source_filter = (string) $atts['source'];
 		if ( ! in_array( $source_filter, self::allowed_source_filters(), true ) ) {
@@ -441,22 +455,25 @@ JS;
 		self::enqueue_map_assets();
 
 		list( $rows, $has_more ) = self::fetch_map_page( $source_filter, $batch, 0, $postcode_prefix );
-		$markers                  = self::rows_to_markers( $rows );
+		$markers                 = self::rows_to_markers( $rows );
+		$row_count               = count( $rows );
+		$initial_has_more        = $has_more && $row_count < $max_total;
 
 		$map_id = 'lpnw-map-' . wp_rand( 10000, 99999 );
 
 		$config = array(
-			'mapId'           => $map_id,
-			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
-			'nonce'           => wp_create_nonce( 'lpnw_map' ),
-			'batchSize'       => $batch,
-			'initialSource'   => $source_filter,
-			'initialMarkers'  => $markers,
-			'initialHasMore'  => $has_more,
-			'postcodePrefix'  => $postcode_prefix,
-			'initialLat'      => $initial_lat,
-			'initialLng'      => $initial_lng,
-			'initialZoom'     => $initial_zoom,
+			'mapId'            => $map_id,
+			'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+			'nonce'            => wp_create_nonce( 'lpnw_map' ),
+			'batchSize'        => $batch,
+			'maxTotalMarkers'  => $max_total,
+			'initialSource'    => $source_filter,
+			'initialMarkers'   => $markers,
+			'initialHasMore'   => $initial_has_more,
+			'postcodePrefix'   => $postcode_prefix,
+			'initialLat'       => $initial_lat,
+			'initialLng'       => $initial_lng,
+			'initialZoom'      => $initial_zoom,
 		);
 
 		$legend_items = array(
