@@ -96,14 +96,6 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 	'use strict';
 	document.addEventListener('DOMContentLoaded', function () {
 		var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		var heroRoot = document.querySelector('.lpnw-hero');
-		if (heroRoot && !document.getElementById('lpnw-hero-fx') && !reduceMotion) {
-			var fx = document.createElement('canvas');
-			fx.id = 'lpnw-hero-fx';
-			fx.className = 'lpnw-hero__fx-canvas';
-			fx.setAttribute('aria-hidden', 'true');
-			heroRoot.insertBefore(fx, heroRoot.firstChild);
-		}
 		var scrollThreshold = 50;
 
 		window.addEventListener('scroll', function () {
@@ -163,8 +155,8 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 						var rect = hero.getBoundingClientRect();
 						var x = (e.clientX - rect.left) / rect.width - 0.5;
 						var y = (e.clientY - rect.top) / rect.height - 0.5;
-						var rx = (-y * 2.8).toFixed(2);
-						var ry = (x * 4.2).toFixed(2);
+						var rx = (-y * 1.4).toFixed(2);
+						var ry = (x * 2.2).toFixed(2);
 						scene.style.setProperty('--lpnw-tilt-rx', rx + 'deg');
 						scene.style.setProperty('--lpnw-tilt-ry', ry + 'deg');
 					}, { passive: true });

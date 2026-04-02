@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.2.0
+Version: 6.3.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -210,22 +210,6 @@ Text Domain: lpnw-theme
 	50% { transform: translate3d(4%, 2%, 0); }
 }
 
-@keyframes lpnw-hero-aurora-shift {
-	0%, 100% {
-		opacity: 0.55;
-		transform: translate3d(-3%, 0, 0) scale(1);
-	}
-	50% {
-		opacity: 0.75;
-		transform: translate3d(3%, 1%, 0) scale(1.03);
-	}
-}
-
-@keyframes lpnw-hero-title-shimmer {
-	0%, 100% { filter: brightness(1); }
-	50% { filter: brightness(1.08); }
-}
-
 @keyframes lpnw-hero-line-reveal {
 	from {
 		opacity: 0;
@@ -281,6 +265,100 @@ body::before {
 body > * {
 	position: relative;
 	z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Plugin UI on dark theme: cards and forms were tuned for light backgrounds.
+   Scoped to .lpnw-site so we do not fight wp-admin.
+   -------------------------------------------------------------------------- */
+body.lpnw-site {
+	--lpnw-plugin-surface: rgba(255, 255, 255, 0.1);
+	--lpnw-plugin-surface-2: rgba(255, 255, 255, 0.14);
+	--lpnw-plugin-text: rgba(255, 255, 255, 0.94);
+	--lpnw-plugin-text-muted: rgba(255, 255, 255, 0.72);
+	--lpnw-plugin-text-soft: rgba(255, 255, 255, 0.62);
+}
+
+body.lpnw-site .lpnw-area-stats--empty,
+body.lpnw-site .lpnw-total-sources--empty {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-total-sources {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-area-stats__item {
+	background: var(--lpnw-plugin-surface);
+	border-color: rgba(255, 255, 255, 0.18);
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+}
+
+body.lpnw-site .lpnw-area-stats__text {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-property-card,
+body.lpnw-site .lpnw-preferences-coverage,
+body.lpnw-site .lpnw-prefs-section {
+	background: var(--lpnw-plugin-surface);
+	border-color: rgba(255, 255, 255, 0.18);
+	box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25);
+}
+
+body.lpnw-site .lpnw-property-card__title,
+body.lpnw-site .lpnw-property-card__address,
+body.lpnw-site .lpnw-preferences-coverage__title,
+body.lpnw-site .lpnw-preferences-coverage__stat strong {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-property-card__postcode,
+body.lpnw-site .lpnw-property-card__meta,
+body.lpnw-site .lpnw-share-link {
+	color: var(--lpnw-plugin-text-soft);
+}
+
+body.lpnw-site .lpnw-property-card__description,
+body.lpnw-site .lpnw-preferences-coverage__stat,
+body.lpnw-site .lpnw-preferences-form__reset {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-property-card__rooms,
+body.lpnw-site .lpnw-property-card__type-badge {
+	color: var(--lpnw-plugin-text);
+	background: rgba(255, 255, 255, 0.12);
+	border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.lpnw-site .lpnw-property-card__price-suffix {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-preferences-form .lpnw-field > label,
+body.lpnw-site .lpnw-preferences-form .lpnw-fieldset__legend {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-preferences-form select,
+body.lpnw-site .lpnw-preferences-form input[type="number"],
+body.lpnw-site .lpnw-contact-form input[type="text"],
+body.lpnw-site .lpnw-contact-form input[type="email"],
+body.lpnw-site .lpnw-contact-form textarea {
+	background: rgba(15, 29, 53, 0.65);
+	border-color: rgba(255, 255, 255, 0.22);
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-checkbox-group__item {
+	background: rgba(255, 255, 255, 0.06);
+	border-color: rgba(255, 255, 255, 0.16);
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-checkbox-group__item span {
+	color: var(--lpnw-plugin-text);
 }
 
 a,
@@ -624,7 +702,7 @@ body.no-sidebar .site-main {
 		radial-gradient(ellipse 100% 55% at 50% 0%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
 		radial-gradient(ellipse 130% 70% at 15% 18%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
 		radial-gradient(ellipse 100% 50% at 85% 12%, rgba(147, 197, 253, 0.08) 0%, transparent 48%);
-	animation: lpnw-hero-cloud-float 48s ease-in-out infinite, lpnw-hero-aurora-shift 22s ease-in-out infinite;
+	animation: lpnw-hero-cloud-float 48s ease-in-out infinite;
 }
 
 .lpnw-hero:has(.lpnw-hero__scene)::after {
@@ -647,15 +725,10 @@ body.no-sidebar .site-main {
 	display: contents;
 }
 
-.lpnw-hero__fx-canvas {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 1;
-	pointer-events: none;
-	opacity: 0.92;
-	mix-blend-mode: screen;
+/* Legacy particle canvas: hidden when SVG city hero is present (avoids empty GPU layer). */
+.lpnw-hero:has(.lpnw-hero__scene) #lpnw-hero-particles,
+.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__canvas {
+	display: none;
 }
 
 .lpnw-hero__canvas {
@@ -665,7 +738,7 @@ body.no-sidebar .site-main {
 	height: 100%;
 	z-index: 4;
 	pointer-events: none;
-	opacity: 0.55;
+	opacity: 0.45;
 	mix-blend-mode: screen;
 }
 
@@ -677,21 +750,48 @@ body.no-sidebar .site-main {
 	pointer-events: none;
 	transform-style: preserve-3d;
 	transform: translate3d(0, var(--lpnw-scene-y, 0px), 0) rotateX(var(--lpnw-tilt-rx, 0deg)) rotateY(var(--lpnw-tilt-ry, 0deg));
-	will-change: transform;
-	transition: transform 0.2s ease-out;
+	transition: transform 0.22s ease-out;
+}
+
+/* Soft cloud layers behind the SVG (CSS only, GPU-friendly). */
+.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__scene::before,
+.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__scene::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	pointer-events: none;
+	border-radius: 50%;
+	filter: blur(40px);
+	opacity: 0.45;
+	z-index: 0;
+	transform: translateX(-50%);
+}
+
+.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__scene::before {
+	width: min(92%, 920px);
+	height: clamp(100px, 18vh, 200px);
+	top: 4%;
+	background: radial-gradient(ellipse, rgba(255, 255, 255, 0.35) 0%, transparent 72%);
+	animation: lpnw-hero-cloud-drift-a 52s ease-in-out infinite;
+}
+
+.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__scene::after {
+	width: min(70%, 640px);
+	height: clamp(72px, 12vh, 140px);
+	top: 14%;
+	background: radial-gradient(ellipse, rgba(147, 197, 253, 0.35) 0%, transparent 70%);
+	animation: lpnw-hero-cloud-drift-b 64s ease-in-out infinite;
 }
 
 .lpnw-hero__illustration {
 	display: block;
+	position: relative;
+	z-index: 1;
 	width: 100%;
 	height: auto;
 	max-height: min(42vh, 420px);
 	margin: 0 auto;
-	will-change: transform;
-	filter:
-		drop-shadow(0 20px 50px rgba(0, 0, 0, 0.55))
-		drop-shadow(0 0 60px rgba(0, 212, 170, 0.12))
-		drop-shadow(0 0 80px rgba(240, 165, 0, 0.08));
+	filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
 	transition: transform 0.14s ease-out;
 }
 
@@ -2347,10 +2447,6 @@ body.no-sidebar .site-main {
    ========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
-	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__title {
-		animation: lpnw-hero-title-shimmer 6s ease-in-out infinite;
-	}
-
 	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__line {
 		opacity: 0;
 		animation: lpnw-hero-line-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -2585,7 +2681,9 @@ body.no-sidebar .site-main {
 
 	.lpnw-hero__scan-line::after,
 	.lpnw-hero:has(.lpnw-hero__scene)::before,
-	.lpnw-hero:has(.lpnw-hero__scene)::after {
+	.lpnw-hero:has(.lpnw-hero__scene)::after,
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__scene::before,
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__scene::after {
 		animation: none !important;
 	}
 
