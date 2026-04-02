@@ -591,11 +591,9 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			$property_url = self::BASE_URL . '/details/' . $otm_id . '/';
 		}
 
-		$price_raw = $raw_item['price'] ?? $raw_item['short-price'] ?? '';
-		$price     = 0;
-		if ( is_string( $price_raw ) || is_numeric( $price_raw ) ) {
-			$price = absint( preg_replace( '/[^0-9]/', '', (string) $price_raw ) );
-		}
+		$price = $this->otm_parse_listing_price( $raw_item );
+
+		$this->otm_attach_card_image_fields( $raw_item );
 
 		$prop_type = '';
 		if ( isset( $raw_item['humanised-property-type'] ) && is_string( $raw_item['humanised-property-type'] ) ) {
@@ -722,6 +720,251 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Normalised listing price in GBP (sale) or monthly/weekly rent as stored by OTM numeric fields.
+	 *
+	 * Avoids concatenating all digits in display strings such as "GBP 1,375 pcm (317 sq ft)".
+	 *
+	 * @param array<string, mixed> $raw_item Row from __NEXT_DATA__ or DOM fallback.
+	 * @return int 0 if unknown.
+	 */
+	private function otm_parse_listing_price( array $raw_item ): int {
+		foreach ( array( 'price-value', 'priceValue', 'numericPrice', 'displayPriceValue' ) as $k ) {
+			if ( ! isset( $raw_item[ $k ] ) ) {
+				continue;
+			}
+			$v = $raw_item[ $k ];
+			if ( is_numeric( $v ) ) {
+				$n = (int) round( floatval( $v ) );
+				if ( $n > 0 ) {
+					return $n;
+				}
+			}
+		}
+
+		$str_candidates = array();
+		foreach ( array( 'short-price', 'price' ) as $k ) {
+			if ( ! isset( $raw_item[ $k ] ) ) {
+				continue;
+			}
+			$v = $raw_item[ $k ];
+			if ( is_string( $v ) && '' !== trim( $v ) ) {
+				$str_candidates[] = $v;
+			}
+		}
+
+		foreach ( $str_candidates as $s ) {
+			$n = $this->otm_price_from_display_string( $s );
+			if ( $n > 0 ) {
+				return $n;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Parse OTM human-readable price strings (with commas, pcm, optional sq ft in parentheses).
+	 *
+	 * @param string $s Raw display string.
+	 * @return int 0 if no amount found.
+	 */
+	private function otm_price_from_display_string( string $s ): int {
+		$s = trim( $s );
+		if ( '' === $s ) {
+			return 0;
+		}
+
+		$paren = strpos( $s, '(' );
+		if ( false !== $paren ) {
+			$before = trim( substr( $s, 0, $paren ) );
+			if ( '' !== $before ) {
+				$s = $before;
+			}
+		}
+
+		if ( preg_match( '/(?:£|GBP\s*)([0-9][0-9,]*(?:\.[0-9]+)?)/iu', $s, $m ) ) {
+			return absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+		}
+
+		if ( preg_match( '/^([0-9][0-9,]*(?:\.[0-9]+)?)/', $s, $m ) ) {
+			return absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+		}
+
+		if ( preg_match( '/([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{2,})/', $s, $m ) ) {
+			return absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+		}
+
+		return 0;
+	}
+
+	/**
+	 * First absolute image URL from OTM listing JSON for property card templates.
+	 *
+	 * @param array<string, mixed> $raw Row from feed.
+	 * @return string Empty if none.
+	 */
+	private function otm_extract_first_image_url( array $raw ): string {
+		$string_keys = array(
+			'imageUrl',
+			'image',
+			'mainImage',
+			'main-image',
+			'mainImageUrl',
+			'thumbnail',
+			'thumbUrl',
+			'heroImage',
+			'primaryImage',
+			'primary-image-url',
+		);
+		foreach ( $string_keys as $k ) {
+			if ( empty( $raw[ $k ] ) || ! is_string( $raw[ $k ] ) ) {
+				continue;
+			}
+			$url = $this->otm_normalize_media_url( trim( $raw[ $k ] ) );
+			if ( '' !== $url ) {
+				return $url;
+			}
+		}
+
+		$list_keys = array( 'images', 'photos', 'gallery', 'property-images', 'media', 'thumbnails' );
+		foreach ( $list_keys as $k ) {
+			if ( empty( $raw[ $k ] ) || ! is_array( $raw[ $k ] ) ) {
+				continue;
+			}
+			$url = $this->otm_first_url_from_list( $raw[ $k ] );
+			if ( '' !== $url ) {
+				return $url;
+			}
+		}
+
+		if ( ! empty( $raw['propertyImages'] ) && is_array( $raw['propertyImages'] ) ) {
+			$pi = $raw['propertyImages'];
+			if ( ! empty( $pi['mainImageSrc'] ) && is_string( $pi['mainImageSrc'] ) ) {
+				$url = $this->otm_normalize_media_url( trim( $pi['mainImageSrc'] ) );
+				if ( '' !== $url ) {
+					return $url;
+				}
+			}
+			if ( ! empty( $pi['images'] ) && is_array( $pi['images'] ) ) {
+				$url = $this->otm_first_url_from_list( $pi['images'] );
+				if ( '' !== $url ) {
+					return $url;
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * @param array<int|string, mixed> $list Image list from JSON.
+	 */
+	private function otm_first_url_from_list( array $list ): string {
+		foreach ( $list as $item ) {
+			if ( is_string( $item ) ) {
+				$url = $this->otm_normalize_media_url( trim( $item ) );
+				if ( '' !== $url ) {
+					return $url;
+				}
+				continue;
+			}
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			foreach ( array( 'srcUrl', 'url', 'src', 'uri', 'href', 'path' ) as $uk ) {
+				if ( empty( $item[ $uk ] ) || ! is_string( $item[ $uk ] ) ) {
+					continue;
+				}
+				$url = $this->otm_normalize_media_url( trim( $item[ $uk ] ) );
+				if ( '' !== $url ) {
+					return $url;
+				}
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * @param string $url Raw path or URL from OTM.
+	 */
+	private function otm_normalize_media_url( string $url ): string {
+		if ( '' === $url ) {
+			return '';
+		}
+		if ( str_starts_with( $url, '//' ) ) {
+			$url = 'https:' . $url;
+		} elseif ( str_starts_with( $url, '/' ) ) {
+			$url = self::BASE_URL . $url;
+		}
+		if ( ! preg_match( '#^https?://#i', $url ) ) {
+			return '';
+		}
+		return esc_url_raw( $url );
+	}
+
+	/**
+	 * Ensure raw_data contains keys the browse card templates read.
+	 *
+	 * @param array<string, mixed> $raw_item Mutated in place before assignment to raw_data.
+	 */
+	private function otm_attach_card_image_fields( array &$raw_item ): void {
+		$first = $this->otm_extract_first_image_url( $raw_item );
+		if ( '' === $first ) {
+			return;
+		}
+
+		$raw_item['imageUrl'] = $first;
+
+		$has_src = false;
+		if ( ! empty( $raw_item['propertyImages']['images'][0]['srcUrl'] ) && is_string( $raw_item['propertyImages']['images'][0]['srcUrl'] ) ) {
+			$has_src = true;
+		} elseif ( ! empty( $raw_item['propertyImages']['mainImageSrc'] ) && is_string( $raw_item['propertyImages']['mainImageSrc'] ) ) {
+			$has_src = true;
+		}
+		if ( ! $has_src ) {
+			$raw_item['propertyImages'] = array(
+				'mainImageSrc' => $first,
+				'images'       => array(
+					array( 'srcUrl' => $first ),
+				),
+			);
+		}
+
+		$has_flat = false;
+		if ( ! empty( $raw_item['images'][0]['srcUrl'] ) && is_string( $raw_item['images'][0]['srcUrl'] ) ) {
+			$has_flat = true;
+		} elseif ( ! empty( $raw_item['images'][0]['url'] ) && is_string( $raw_item['images'][0]['url'] ) ) {
+			$has_flat = true;
+		}
+		if ( ! $has_flat ) {
+			$raw_item['images'] = array(
+				array(
+					'srcUrl' => $first,
+					'url'    => $first,
+				),
+			);
+		}
+
+		if ( ! isset( $raw_item['media'] ) || ! is_array( $raw_item['media'] ) ) {
+			$raw_item['media'] = array( array( 'url' => $first ) );
+		} elseif ( empty( $raw_item['media'][0]['url'] ) || ! is_string( $raw_item['media'][0]['url'] ) ) {
+			if ( isset( $raw_item['media'][0] ) && is_array( $raw_item['media'][0] ) ) {
+				$raw_item['media'][0]['url'] = $first;
+			} else {
+				array_unshift( $raw_item['media'], array( 'url' => $first ) );
+			}
+		}
+
+		if ( empty( $raw_item['photos'] ) || ! is_array( $raw_item['photos'] ) ) {
+			$raw_item['photos'] = array( $first );
+		} elseif ( empty( $raw_item['photos'][0] ) ) {
+			$raw_item['photos'][0] = $first;
+		} elseif ( is_array( $raw_item['photos'][0] ) && ( empty( $raw_item['photos'][0]['url'] ) || ! is_string( $raw_item['photos'][0]['url'] ) ) ) {
+			$raw_item['photos'][0]['url'] = $first;
+		}
 	}
 
 	/**

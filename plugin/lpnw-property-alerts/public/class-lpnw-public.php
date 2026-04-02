@@ -69,12 +69,32 @@ class LPNW_Public {
 	}
 
 	/**
-	 * [lpnw_property_count] - Shows total properties tracked.
+	 * [lpnw_property_count] - Live total rows in lpnw_properties (no transient; matches DB on each render).
+	 *
+	 * Attributes: plus — if "1", append + after the number (e.g. 2,938+).
+	 *
+	 * @param array<string, string>|string $atts Shortcode attributes.
 	 */
-	public static function render_property_count(): string {
+	public static function render_property_count( $atts = array() ): string {
+		$atts = shortcode_atts(
+			array(
+				'plus' => '0',
+			),
+			$atts,
+			'lpnw_property_count'
+		);
+
 		global $wpdb;
-		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties" );
-		return '<span class="lpnw-property-count">' . esc_html( number_format( $count ) ) . '</span>';
+		$table = $wpdb->prefix . 'lpnw_properties';
+		// Table name is from $wpdb->prefix only; no user input.
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		$out = number_format_i18n( $count );
+		if ( in_array( strtolower( (string) $atts['plus'] ), array( '1', 'true', 'yes' ), true ) ) {
+			$out .= '+';
+		}
+
+		return '<span class="lpnw-property-count">' . esc_html( $out ) . '</span>';
 	}
 
 	/**
@@ -117,17 +137,32 @@ class LPNW_Public {
 	}
 
 	/**
-	 * [lpnw_total_sources] - How many distinct feed sources have rows in the property table.
+	 * [lpnw_total_sources] - Distinct feed sources with rows in the property table (live query).
 	 *
-	 * @return string HTML.
+	 * Attributes: format — "block" (default) full paragraph, or "stat" for number only (wrap with markup in the page).
+	 *
+	 * @param array<string, string>|string $atts Shortcode attributes.
+	 * @return string HTML or plain number (escaped) when format=stat.
 	 */
-	public static function render_total_sources(): string {
+	public static function render_total_sources( $atts = array() ): string {
+		$atts = shortcode_atts(
+			array(
+				'format' => 'block',
+			),
+			$atts,
+			'lpnw_total_sources'
+		);
+
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'lpnw_properties';
 		$count = (int) $wpdb->get_var(
 			"SELECT COUNT(DISTINCT source) FROM {$table} WHERE TRIM(COALESCE(source, '')) <> ''" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		);
+
+		if ( 'stat' === $atts['format'] ) {
+			return esc_html( (string) max( 0, $count ) );
+		}
 
 		if ( $count < 1 ) {
 			return '<p class="lpnw-total-sources lpnw-total-sources--empty">' . esc_html__( 'Source counts will appear as feeds add data.', 'lpnw-alerts' ) . '</p>';

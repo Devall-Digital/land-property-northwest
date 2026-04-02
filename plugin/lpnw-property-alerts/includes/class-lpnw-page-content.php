@@ -42,7 +42,8 @@ class LPNW_Page_Content {
 <section class="lpnw-stats-bar" aria-labelledby="lpnw-stats-bar-title">
 	<h2 id="lpnw-stats-bar-title" class="screen-reader-text">Coverage and update frequency</h2>
 	<ul class="lpnw-stats-bar__list" role="list">
-		<li><span class="lpnw-stats-bar__value">[lpnw_property_count]</span> properties tracked</li>
+		<li><span class="lpnw-stats-bar__value">[lpnw_property_count plus="1"]</span> properties in our live index</li>
+		<li>From <span class="lpnw-stats-bar__value">[lpnw_total_sources format="stat"]</span> data sources</li>
 		<li><span class="lpnw-stats-bar__value">Entire Northwest England</span> covered</li>
 		<li>Listing checks and alert runs every <span class="lpnw-stats-bar__value">15 minutes</span></li>
 	</ul>
