@@ -52,19 +52,31 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 ## Last live verification
 
-**Checked:** 2 April 2026 (automated smoke checks from agent environment)
+**Checked:** 2 April 2026 — public smoke tests plus **wp-admin read-only** session (one-shot `tools/lpnw-autologin.php` uploaded to mu-plugins, used once, **confirmed removed** from server).
+
+### Public
 
 | Check | Result |
 |--------|--------|
-| Homepage | HTTP 200 |
-| `/properties/` | HTTP 200 |
-| `/pricing/` | HTTP 200 |
-| `/dashboard/` | HTTP 200 (may be login-gated for anonymous users; still a valid response) |
-| WordPress REST root `/wp-json/` | Available; site title and timezone match expectations (`Europe/London`) |
+| Homepage, `/properties/`, `/pricing/`, `/dashboard/` | HTTP 200 |
+| `/wp-json/` | OK; `Europe/London` |
 
-**Observed on REST index (live):** Namespaces include **WooCommerce** (`wc/v3`, store, analytics), **Wordfence**, **Redirection**, **Jetpack**, **GeneratePress**. The repo brief lists a core set of plugins; production may include additional plugins—treat this as *live truth* for integrations, not only what SETUP.md lists.
+### wp-admin (verified)
 
-**Not verified in this pass:** Logged-in dashboard behaviour, checkout, actual email send, feed row counts, or deployed plugin/theme version strings. Next step: admin deep dive via the **20i workaround** above (upload, one hit, remove file), or parallel browser agents once a session exists.
+| Area | Finding |
+|------|---------|
+| **LPNW dashboard** | **3,465** properties tracked; **1,696** in last 24h; **1** active subscriber; **318** alerts sent today; **349** all-time sent; **668** queued |
+| **Mautic** | Status row: **Connected (HTTP 200)** |
+| **Cron** | Next runs listed (portals, planning, EPC, land registry, auctions, dispatch, free digest); `DISABLE_WP_CRON` not set |
+| **Feed Status** | All listed feeds **0 failed runs**; **Zoopla** cumulative new **0**; **Allsop** **0**; Rightmove / OTM / others show healthy activity |
+| **LPNW Settings** | EPC email + API key fields **empty**; Mautic URL set; **VIP/Pro/Free Mautic email IDs empty** |
+| **Alert log** | **1,017** total rows (sample); many recent rows **Queued** for PRO |
+| **Plugins** | Active include **LPNW 1.0.0**, WooCommerce, Stripe gateway, Rank Math, Wordfence, WPForms Lite, Cookie Notice, Business Directory, Redirection, UpdraftPlus, etc. |
+| **Themes** | Active: **LPNW Theme 6.0.0** child of GeneratePress |
+| **Products** | **3** published WooCommerce products |
+| **Admin notices** | Rank Math: **No Index**; WooCommerce bar: **Store coming soon**; Redirection setup incomplete; Wordfence incomplete / Woo LS integration nag; Cookie Notice upsell |
+
+**Still not exercised this pass:** Checkout payment with a real card, subscriber-only pages as a non-admin test user, or reading raw server logs.
 
 ---
 
@@ -79,23 +91,25 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 ### Revenue and reliability first
 
-1. **Scheduled tasks:** External HTTP cron reportedly blocked by 20i WAF; feeds and dispatch depend on cron firing. Resolve with an allowed provider, whitelist, or host-approved method so schedules run without relying only on traffic.
+1. **Scheduled tasks:** Live dashboard shows **next cron runs** (traffic-driven WP-Cron is working). Still reduce risk: use a host-approved URL or whitelist so jobs run on time **without** depending on site visits; third-party pingers may remain blocked by the WAF.
 2. **Zoopla:** Code present; live ingestion blocked by Cloudflare from hosting—needs approved approach if that source must contribute.
 3. **EPC:** Pipeline exists; needs **EPC Open Data API key** in plugin settings for live pulls.
 
 ### Product / ops hygiene
 
 4. **Operations:** Monitor **LPNW Alerts → Feed Status** and logs in wp-admin regularly.
-5. **Docs alignment:** Reconcile `docs/SETUP.md` (e.g. WPForms, wp-cron URL) with **STATUS.md** and live behaviour so operators are not misled.
+5. **Alert queue vs send:** Large **queued** count with Mautic template IDs **empty** — confirm dispatch cadence and whether wp_mail or Mautic should own production sends.
+6. **Launch toggles:** Clear **No Index** and **WooCommerce coming soon** when you intend to sell and rank.
+7. **Docs alignment:** Reconcile `docs/SETUP.md` (e.g. WPForms, wp-cron URL) with **STATUS.md** and live behaviour so operators are not misled.
 
 ### Repo quality (from codebase review — verify before closing)
 
-6. **Plugin:** Ensure `uninstall.php` clears **all** scheduled hooks including portal cron if present (consistency with activator/deactivator).
-7. **Theme:** Fix login inline CSS structure if broken; align scroll class (`lpnw-scrolled` vs `.site-header.scrolled`) and animation classes with actual CSS so intended motion works.
+8. **Plugin:** Ensure `uninstall.php` clears **all** scheduled hooks including portal cron if present (consistency with activator/deactivator).
+9. **Theme:** Fix login inline CSS structure if broken; align scroll class (`lpnw-scrolled` vs `.site-header.scrolled`) and animation classes with actual CSS so intended motion works.
 
 ### VIP / brief promises (confirm in code and copy)
 
-8. **VIP tier:** Brief mentions priority timing, off-market, introductions—map each to implemented behaviour and close any gaps or soften marketing copy.
+10. **VIP tier:** Brief mentions priority timing, off-market, introductions—map each to implemented behaviour and close any gaps or soften marketing copy.
 
 ---
 
@@ -112,6 +126,7 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 | Date | Item |
 |------|------|
+| 2026-04-02 | **wp-admin read-only audit** (autologin script upload once, removed); STATUS + runbook updated with live numbers and notices |
 | 2026-04-02 | Runbook created; live smoke check home/properties/pricing/dashboard + REST index |
 | 2026-04-02 | `composer.lock` added on branch for reproducible PHPCS/WPCS installs (see git history) |
 
