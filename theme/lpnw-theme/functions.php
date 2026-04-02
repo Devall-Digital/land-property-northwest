@@ -38,45 +38,6 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
 }
 
 /**
- * Replace the first hero block on the static front page (stored page content may lag theme updates).
- *
- * @param string $content Post content.
- * @return string
- */
-add_filter(
-	'the_content',
-	static function ( string $content ): string {
-		if ( ! is_front_page() || ! in_the_loop() || ! is_main_query() ) {
-			return $content;
-		}
-		if ( ! preg_match( '/<section\s+class="lpnw-hero"/i', $content ) ) {
-			return $content;
-		}
-		ob_start();
-		lpnw_get_template_part(
-			'hero',
-			array(
-				'heading'    => __( 'Get NW property alerts before anyone else', 'lpnw-theme' ),
-				'subheading' => __( 'We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.', 'lpnw-theme' ),
-				'cta_text'   => __( 'Start free', 'lpnw-theme' ),
-				'cta_url'    => wp_registration_url(),
-			)
-		);
-		$new_hero = ob_get_clean();
-		if ( '' === $new_hero ) {
-			return $content;
-		}
-		return (string) preg_replace(
-			'/<section\s+class="lpnw-hero"[^>]*>[\s\S]*?<\/section>\s*/i',
-			$new_hero,
-			$content,
-			1
-		);
-	},
-	9
-);
-
-/**
  * Enqueue parent and child styles, plus Google Fonts.
  */
 add_action( 'wp_enqueue_scripts', function () {
@@ -177,6 +138,16 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 						});
 					}, { passive: true });
 				}
+				var scene = hero.querySelector('.lpnw-hero__scene');
+				var svgIll = hero.querySelector('.lpnw-hero__illustration');
+				if (scene && svgIll) {
+					hero.addEventListener('mousemove', function (e) {
+						var rect = hero.getBoundingClientRect();
+						var x = (e.clientX - rect.left) / rect.width - 0.5;
+						var y = (e.clientY - rect.top) / rect.height - 0.5;
+						svgIll.style.transform = 'translate3d(' + (x * 22) + 'px, ' + (y * 12) + 'px, 0)';
+					}, { passive: true });
+				}
 			}
 		}
 
@@ -185,7 +156,8 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 			if (heroScroll) {
 				var sky = heroScroll.querySelector('.lpnw-hero__sky');
 				var city = heroScroll.querySelector('.lpnw-hero__cityscape');
-				window.addEventListener('scroll', function () {
+				var sceneEl = heroScroll.querySelector('.lpnw-hero__scene');
+				var scrollHandler = function () {
 					var rect = heroScroll.getBoundingClientRect();
 					if (rect.bottom < 0 || rect.top > window.innerHeight) {
 						return;
@@ -197,7 +169,12 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 					if (city) {
 						city.style.transform = 'translateY(' + (p * 8) + 'px)';
 					}
-				}, { passive: true });
+					if (sceneEl) {
+						sceneEl.style.transform = 'translate3d(0, ' + (p * 18) + 'px, 0)';
+					}
+				};
+				window.addEventListener('scroll', scrollHandler, { passive: true });
+				scrollHandler();
 			}
 		}
 
