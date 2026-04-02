@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.1.2
+Version: 6.2.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -208,6 +208,33 @@ Text Domain: lpnw-theme
 @keyframes lpnw-hero-cloud-float {
 	0%, 100% { transform: translate3d(0, 0, 0); }
 	50% { transform: translate3d(4%, 2%, 0); }
+}
+
+@keyframes lpnw-hero-aurora-shift {
+	0%, 100% {
+		opacity: 0.55;
+		transform: translate3d(-3%, 0, 0) scale(1);
+	}
+	50% {
+		opacity: 0.75;
+		transform: translate3d(3%, 1%, 0) scale(1.03);
+	}
+}
+
+@keyframes lpnw-hero-title-shimmer {
+	0%, 100% { filter: brightness(1); }
+	50% { filter: brightness(1.08); }
+}
+
+@keyframes lpnw-hero-line-reveal {
+	from {
+		opacity: 0;
+		transform: translate3d(0, 14px, 0);
+	}
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0);
+	}
 }
 
 @keyframes lpnw-shimmer {
@@ -565,7 +592,7 @@ body.no-sidebar .site-main {
 	position: relative;
 	isolation: isolate;
 	overflow: hidden;
-	background: linear-gradient(165deg, #070d18 0%, #0f1d35 38%, #152a4a 72%, #0d1829 100%);
+	background: linear-gradient(165deg, #050a12 0%, #0c1828 32%, #122642 58%, #0a1422 100%);
 	color: var(--lpnw-white);
 	padding: clamp(100px, 12vw, 160px) 24px clamp(100px, 10vw, 160px);
 	text-align: center;
@@ -574,6 +601,14 @@ body.no-sidebar .site-main {
 	margin-left: calc(50% - 50vw);
 	margin-right: calc(50% - 50vw);
 	box-sizing: border-box;
+	--lpnw-scene-y: 0px;
+	--lpnw-tilt-rx: 0deg;
+	--lpnw-tilt-ry: 0deg;
+}
+
+.lpnw-hero:has(.lpnw-hero__scene) {
+	perspective: 1400px;
+	perspective-origin: 50% 40%;
 }
 
 /* Front page hero: SVG cityscape + canvas (markup often lives in post content). */
@@ -584,24 +619,27 @@ body.no-sidebar .site-main {
 	z-index: 0;
 	pointer-events: none;
 	background:
-		radial-gradient(ellipse 130% 70% at 15% 18%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
-		radial-gradient(ellipse 100% 50% at 85% 12%, rgba(147, 197, 253, 0.1) 0%, transparent 48%),
-		radial-gradient(ellipse 80% 40% at 50% 8%, rgba(96, 165, 250, 0.06) 0%, transparent 45%);
-	animation: lpnw-hero-cloud-float 42s ease-in-out infinite;
+		radial-gradient(ellipse 140% 80% at 12% 15%, rgba(0, 212, 170, 0.09) 0%, transparent 42%),
+		radial-gradient(ellipse 120% 60% at 88% 8%, rgba(240, 165, 0, 0.07) 0%, transparent 45%),
+		radial-gradient(ellipse 100% 55% at 50% 0%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
+		radial-gradient(ellipse 130% 70% at 15% 18%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+		radial-gradient(ellipse 100% 50% at 85% 12%, rgba(147, 197, 253, 0.08) 0%, transparent 48%);
+	animation: lpnw-hero-cloud-float 48s ease-in-out infinite, lpnw-hero-aurora-shift 22s ease-in-out infinite;
 }
 
 .lpnw-hero:has(.lpnw-hero__scene)::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	z-index: 1;
+	z-index: 2;
 	pointer-events: none;
 	background-image:
-		radial-gradient(circle at 10% 25%, rgba(255, 255, 255, 0.06) 0, transparent 1.5px),
-		radial-gradient(circle at 82% 15%, rgba(147, 197, 253, 0.16) 0, transparent 1.5px),
-		radial-gradient(circle at 48% 55%, rgba(240, 165, 0, 0.06) 0, transparent 1px),
-		radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.04) 0, transparent 1px);
-	opacity: 0.55;
+		radial-gradient(circle at 10% 25%, rgba(255, 255, 255, 0.07) 0, transparent 1.5px),
+		radial-gradient(circle at 82% 15%, rgba(147, 197, 253, 0.18) 0, transparent 1.5px),
+		radial-gradient(circle at 48% 55%, rgba(240, 165, 0, 0.08) 0, transparent 1px),
+		radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.05) 0, transparent 1px),
+		radial-gradient(circle at 30% 60%, rgba(0, 212, 170, 0.06) 0, transparent 1px);
+	opacity: 0.62;
 }
 
 .lpnw-hero p:has(> .lpnw-hero__canvas),
@@ -609,41 +647,59 @@ body.no-sidebar .site-main {
 	display: contents;
 }
 
+.lpnw-hero__fx-canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+	pointer-events: none;
+	opacity: 0.92;
+	mix-blend-mode: screen;
+}
+
 .lpnw-hero__canvas {
 	position: absolute;
 	inset: 0;
 	width: 100%;
 	height: 100%;
-	z-index: 2;
+	z-index: 4;
 	pointer-events: none;
-	opacity: 0.5;
+	opacity: 0.55;
 	mix-blend-mode: screen;
 }
 
 .lpnw-hero__scene {
 	position: relative;
-	z-index: 1;
+	z-index: 3;
 	margin: 0 auto clamp(8px, 2vw, 24px);
 	max-width: min(100%, 1240px);
 	pointer-events: none;
+	transform-style: preserve-3d;
+	transform: translate3d(0, var(--lpnw-scene-y, 0px), 0) rotateX(var(--lpnw-tilt-rx, 0deg)) rotateY(var(--lpnw-tilt-ry, 0deg));
+	will-change: transform;
+	transition: transform 0.2s ease-out;
 }
 
 .lpnw-hero__illustration {
 	display: block;
 	width: 100%;
 	height: auto;
-	max-height: min(40vh, 380px);
+	max-height: min(42vh, 420px);
 	margin: 0 auto;
 	will-change: transform;
-	filter: drop-shadow(0 16px 48px rgba(0, 0, 0, 0.4));
-	transition: transform 0.12s ease-out;
+	filter:
+		drop-shadow(0 20px 50px rgba(0, 0, 0, 0.55))
+		drop-shadow(0 0 60px rgba(0, 212, 170, 0.12))
+		drop-shadow(0 0 80px rgba(240, 165, 0, 0.08));
+	transition: transform 0.14s ease-out;
 }
 
 .lpnw-hero__scan-line {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	z-index: 3;
+	z-index: 5;
 	overflow: hidden;
 	border-radius: 0 0 12px 12px;
 }
@@ -667,28 +723,31 @@ body.no-sidebar .site-main {
 
 .lpnw-hero .lpnw-hero__content {
 	position: relative;
-	z-index: 4;
+	z-index: 6;
 	max-width: 44rem;
 	margin-left: auto;
 	margin-right: auto;
+	text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
 }
 
 .lpnw-hero .lpnw-hero__title {
-	font-size: clamp(2rem, 5.5vw, 3.75rem);
+	font-size: clamp(2rem, 5.5vw, 3.85rem);
 	font-weight: 800;
 	line-height: 1.08;
 	margin: 0 0 1.25rem;
-	letter-spacing: -0.03em;
-	background: linear-gradient(135deg, var(--lpnw-amber) 0%, #FFFFFF 42%, var(--lpnw-amber-light) 100%);
+	letter-spacing: -0.035em;
+	background: linear-gradient(142deg, var(--lpnw-amber) 0%, #fff8e8 38%, #ffffff 52%, var(--lpnw-amber-light) 100%);
+	background-size: 200% auto;
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
 	color: transparent;
+	filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.25));
 }
 
 .lpnw-hero .lpnw-hero__title em {
 	font-style: normal;
-	background: linear-gradient(135deg, #FFFFFF 0%, var(--lpnw-amber-light) 100%);
+	background: linear-gradient(135deg, #ffffff 0%, var(--lpnw-teal) 45%, var(--lpnw-amber-light) 100%);
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -2288,6 +2347,19 @@ body.no-sidebar .site-main {
    ========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__title {
+		animation: lpnw-hero-title-shimmer 6s ease-in-out infinite;
+	}
+
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__line {
+		opacity: 0;
+		animation: lpnw-hero-line-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+	}
+
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__line--1 { animation-delay: 0.08s; }
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__line--2 { animation-delay: 0.22s; }
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__line--3 { animation-delay: 0.36s; }
+
 	.lpnw-hero__particles {
 		animation: lpnw-hero-particles 38s ease-in-out infinite;
 	}
@@ -2321,13 +2393,15 @@ body.no-sidebar .site-main {
 	}
 
 	@supports (animation-timeline: scroll(root)) {
-		.lpnw-hero__content h1 {
+		.lpnw-hero__content h1,
+		.lpnw-hero__content .lpnw-hero__title {
 			animation: lpnw-hero-parallax-h1 linear both;
 			animation-timeline: scroll(root);
 			animation-range: 0min 38vh;
 		}
 
-		.lpnw-hero__content p {
+		.lpnw-hero__content p,
+		.lpnw-hero__content .lpnw-hero__subtitle {
 			animation: lpnw-hero-parallax-p linear both;
 			animation-timeline: scroll(root);
 			animation-range: 0min 38vh;
@@ -2510,7 +2584,13 @@ body.no-sidebar .site-main {
 	}
 
 	.lpnw-hero__scan-line::after,
-	.lpnw-hero:has(.lpnw-hero__scene)::before {
+	.lpnw-hero:has(.lpnw-hero__scene)::before,
+	.lpnw-hero:has(.lpnw-hero__scene)::after {
+		animation: none !important;
+	}
+
+	.lpnw-hero:has(.lpnw-hero__scene) .lpnw-hero__line {
+		opacity: 1 !important;
 		animation: none !important;
 	}
 
@@ -2581,7 +2661,9 @@ body.no-sidebar .site-main {
 	}
 
 	.lpnw-hero__content h1,
-	.lpnw-hero__content p {
+	.lpnw-hero__content .lpnw-hero__title,
+	.lpnw-hero__content p,
+	.lpnw-hero__content .lpnw-hero__subtitle {
 		animation: none !important;
 		transform: none !important;
 	}
