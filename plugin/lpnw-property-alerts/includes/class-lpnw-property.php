@@ -15,14 +15,19 @@ class LPNW_Property {
 	 * Insert or update a property record. Returns the property ID.
 	 *
 	 * @param array<string, mixed> $data Normalised property data.
+	 * @param bool|null            $inserted_new If a non-null variable is passed, set to true when a new row was inserted, false when an existing row was updated.
 	 * @return int|false Property ID on success, false on failure.
 	 */
-	public static function upsert( array $data ) {
+	public static function upsert( array $data, ?bool &$inserted_new = null ) {
 		global $wpdb;
 
 		$table  = $wpdb->prefix . 'lpnw_properties';
 		$source = sanitize_text_field( $data['source'] ?? '' );
 		$ref    = sanitize_text_field( $data['source_ref'] ?? '' );
+
+		if ( null !== $inserted_new ) {
+			$inserted_new = false;
+		}
 
 		if ( empty( $source ) || empty( $ref ) ) {
 			return false;
@@ -68,7 +73,11 @@ class LPNW_Property {
 		}
 
 		$wpdb->insert( $table, $row );
-		return $wpdb->insert_id ? (int) $wpdb->insert_id : false;
+		$new_id = $wpdb->insert_id ? (int) $wpdb->insert_id : false;
+		if ( $new_id && null !== $inserted_new ) {
+			$inserted_new = true;
+		}
+		return $new_id;
 	}
 
 	/**

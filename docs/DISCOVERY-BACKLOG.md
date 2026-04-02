@@ -153,4 +153,5 @@
 
 | Date | Note |
 |------|------|
+| 2026-04-02 | **Shipped (repo):** Match alerts only on **new** property inserts (not every upsert); feed log `properties_new` / `properties_updated` semantics fixed. VIP **daily** preference honoured (weekly coerced to daily). Mautic send passes **tokens** + contact first/last name on create. Settings: **portal feeds** checkbox; sanitize merges with existing options. Uninstall clears **lpnw_cron_portals**. Property card price: tabular nums. |
 | 2026-04-02 | Initial discovery synthesis from multi-agent audit; no code changes. |

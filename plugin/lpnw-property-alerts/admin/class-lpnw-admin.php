@@ -565,11 +565,12 @@ class LPNW_Admin {
 		add_settings_section(
 			'lpnw_mautic_section',
 			__( 'Mautic Integration', 'lpnw-alerts' ),
-			null,
+			array( __CLASS__, 'render_mautic_section_intro' ),
 			'lpnw-settings'
 		);
 
 		$feed_fields = array(
+			'portals_enabled'      => 'Enable portal feeds (Rightmove, Zoopla, OnTheMarket)',
 			'planning_enabled'     => 'Enable Planning Portal feed',
 			'epc_enabled'          => 'Enable EPC Open Data feed',
 			'epc_api_email'        => 'EPC account email (Basic auth username)',
@@ -618,13 +619,36 @@ class LPNW_Admin {
 	}
 
 	/**
+	 * Help text under Mautic settings: merge tokens for alert emails.
+	 */
+	public static function render_mautic_section_intro(): void {
+		echo '<p class="description">';
+		esc_html_e(
+			'When sending via Mautic, your email templates can use these tokens on send: {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html} (listing summary). Add matching tokens in Mautic or use the HTML block token for the full list.',
+			'lpnw-alerts'
+		);
+		echo '</p>';
+	}
+
+	/**
 	 * @param array<string, mixed> $input Raw settings input.
 	 * @return array<string, mixed>
 	 */
 	public static function sanitize_settings( array $input ): array {
+		$prev = get_option( 'lpnw_settings', array() );
+		if ( ! is_array( $prev ) ) {
+			$prev = array();
+		}
+
 		$sanitized = array();
 
-		$checkboxes = array( 'planning_enabled', 'epc_enabled', 'landregistry_enabled', 'auctions_enabled' );
+		$checkboxes = array(
+			'portals_enabled',
+			'planning_enabled',
+			'epc_enabled',
+			'landregistry_enabled',
+			'auctions_enabled',
+		);
 		foreach ( $checkboxes as $key ) {
 			$sanitized[ $key ] = ! empty( $input[ $key ] );
 		}
@@ -639,7 +663,7 @@ class LPNW_Admin {
 			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
 		}
 
-		return $sanitized;
+		return array_merge( $prev, $sanitized );
 	}
 
 	/**
@@ -652,6 +676,9 @@ class LPNW_Admin {
 		$value    = $settings[ $key ] ?? '';
 
 		if ( 'checkbox' === $type ) {
+			if ( 'portals_enabled' === $key && ! array_key_exists( 'portals_enabled', $settings ) ) {
+				$value = true;
+			}
 			printf(
 				'<input type="checkbox" name="lpnw_settings[%s]" value="1" %s />',
 				esc_attr( $key ),

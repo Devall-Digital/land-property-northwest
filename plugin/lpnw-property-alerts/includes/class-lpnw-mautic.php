@@ -72,31 +72,35 @@ class LPNW_Mautic {
 	 * @return bool
 	 */
 	public function send_alert( string $email, array $properties, string $tier ): bool {
+		$user         = get_user_by( 'email', $email );
+		$sync_payload = array();
+		if ( $user instanceof \WP_User ) {
+			$sync_payload = LPNW_Dispatcher::get_mautic_contact_fields_for_sync( $user );
+		}
+
 		$contact_id = $this->get_contact_id_by_email( $email );
 		if ( ! $contact_id ) {
-			$contact_id = $this->sync_contact( $email );
+			$contact_id = $this->sync_contact( $email, $sync_payload );
 		}
 
 		if ( ! $contact_id ) {
 			return false;
 		}
-
-		$segment_map = array(
-			'vip'  => 'lpnw-vip-alerts',
-			'pro'  => 'lpnw-pro-alerts',
-			'free' => 'lpnw-free-digest',
-		);
-
-		$segment = $segment_map[ $tier ] ?? $segment_map['free'];
 
 		$email_id = $this->get_email_id_for_tier( $tier );
 		if ( ! $email_id ) {
 			return false;
 		}
 
+		$send_body = array();
+		if ( $user instanceof \WP_User && ! empty( $properties ) ) {
+			$send_body = LPNW_Dispatcher::get_mautic_send_body_with_tokens( $user, $properties, $tier );
+		}
+
 		$response = $this->request(
 			'POST',
-			sprintf( 'api/emails/%d/contact/%d/send', $email_id, $contact_id )
+			sprintf( 'api/emails/%d/contact/%d/send', $email_id, $contact_id ),
+			$send_body
 		);
 
 		return ! empty( $response['success'] );

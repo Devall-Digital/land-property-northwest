@@ -34,9 +34,10 @@ abstract class LPNW_Feed_Base {
 		try {
 			$raw_items = $this->fetch();
 
-			$new_ids = array();
-			$updated = 0;
-			$errors  = array();
+			$new_ids         = array();
+			$ids_for_matcher = array();
+			$upsert_ok       = 0;
+			$errors          = array();
 
 			foreach ( $raw_items as $raw_item ) {
 				try {
@@ -70,24 +71,28 @@ abstract class LPNW_Feed_Base {
 						continue;
 					}
 
-					$property_id = LPNW_Property::upsert( $parsed );
+					$inserted_new = false;
+					$property_id  = LPNW_Property::upsert( $parsed, $inserted_new );
 
 					if ( $property_id ) {
-						$new_ids[] = $property_id;
-						++$updated;
+						++$upsert_ok;
+						if ( $inserted_new ) {
+							$new_ids[]         = $property_id;
+							$ids_for_matcher[] = $property_id;
+						}
 					}
 				} catch ( \Throwable $e ) {
 					$errors[] = $e->getMessage();
 				}
 			}
 
-			if ( ! empty( $new_ids ) ) {
+			if ( ! empty( $ids_for_matcher ) ) {
 				$matcher = new LPNW_Matcher();
-				$matcher->match_and_queue( $new_ids );
+				$matcher->match_and_queue( $ids_for_matcher );
 			}
 
 			$elapsed = round( microtime( true ) - $start_time, 1 );
-			$this->log_end( count( $raw_items ), count( $new_ids ), $updated, $errors, 'completed', $elapsed );
+			$this->log_end( count( $raw_items ), count( $new_ids ), $upsert_ok, $errors, 'completed', $elapsed );
 		} catch ( \Throwable $e ) {
 			$elapsed = round( microtime( true ) - $start_time, 1 );
 			$this->log_end( 0, 0, 0, array( $e->getMessage() ), 'failed', $elapsed );
@@ -130,10 +135,16 @@ abstract class LPNW_Feed_Base {
 	}
 
 	/**
-	 * @param array<string>    $errors          Error messages.
-	 * @param float|null       $elapsed_seconds Feed run duration in seconds (1 decimal), for operational logging.
+	 * Persist feed run summary to lpnw_feed_log.
+	 *
+	 * @param int           $found            Raw items from fetch().
+	 * @param int           $new_count        New property rows (first insert) this run.
+	 * @param int           $updated          Successful upserts (insert + update).
+	 * @param array<string> $errors           Error messages.
+	 * @param string        $status           completed|failed.
+	 * @param float|null    $elapsed_seconds  Duration for error_log line.
 	 */
-	private function log_end( int $found, int $new, int $updated, array $errors = array(), string $status = 'completed', ?float $elapsed_seconds = null ): void {
+	private function log_end( int $found, int $new_count, int $updated, array $errors = array(), string $status = 'completed', ?float $elapsed_seconds = null ): void {
 		global $wpdb;
 
 		if ( ! $this->log_id ) {
@@ -149,7 +160,7 @@ abstract class LPNW_Feed_Base {
 					$status,
 					$elapsed_seconds,
 					$found,
-					$new,
+					$new_count,
 					$updated
 				)
 			);
@@ -160,7 +171,7 @@ abstract class LPNW_Feed_Base {
 			array(
 				'completed_at'       => current_time( 'mysql' ),
 				'properties_found'   => $found,
-				'properties_new'     => $new,
+				'properties_new'     => $new_count,
 				'properties_updated' => $updated,
 				'errors'             => ! empty( $errors ) ? wp_json_encode( $errors ) : null,
 				'status'             => $status,

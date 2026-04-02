@@ -686,6 +686,8 @@
 }
 
 .lpnw-property-card__price {
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.02em;
 	margin: 0;
 	text-align: right;
 	line-height: 1.15;
