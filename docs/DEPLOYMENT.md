@@ -43,7 +43,7 @@ With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 ./tools/deploy-ftp.sh
 ```
 
-This mirrors `plugin/lpnw-property-alerts/` and `theme/lpnw-theme/` into `public_html/wp-content/` on the 20i package (same layout as manual upload).
+This mirrors `plugin/lpnw-property-alerts/` and `theme/lpnw-theme/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
 
 ## Quick Deploy Script
 
