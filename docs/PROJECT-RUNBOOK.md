@@ -26,6 +26,8 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 **Live site:** https://land-property-northwest.co.uk  
 **Marketing / Mautic host:** https://marketing.land-property-northwest.co.uk  
 
+**Transactional From addresses (plugin, wp_mail):** Alerts use **`alerts@<your-domain>`**; contact-form notifications to you use **`hello@<your-domain>`** as the visible sender (visitor stays on **Reply-To**). Create those mailboxes or forwarders on the host and align **SPF/DKIM** so inboxes trust them. **admin@** is still useful as **WordPress admin email** (password reset, critical notices); it is not replaced by this change. Developers can override addresses with filters `lpnw_alert_mail_from_email`, `lpnw_contact_mail_from_email`, `lpnw_mail_from_name`, or the local-part filters in `class-lpnw-email-branding.php`.
+
 ---
 
 ## How we test (depth and parallelism)
