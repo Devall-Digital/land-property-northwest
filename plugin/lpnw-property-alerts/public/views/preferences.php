@@ -159,7 +159,7 @@ $available_types = array(
 );
 
 $available_alert_types = array(
-	'listing'  => 'New Property Listings (Rightmove, Zoopla, OnTheMarket)',
+	'listing'  => 'New Property Listings (Rightmove and OnTheMarket)',
 	'planning' => 'Planning Applications',
 	'epc'      => 'EPC / Property Activity',
 	'price'    => 'Price Paid / Transactions',

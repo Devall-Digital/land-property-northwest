@@ -1,62 +1,61 @@
 # Project Status
 
-Last updated: 1 April 2026, 19:00 UTC
+Last updated: 2 April 2026
 
-## Platform State: Launch-Ready MVP
+## Platform State: Live, Multi-Source
 
-10 improvement cycles completed. The platform pulls real property listings from Rightmove across 19 Northwest England regions, displays them with images and prices, and has the full alert pipeline built (matching, dispatching, email templates). The site looks professional with proper branding, responsive design, and conversion-focused CTAs.
+The property alerts platform ingests listings from several active feeds, surfaces them in browse, map, and dashboard experiences, and runs the full subscriber preference and alert pipeline. **2,938+ properties** are in the index from **5 active data sources**. Rightmove and OnTheMarket supply the bulk of volume; auction feeds add specialist lots. Zoopla remains integrated in code but returns no data because **Cloudflare blocks** requests from the hosting environment.
 
-## Health Check (all passing)
+## Data Snapshot
 
-Hero section, trust bar, stats bar, property cards with images, pricing cards, CTA banner, sticky CTA bar, footer links, JSON-LD schema, Rightmove source badges, View on Rightmove links: all rendering correctly.
+| Source | Approx. count | Notes |
+|--------|---------------|--------|
+| Rightmove | 1,834 | Primary source; batched every 15 minutes; working well |
+| OnTheMarket | 989 | Working; ~120 properties per batch |
+| Auction House NW | 81 | Auction lots |
+| SDL Auctions | 24 | Auction lots |
+| Pugh Auctions | 10 | Auction lots |
+| **Zoopla** | **0** | **Blocked by Cloudflare** (feed built; no rows until unblocked or proxied) |
 
-## What's Live
+Planning Portal, EPC, and Land Registry pipelines are **built** but are secondary to on-market volume: Planning Portal yields **limited data** from the national platform; EPC needs an **API key** in settings; Land Registry uses the **monthly CSV** path as designed.
 
-### Data
-- 1,769+ Rightmove property listings from 19 NW regions (Manchester, Liverpool, Bolton, Bury, Oldham, Rochdale, Salford, Stockport, Tameside, Trafford, Wigan, Preston, Blackpool, Blackburn, Burnley, Chester, Warrington, Lancaster, Carlisle)
-- Both sales and rentals, correctly labelled with "For sale" or "pcm" pricing
-- Geographic diversity on homepage (shows properties from different areas, not just the last-processed region)
-- Batched feed processing (6 region+channel pairs per cron run, 25s time budget for reliability on shared hosting)
+## Infrastructure
 
-### Pages
-- Home: full-bleed hero, trust bar, stats, how-it-works, 6 diverse property cards with Rightmove images, pricing teaser, CTA
-- Pricing: comparison table, 3 tier cards (Free/Pro/VIP), FAQ
-- About: authority content with area stats and source count
-- Contact: native AJAX contact form (no WPForms dependency)
-- 14 NW area landing pages (property-alerts-manchester, etc.) with unique content and area-filtered properties
-- 10 SEO blog posts
-- Privacy Policy, Terms of Service
-- Dashboard, Preferences, Property Map, Saved Properties, Email Preview (subscriber pages)
+- **WordPress** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme**
+- **WP-Cron** is triggered by site traffic; **external HTTP cron is blocked by the 20i WAF** (see Owner actions)
+- **Mautic** at `marketing.land-property-northwest.co.uk` with **API connected**
+- **Stripe** connected via **WooCommerce**
+- **Three products:** Free (GBP 0), Pro (GBP 19.99), VIP (GBP 79.99)
+- **Tier detection** from WooCommerce orders (completed/processing) is **working**
+- **Search engine indexing** is **enabled**
 
-### Technical
-- All 7 cron events registered (portals every 15min, planning every 6h, EPC/LandReg/Auctions daily, free digest weekly, dispatch every 15min)
-- DISABLE_WP_CRON set in wp-config.php
-- Mautic API connected (HTTP 200 confirmed)
-- 3 WooCommerce products (Free GBP 0, Pro GBP 19.99, VIP GBP 79.99)
-- Tier detection via WooCommerce orders (completed + processing)
-- Frequency enforcement per tier (free=weekly, pro=daily/instant, vip=instant)
-- Cross-portal deduplication with sale/rent channel awareness
-- Property type normalization for matching (portal types mapped to canonical preferences)
-- Property data API requires login (security fix)
-- JSON-LD schema markup on all pages (Organization, WebSite, Product, Article)
-- Comprehensive mobile CSS for 480px screens (44px touch targets, stacked layouts)
-- Sticky CTA bar for non-logged-in visitors
-- Blog post CTAs with area-aware messaging
-- Property grid signup prompt for visitors
+## Features Working
 
-### Feeds (10 sources built)
-- Rightmove: working, batched, 19 regions, sale/rent channel storage
-- Zoopla: built with batching, Cloudflare may block from shared hosting
-- OnTheMarket: built with batching
-- Planning Portal: verified entity IDs (626xxx series), data availability varies by LPA
-- EPC: built, needs API key in settings
-- Land Registry: built, monthly CSV download
-- Pugh, SDL, AHNW, Allsop auction scrapers: built
+- **Subscriber dashboard:** coverage stats, alerts, action cards
+- **Alert preferences:** granular filters (area, beds, baths, price, type, tenure, features, channel)
+- **Property browse:** eight filter options with pagination
+- **Leaflet map:** interactive view with **clustered markers**
+- **Property cards:** images, prices, beds/baths, tenure, features, agent, listed date
+- **Auction presentation:** guide prices, auction dates where applicable
+- **Email alerts:** instant, daily, and weekly schedules via **wp_mail**
+- **Contact form:** native AJAX (no third-party form plugin required)
+- **14 Northwest area landing pages**
+- **10 SEO blog posts**
+- **JSON-LD** schema markup
+- **Mobile-optimised CSS**
+- **Login/logout** in navigation
+- **WhatsApp and email** sharing on listings
+
+## Feeds (Built vs Active)
+
+- **Rightmove, OnTheMarket, Auction House NW, SDL Auctions, Pugh Auctions:** active and contributing rows as above
+- **Zoopla:** built; **0 properties** until Cloudflare allows the server or an approved workaround exists
+- **Planning Portal:** built; national platform limits practical coverage
+- **EPC:** built; **configure EPC API key** for live pulls
+- **Land Registry:** built; **monthly CSV** ingestion
 
 ## Owner Actions Still Needed
 
-1. Set up external cron at cron-job.org (URL: https://land-property-northwest.co.uk/wp-cron.php?doing_wp_cron, every 15 minutes)
-2. Add Stripe API keys for payment processing
-3. Enable Mautic API toggles (config page, API Settings, both switches to Yes)
-4. Register as test user, set preferences, verify email alerts work
-5. Review site and flag any changes wanted
+1. **External cron:** `cron-job.org` is blocked by 20i; try **EasyCron**, another provider, or ask **20i to whitelist** a single caller IP or URL so `wp-cron.php` can run on a fixed schedule without relying only on traffic.
+2. **EPC:** register for an **EPC Open Data API key** and enter it in plugin settings.
+3. **Operations:** monitor **LPNW Alerts > Feed Status** in wp-admin and review feed logs for errors, stalls, or source-specific failures.

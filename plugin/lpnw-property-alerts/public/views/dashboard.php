@@ -13,15 +13,7 @@ global $wpdb;
 $user_id     = get_current_user_id();
 $user        = wp_get_current_user();
 $display     = $user && $user->exists() ? $user->display_name : '';
-$week_ago    = gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS );
-$alert_count = (int) $wpdb->get_var(
-	$wpdb->prepare(
-		"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue aq
-		 INNER JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
-		 WHERE sp.user_id = %d AND aq.status = 'sent'",
-		$user_id
-	)
-);
+$week_ago     = gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS );
 $week_matches = (int) $wpdb->get_var(
 	$wpdb->prepare(
 		"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue aq
@@ -70,14 +62,14 @@ $area_bar_label  = $areas_selected > 0
 		$areas_selected,
 		$nw_total
 	)
-	: __( 'All NW regions (no area filter)', 'lpnw-alerts' );
+	: __( 'All regions (no filter)', 'lpnw-alerts' );
 $type_bar_label  = $types_selected > 0
 	? sprintf(
 		/* translators: 1: number of selected property types */
 		_n( '%d property type', '%d property types', $types_selected, 'lpnw-alerts' ),
 		$types_selected
 	)
-	: __( 'All property types (no type filter)', 'lpnw-alerts' );
+	: __( 'All property types (no filter)', 'lpnw-alerts' );
 ?>
 
 <div class="lpnw-dashboard lpnw-dashboard--subscriber lpnw-subscriber-area">
@@ -158,8 +150,8 @@ $type_bar_label  = $types_selected > 0
 		</div>
 		<div class="lpnw-stat-card lpnw-stat-card--amber">
 			<span class="lpnw-stat-card__icon lpnw-stat-card__icon--alerts" aria-hidden="true"></span>
-			<div class="lpnw-stat-card__number"><?php echo esc_html( number_format_i18n( $alert_count ) ); ?></div>
-			<div class="lpnw-stat-card__label"><?php esc_html_e( 'Alerts received', 'lpnw-alerts' ); ?></div>
+			<div class="lpnw-stat-card__number"><?php echo esc_html( number_format_i18n( $week_matches ) ); ?></div>
+			<div class="lpnw-stat-card__label"><?php esc_html_e( 'Alerts this week', 'lpnw-alerts' ); ?></div>
 		</div>
 		<div class="lpnw-stat-card lpnw-stat-card--green">
 			<span class="lpnw-stat-card__icon lpnw-stat-card__icon--saved" aria-hidden="true"></span>
@@ -182,8 +174,26 @@ $type_bar_label  = $types_selected > 0
 		</div>
 	<?php endif; ?>
 
+	<?php
+	$lpnw_myaccount_url = '';
+	if ( function_exists( 'wc_get_page_permalink' ) ) {
+		$lpnw_myaccount_url = (string) wc_get_page_permalink( 'myaccount' );
+	}
+	if ( '' === $lpnw_myaccount_url ) {
+		$lpnw_myaccount_url = home_url( '/my-account/' );
+	}
+	?>
 	<h3 class="lpnw-dashboard__section-heading"><?php esc_html_e( 'Quick actions', 'lpnw-alerts' ); ?></h3>
 	<ul class="lpnw-dashboard__action-cards">
+		<?php if ( 'pro' === $tier_key || 'vip' === $tier_key ) : ?>
+		<li class="lpnw-dashboard__action-cards-item">
+			<a class="lpnw-action-card" href="<?php echo esc_url( $lpnw_myaccount_url ); ?>">
+				<span class="lpnw-action-card__icon lpnw-action-card__icon--preview" aria-hidden="true"></span>
+				<span class="lpnw-action-card__title"><?php esc_html_e( 'Manage subscription', 'lpnw-alerts' ); ?></span>
+				<span class="lpnw-action-card__desc"><?php esc_html_e( 'Billing, payment method, and WooCommerce account details.', 'lpnw-alerts' ); ?></span>
+			</a>
+		</li>
+		<?php endif; ?>
 		<li class="lpnw-dashboard__action-cards-item">
 			<a class="lpnw-action-card" href="<?php echo esc_url( home_url( '/preferences/' ) ); ?>">
 				<span class="lpnw-action-card__icon lpnw-action-card__icon--prefs" aria-hidden="true"></span>

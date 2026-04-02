@@ -87,6 +87,17 @@ class LPNW_Dispatcher {
 		}
 
 		if ( empty( $properties ) ) {
+			$ids = array_map( static function ( $a ) {
+				return (int) $a->id;
+			}, $alerts );
+			if ( ! empty( $ids ) ) {
+				$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NULL WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'failed',
+					...$ids
+				) );
+			}
 			return;
 		}
 
