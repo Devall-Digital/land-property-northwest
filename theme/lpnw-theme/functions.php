@@ -38,6 +38,45 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
 }
 
 /**
+ * Replace the first hero block on the static front page (stored page content may lag theme updates).
+ *
+ * @param string $content Post content.
+ * @return string
+ */
+add_filter(
+	'the_content',
+	static function ( string $content ): string {
+		if ( ! is_front_page() || ! in_the_loop() || ! is_main_query() ) {
+			return $content;
+		}
+		if ( ! preg_match( '/<section\s+class="lpnw-hero"/i', $content ) ) {
+			return $content;
+		}
+		ob_start();
+		lpnw_get_template_part(
+			'hero',
+			array(
+				'heading'    => __( 'Get NW property alerts before anyone else', 'lpnw-theme' ),
+				'subheading' => __( 'We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.', 'lpnw-theme' ),
+				'cta_text'   => __( 'Start free', 'lpnw-theme' ),
+				'cta_url'    => wp_registration_url(),
+			)
+		);
+		$new_hero = ob_get_clean();
+		if ( '' === $new_hero ) {
+			return $content;
+		}
+		return (string) preg_replace(
+			'/<section\s+class="lpnw-hero"[^>]*>[\s\S]*?<\/section>\s*/i',
+			$new_hero,
+			$content,
+			1
+		);
+	},
+	9
+);
+
+/**
  * Enqueue parent and child styles, plus Google Fonts.
  */
 add_action( 'wp_enqueue_scripts', function () {

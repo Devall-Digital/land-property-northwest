@@ -30,20 +30,30 @@ class LPNW_Page_Content {
 
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
-	<div class="lpnw-hero__shapes" aria-hidden="true">
-		<svg class="lpnw-hero__shape lpnw-hero__shape--house" width="120" height="120" viewBox="0 0 120 120" fill="none">
-			<path d="M60 10L10 50V110H45V75H75V110H110V50L60 10Z" stroke="rgba(240,165,0,0.15)" stroke-width="2" fill="none"/>
-		</svg>
-		<svg class="lpnw-hero__shape lpnw-hero__shape--pin" width="60" height="80" viewBox="0 0 60 80" fill="none">
-			<path d="M30 0C13.4 0 0 13.4 0 30C0 52.5 30 80 30 80S60 52.5 60 30C60 13.4 46.6 0 30 0ZM30 40C24.5 40 20 35.5 20 30S24.5 20 30 20S40 24.5 40 30S35.5 40 30 40Z" fill="rgba(0,212,170,0.12)"/>
-		</svg>
-		<svg class="lpnw-hero__shape lpnw-hero__shape--bell" width="50" height="55" viewBox="0 0 50 55" fill="none">
-			<path d="M25 0C23.3 0 22 1.3 22 3V5.1C14.4 6.7 9 13.5 9 21.5V35L4 40V42.5H46V40L41 35V21.5C41 13.5 35.6 6.7 28 5.1V3C28 1.3 26.7 0 25 0ZM25 55C27.8 55 30 52.8 30 50H20C20 52.8 22.2 55 25 55Z" fill="rgba(255,255,255,0.08)"/>
-		</svg>
+	<div class="lpnw-hero__bg" aria-hidden="true">
+		<div class="lpnw-hero__sky"></div>
+		<div class="lpnw-hero__cloud lpnw-hero__cloud--a"></div>
+		<div class="lpnw-hero__cloud lpnw-hero__cloud--b"></div>
+		<div class="lpnw-hero__cloud lpnw-hero__cloud--c"></div>
+		<div class="lpnw-hero__cityscape">
+			<span class="lpnw-hero__shape lpnw-hero__shape--1"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--2"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--3"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--4"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--5"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--6"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--7"></span>
+			<span class="lpnw-hero__shape lpnw-hero__shape--8"></span>
+		</div>
+		<div class="lpnw-hero__orb"></div>
+		<div class="lpnw-hero__particles"></div>
+		<div class="lpnw-hero__vignette"></div>
 	</div>
-	<h1 id="lpnw-hero-heading">Get NW property alerts before anyone else</h1>
-	<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
-	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
+	<div class="lpnw-hero__content">
+		<h1 id="lpnw-hero-heading">Get NW property alerts before anyone else</h1>
+		<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
+		<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
+	</div>
 </section>
 
 <section class="lpnw-trust-bar" aria-label="How often listings are refreshed">
