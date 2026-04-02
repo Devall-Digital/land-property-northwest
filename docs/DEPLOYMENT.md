@@ -20,6 +20,7 @@ Get these from 20i panel > Manage Hosting > FTP Users:
 |-----------|-------------|
 | `plugin/lpnw-property-alerts/` | `wp-content/plugins/lpnw-property-alerts/` |
 | `theme/lpnw-theme/` | `wp-content/themes/lpnw-theme/` |
+| `mu-plugins/` (e.g. `lpnw-cron-endpoint.php`) | `wp-content/mu-plugins/` |
 
 ### Deploying Plugin Updates
 
@@ -43,7 +44,11 @@ With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 ./tools/deploy-ftp.sh
 ```
 
-This mirrors `plugin/lpnw-property-alerts/` and `theme/lpnw-theme/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
+This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugins/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
+
+### Cron URL secret (`LPNW_CRON_SECRET`)
+
+If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
 
 ## Quick Deploy Script
 

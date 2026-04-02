@@ -30,4 +30,14 @@ mirror -R --verbose theme/lpnw-theme public_html/wp-content/themes/lpnw-theme
 quit
 "
 
+echo "Deploying mu-plugins -> public_html/wp-content/mu-plugins/"
+lftp -u "$FTP_USER,$FTP_PASS" "$FTP_HOST" -e "
+set ftp:ssl-allow true
+set ssl:verify-certificate no
+set net:max-retries 3
+set net:reconnect-interval-base 4
+mirror -R --verbose mu-plugins public_html/wp-content/mu-plugins
+quit
+"
+
 echo "Done."

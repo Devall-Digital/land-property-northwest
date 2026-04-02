@@ -16,8 +16,8 @@
 | **Reliability** | Feeds are fragile by nature (scraping, Cloudflare, timeouts); several **admin manual-run** gaps and a likely **broken Settings “Run feed” form** (nonce/field mismatch). |
 | **Scale** | Matcher runs on **every upsert** (updates too), **O(properties × subscribers)** with repeated tier lookups; queue dedup is **not enforced in DB**. |
 | **Theme / UX** | Known bugs: **scroll class vs CSS**, **broken wp-login inline CSS**, **dead animation / parallax** paths; possible **JSON-LD duplication** with Rank Math. |
-| **Docs / ops** | `SETUP.md`, `DATA-SOURCES.md`, and `README.md` **lag** portals, auctions, cron URL, and contact form story; **cron endpoint has no shared secret**. |
-| **Security (defer per director)** | Shared static keys across tools, **unauthenticated `?lpnw_cron=tick`**, `lpnw-login-as.php` **does not self-delete** despite comments/runbook. |
+| **Docs / ops** | `SETUP.md`, `DATA-SOURCES.md`, and `README.md` **lag** portals, auctions, cron URL, and contact form story; cron URL supports optional secret via **`LPNW_CRON_SECRET`** (define in wp-config on live). |
+| **Security (defer per director)** | Shared static keys across tools; **`?lpnw_cron=tick`** is open until `LPNW_CRON_SECRET` is set; `lpnw-login-as.php` **does not self-delete** despite comments/runbook. |
 
 ---
 
@@ -27,7 +27,7 @@
 2. **Settings dropdown vs feed map mismatch** — Form offers aggregate `auctions`; `$manual_feed_class_map` has per-source keys (`rightmove`, `zoopla`, `onthemarket`, `planning`, `epc`, `landregistry`) not `auctions`. **Impact:** wrong or default feed when fixed.
 3. **Mautic path omits property payload** — `LPNW_Mautic::send_alert()` triggers Mautic email send **without** passing `$properties` (unused). **Impact:** tiered emails via Mautic may not contain listing details unless templates pull from elsewhere.
 4. **VIP “30 minutes before Pro” not implemented** — Dispatch runs `process_tier('vip')` then `process_tier('pro')` in the **same** cron tick; no `scheduled_at` / delay. **Impact:** marketing and `BRIEF.md` overstate behaviour.
-5. **Cron trigger URL unauthenticated** — `mu-plugins/lpnw-cron-endpoint.php` runs `wp_cron()` on `?lpnw_cron=tick` with **no secret**. **Impact:** anyone can hammer the site to fire scheduled work (load / timing abuse).
+5. **Cron trigger URL** — **Partial fix (1.0.6):** if `LPNW_CRON_SECRET` is defined in `wp-config.php`, `?lpnw_cron=tick` requires matching `&key=`. Without the constant, endpoint remains open (legacy). **Impact until secret set:** abuse / load risk.
 6. **Large alert queue vs template IDs** — Live observation: **many queued** alerts while Mautic email IDs were **empty**; dispatcher favours Mautic when configured. **Impact:** risk of **stuck or wp_mail-only** behaviour until templates and send path are verified end-to-end.
 
 ---
@@ -157,4 +157,6 @@
 | 2026-04-02 | **Backlog discipline:** Open items remain in this file until shipped or explicitly cancelled; each agent pass should update the changelog rather than dropping findings. |
 | 2026-04-02 | **Shipped:** Post-checkout alert timing tip; `deploy-ftp.sh`; tier detection skips **refunded** / **fully refunded** orders. **Theme 6.1.0:** hero cityscape layers, clouds, parallax JS, content wrapper. |
 | 2026-04-02 | **Shipped (Theme 6.1.1):** Live front-page hero uses **SVG + canvas** in DB; theme now styles `.lpnw-hero__scene` / `__canvas` / `__title` / scan line, adds **CSS cloud layer**, **canvas particle loop** in `theme.js`, scroll + mouse parallax on illustration. Removed broken `the_content` hero replacement filter. |
+| 2026-04-02 | **Shipped (Theme 6.2.0):** Cinematic hero FX canvas (aurora, stars, heat shimmer, rare lightning), 3D tilt on `.lpnw-hero__scene`, title line stagger + scroll-parallax for `.lpnw-hero__title` / subtitle. |
+| 2026-04-02 | **Shipped (Plugin 1.0.6):** `LPNW_Traffic_Cron` rate-limits `spawn_cron()` to **once per 900s** on front-end requests; optional `LPNW_CRON_SECRET` on `?lpnw_cron=tick`. `deploy-ftp.sh` mirrors **mu-plugins**. |
 | 2026-04-02 | Initial discovery synthesis from multi-agent audit; no code changes. |
