@@ -19,6 +19,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 | `BRIEF.md` | Product, USP, build order, tech stack (do not change stack) |
 | `STATUS.md` | Live data snapshot, infrastructure, owner actions |
 | `docs/DEPLOYMENT.md` | FTP paths and release steps |
+| `docs/DISCOVERY-BACKLOG.md` | Read-only audit: full backlog of gaps and improvements (synthesised from code review) |
 | `docs/SETUP.md` | Hosting and plugin setup (may lag live; cross-check STATUS) |
 | `.cursor/rules/secrets.mdc` | Where credentials are named (not values) |
 
