@@ -35,7 +35,17 @@ Get these from 20i panel > Manage Hosting > FTP Users:
 3. Upload the entire `lpnw-theme/` folder (overwrite existing)
 4. No further action needed; changes take effect immediately
 
-## Quick Deploy Script
+## PowerShell deploy (Windows)
+
+From the repo root, with `.env` filled in (copy from `.env.example`):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\deploy-ftp.ps1
+```
+
+This uploads `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and any `mu-plugins/*.php` to `public_html/wp-content/`. Never commit `.env`.
+
+## Quick Deploy Script (lftp)
 
 If you have `lftp` or `ncftp` installed, you can script the deployment:
 
