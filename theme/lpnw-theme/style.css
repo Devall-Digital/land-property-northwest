@@ -463,6 +463,20 @@ body.no-sidebar .site-content .content-area {
 	max-width: none;
 }
 
+/* Glass override: remove all white backgrounds from GeneratePress wrappers */
+.site-content,
+.content-area,
+.site-main,
+.inside-article,
+.entry-content,
+.page .inside-article,
+.single .inside-article,
+article.page,
+article.post {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
 body.no-sidebar .site-main {
 	margin-right: 0;
 	margin-left: 0;
