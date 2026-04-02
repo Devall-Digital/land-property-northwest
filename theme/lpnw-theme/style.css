@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 2.0.0
+Version: 6.0.1
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -291,6 +291,29 @@ a:hover {
 .site-header.scrolled {
 	background: rgba(15, 29, 53, 0.95) !important;
 	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Scroll-reveal (theme inline JS + theme.js) */
+.lpnw-reveal,
+.lpnw-animate {
+	opacity: 0;
+	transform: translateY(1rem);
+	transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.lpnw-reveal.lpnw-visible,
+.lpnw-animate.lpnw-visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lpnw-reveal,
+	.lpnw-animate {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
 }
 
 .site-header .main-navigation.toggled .main-nav ul,

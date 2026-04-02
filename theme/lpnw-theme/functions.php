@@ -89,7 +89,10 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 		var scrollThreshold = 50;
 
 		window.addEventListener('scroll', function () {
-			document.body.classList.toggle('lpnw-scrolled', window.scrollY > scrollThreshold);
+			var header = document.querySelector('.site-header');
+			if (header) {
+				header.classList.toggle('scrolled', window.scrollY > scrollThreshold);
+			}
 		}, { passive: true });
 
 		var revealEls = document.querySelectorAll('.lpnw-reveal');
@@ -347,13 +350,10 @@ body.login #login {
 }
 #login h1 a {
 	background-image: none !important;
-	font-size: 1.35rem;
-	font-weight: 700;
 	font-size: 0;
+	font-weight: 700;
 	color: transparent;
-}
 	font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-	color: #1B2A4A;
 	text-indent: 0;
 	width: auto;
 	height: auto;
