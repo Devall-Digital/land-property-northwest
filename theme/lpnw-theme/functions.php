@@ -81,7 +81,7 @@ add_action( 'after_setup_theme', function () {
 		'search-form', 'comment-form', 'comment-list', 'gallery', 'caption',
 	) );
 
-	// Subscriber-only nav; assign the "Subscriber" menu in Appearance > Menus (or via lpnw-woo-setup.php).
+	// Subscriber-only nav; assign the "Subscriber" menu in Appearance > Menus (or via tools/lpnw-woo-setup.php).
 	register_nav_menu( 'lpnw_subscriber', __( 'Subscriber', 'lpnw-theme' ) );
 
 	add_theme_support(
