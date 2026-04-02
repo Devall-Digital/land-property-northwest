@@ -2,6 +2,8 @@
 
 Last updated: 2 April 2026
 
+**Running task list and live-check notes:** see `docs/PROJECT-RUNBOOK.md` (updated as work proceeds). This file stays the high-level snapshot of the platform; the runbook holds prioritised open items and verification history.
+
 ## Platform State: Live, Multi-Source
 
 The property alerts platform ingests listings from several active feeds, surfaces them in browse, map, and dashboard experiences, and runs the full subscriber preference and alert pipeline. **2,938+ properties** are in the index from **5 active data sources**. Rightmove and OnTheMarket supply the bulk of volume; auction feeds add specialist lots. Zoopla remains integrated in code but returns no data because **Cloudflare blocks** requests from the hosting environment.
