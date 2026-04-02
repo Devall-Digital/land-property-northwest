@@ -458,6 +458,9 @@ add_filter(
 		if ( is_front_page() ) {
 			return false;
 		}
+		if ( is_page( array( 'dashboard', 'preferences', 'saved', 'saved-properties', 'map', 'email-preview' ) ) ) {
+			return false;
+		}
 		return $show;
 	}
 );
@@ -683,6 +686,40 @@ function lpnw_theme_nav_order_primary( array $items, $args ): array {
 }
 
 add_filter( 'wp_nav_menu_objects', 'lpnw_theme_nav_order_primary', 15, 2 );
+
+/**
+ * Primary menu: Log in for guests; Dashboard and Log out for logged-in users.
+ *
+ * @param string $items HTML list items.
+ * @param object $args  wp_nav_menu() arguments.
+ * @return string
+ */
+function lpnw_theme_nav_append_auth_items( string $items, $args ): string {
+	if ( ! is_object( $args ) ) {
+		return $items;
+	}
+
+	$is_primary = ! empty( $args->theme_location ) && 'primary' === $args->theme_location;
+	$menu_slug  = '';
+	if ( ! empty( $args->menu ) && is_object( $args->menu ) && isset( $args->menu->slug ) ) {
+		$menu_slug = (string) $args->menu->slug;
+	}
+	$slug_is_primary = '' !== $menu_slug && in_array( strtolower( $menu_slug ), array( 'primary', 'primary-menu' ), true );
+
+	if ( ! $is_primary && ! $slug_is_primary ) {
+		return $items;
+	}
+
+	if ( ! is_user_logged_in() ) {
+		$items .= '<li class="menu-item lpnw-nav-login"><a href="' . esc_url( wp_login_url( home_url( '/dashboard/' ) ) ) . '">' . esc_html__( 'Log in', 'lpnw-theme' ) . '</a></li>';
+	} else {
+		$items .= '<li class="menu-item lpnw-nav-dashboard"><a href="' . esc_url( home_url( '/dashboard/' ) ) . '">' . esc_html__( 'Dashboard', 'lpnw-theme' ) . '</a></li>';
+		$items .= '<li class="menu-item lpnw-nav-logout"><a href="' . esc_url( wp_logout_url( home_url() ) ) . '">' . esc_html__( 'Log out', 'lpnw-theme' ) . '</a></li>';
+	}
+
+	return $items;
+}
+add_filter( 'wp_nav_menu_items', 'lpnw_theme_nav_append_auth_items', 10, 2 );
 
 /**
  * GeneratePress: site title is text only (no Custom Logo / SVG in header).

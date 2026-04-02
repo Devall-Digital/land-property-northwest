@@ -147,6 +147,41 @@ a:hover {
 	color: var(--lpnw-amber) !important;
 }
 
+/* Primary nav: Log in (CTA pill), Dashboard, Log out */
+.site-header .main-navigation .main-nav ul li.lpnw-nav-login > a {
+	background: var(--lpnw-amber);
+	color: var(--lpnw-white) !important;
+	border-radius: 999px;
+	padding: 0.45rem 1rem !important;
+	font-weight: 600 !important;
+}
+
+.site-header .main-navigation .main-nav ul li.lpnw-nav-login > a:hover,
+.site-header .main-navigation .main-nav ul li.lpnw-nav-login > a:focus-visible {
+	background: var(--lpnw-amber-light);
+	color: var(--lpnw-white) !important;
+}
+
+.site-header .main-navigation .main-nav ul li.lpnw-nav-dashboard > a {
+	color: var(--lpnw-white) !important;
+}
+
+.site-header .main-navigation .main-nav ul li.lpnw-nav-dashboard > a:hover,
+.site-header .main-navigation .main-nav ul li.lpnw-nav-dashboard > a:focus-visible {
+	color: var(--lpnw-amber) !important;
+}
+
+.site-header .main-navigation .main-nav ul li.lpnw-nav-logout > a {
+	color: rgba(255, 255, 255, 0.72) !important;
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
+.site-header .main-navigation .main-nav ul li.lpnw-nav-logout > a:hover,
+.site-header .main-navigation .main-nav ul li.lpnw-nav-logout > a:focus-visible {
+	color: rgba(255, 255, 255, 0.9) !important;
+}
+
 .site-header .menu-toggle,
 .site-header .menu-toggle .menu-bars {
 	color: #FFFFFF !important;
