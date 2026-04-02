@@ -767,4 +767,72 @@ class LPNW_Property {
 		$postcode = preg_replace( '/[^A-Z0-9 ]/', '', $postcode );
 		return $postcode;
 	}
+
+	/**
+	 * Decode raw_data and derive image URL plus off-market card fields for public templates.
+	 *
+	 * @param object $prop Property row from the database.
+	 * @return array{raw: array<string, mixed>, image_url: string, is_off_market: bool, agent_contact: string, off_market_reason: string, contact_email: string, contact_tel_href: string}
+	 */
+	public static function get_card_context( object $prop ): array {
+		$raw = json_decode( (string) ( $prop->raw_data ?? '' ), true );
+		$raw = is_array( $raw ) ? $raw : array();
+
+		$image_url = '';
+		if ( ! empty( $raw['propertyImages']['images'][0]['srcUrl'] ) ) {
+			$image_url = (string) $raw['propertyImages']['images'][0]['srcUrl'];
+		} elseif ( ! empty( $raw['propertyImages']['mainImageSrc'] ) ) {
+			$image_url = (string) $raw['propertyImages']['mainImageSrc'];
+		} elseif ( ! empty( $raw['images'][0]['srcUrl'] ) ) {
+			$image_url = (string) $raw['images'][0]['srcUrl'];
+		}
+		if ( '' === $image_url && ! empty( $raw['images'][0]['url'] ) ) {
+			$image_url = (string) $raw['images'][0]['url'];
+		}
+		if ( '' === $image_url && ! empty( $raw['media'][0]['url'] ) ) {
+			$image_url = (string) $raw['media'][0]['url'];
+		}
+		if ( '' === $image_url && ! empty( $raw['imageUrl'] ) ) {
+			$image_url = (string) $raw['imageUrl'];
+		}
+		if ( '' === $image_url && ! empty( $raw['photos'][0] ) ) {
+			$image_url = is_string( $raw['photos'][0] ) ? (string) $raw['photos'][0] : (string) ( $raw['photos'][0]['url'] ?? '' );
+		}
+
+		$image_url = '' !== $image_url ? esc_url_raw( $image_url ) : '';
+
+		$source        = sanitize_key( $prop->source ?? '' );
+		$is_off_market = ( 'off_market' === $source );
+
+		$agent_contact     = '';
+		$off_market_reason = '';
+		$contact_email     = '';
+		$contact_tel_href  = '';
+
+		if ( $is_off_market ) {
+			$agent_contact     = sanitize_text_field( (string) ( $raw['agent_contact'] ?? '' ) );
+			$off_market_reason = sanitize_textarea_field( (string) ( $raw['off_market_reason'] ?? '' ) );
+
+			if ( '' !== $agent_contact ) {
+				if ( is_email( $agent_contact ) ) {
+					$contact_email = $agent_contact;
+				} else {
+					$digits_only = preg_replace( '/\D/', '', $agent_contact );
+					if ( is_string( $digits_only ) && strlen( $digits_only ) >= 10 ) {
+						$contact_tel_href = 'tel:' . $digits_only;
+					}
+				}
+			}
+		}
+
+		return array(
+			'raw'               => $raw,
+			'image_url'         => $image_url,
+			'is_off_market'     => $is_off_market,
+			'agent_contact'     => $agent_contact,
+			'off_market_reason' => $off_market_reason,
+			'contact_email'     => $contact_email,
+			'contact_tel_href'  => $contact_tel_href,
+		);
+	}
 }

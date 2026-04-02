@@ -455,12 +455,22 @@ class LPNW_Public {
 		$allowed_features = array( 'garden', 'parking', 'garage', 'new_build', 'chain_free' );
 		$required_features = array_values( array_intersect( $allowed_features, array_map( 'sanitize_text_field', $features_raw ) ) );
 
+		$allowed_alert_types = array( 'listing', 'planning', 'epc', 'price', 'auction' );
+		if ( 'vip' === $tier ) {
+			$allowed_alert_types[] = 'off_market';
+		}
+		$alert_raw = isset( $_POST['alert_types'] ) ? wp_unslash( $_POST['alert_types'] ) : array();
+		if ( ! is_array( $alert_raw ) ) {
+			$alert_raw = array();
+		}
+		$alert_types_sanitized = array_values( array_intersect( $allowed_alert_types, array_map( 'sanitize_text_field', $alert_raw ) ) );
+
 		$prefs = array(
 			'areas'                => array_map( 'sanitize_text_field', $_POST['areas'] ?? array() ),
 			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
 			'max_price'            => absint( $_POST['max_price'] ?? 0 ),
 			'property_types'       => array_map( 'sanitize_text_field', $_POST['property_types'] ?? array() ),
-			'alert_types'          => array_map( 'sanitize_text_field', $_POST['alert_types'] ?? array() ),
+			'alert_types'          => $alert_types_sanitized,
 			'listing_channels'     => $listing_channels,
 			'tenure_preferences'   => $tenure_preferences,
 			'required_features'    => $required_features,

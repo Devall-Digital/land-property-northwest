@@ -94,6 +94,23 @@ if ( empty( $properties ) ) : ?>
 			$source_root = '' !== $source ? explode( '_', $source, 2 )[0] : '';
 			$is_auction  = ( '' !== $source && str_starts_with( $source, 'auction_' ) );
 
+			$lpnw_ctx           = class_exists( 'LPNW_Property' ) ? LPNW_Property::get_card_context( $prop ) : array(
+				'raw'               => array(),
+				'image_url'         => '',
+				'is_off_market'     => false,
+				'agent_contact'     => '',
+				'off_market_reason' => '',
+				'contact_email'     => '',
+				'contact_tel_href'  => '',
+			);
+			$raw                = $lpnw_ctx['raw'];
+			$image_url          = $lpnw_ctx['image_url'];
+			$is_off_market      = $lpnw_ctx['is_off_market'];
+			$off_contact        = $lpnw_ctx['agent_contact'];
+			$off_reason         = $lpnw_ctx['off_market_reason'];
+			$contact_email      = $lpnw_ctx['contact_email'];
+			$contact_tel_href   = $lpnw_ctx['contact_tel_href'];
+
 			$view_label = __( 'View source', 'lpnw-alerts' );
 			if ( 'rightmove' === $source ) {
 				$view_label = __( 'View on Rightmove', 'lpnw-alerts' );
@@ -142,32 +159,9 @@ if ( empty( $properties ) ) : ?>
 				}
 			}
 
-			$raw       = json_decode( (string) ( $prop->raw_data ?? '' ), true );
-			$image_url = '';
-			if ( is_array( $raw ) ) {
-				if ( ! empty( $raw['propertyImages']['images'][0]['srcUrl'] ) ) {
-					$image_url = $raw['propertyImages']['images'][0]['srcUrl'];
-				} elseif ( ! empty( $raw['propertyImages']['mainImageSrc'] ) ) {
-					$image_url = $raw['propertyImages']['mainImageSrc'];
-				} elseif ( ! empty( $raw['images'][0]['srcUrl'] ) ) {
-					$image_url = $raw['images'][0]['srcUrl'];
-				}
-				if ( empty( $image_url ) && ! empty( $raw['images'][0]['url'] ) ) {
-					$image_url = $raw['images'][0]['url'];
-				}
-				if ( empty( $image_url ) && ! empty( $raw['media'][0]['url'] ) ) {
-					$image_url = $raw['media'][0]['url'];
-				}
-				if ( empty( $image_url ) && ! empty( $raw['imageUrl'] ) ) {
-					$image_url = $raw['imageUrl'];
-				}
-				if ( empty( $image_url ) && ! empty( $raw['photos'][0] ) ) {
-					$image_url = is_string( $raw['photos'][0] ) ? $raw['photos'][0] : ( $raw['photos'][0]['url'] ?? '' );
-				}
-			}
 			?>
 			<li class="lpnw-property-list__item">
-				<article class="lpnw-property-card" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
+				<article class="lpnw-property-card<?php echo $is_off_market ? ' lpnw-property-card--off-market' : ''; ?>" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
 					<div class="lpnw-property-card__image">
 						<?php if ( $is_new_listing ) : ?>
 							<span class="lpnw-new-badge"><?php esc_html_e( 'NEW', 'lpnw-alerts' ); ?></span>
@@ -190,7 +184,9 @@ if ( empty( $properties ) ) : ?>
 							<?php if ( '' !== $type_label ) : ?>
 								<span class="lpnw-property-card__type-badge"><?php echo esc_html( $type_label ); ?></span>
 							<?php endif; ?>
-							<?php if ( '' !== $source ) : ?>
+							<?php if ( $is_off_market ) : ?>
+								<span class="lpnw-off-market-badge"><?php esc_html_e( 'OFF-MARKET', 'lpnw-alerts' ); ?></span>
+							<?php elseif ( '' !== $source ) : ?>
 								<span class="lpnw-source-badge lpnw-source-badge--<?php echo esc_attr( $source_root ); ?>"><?php echo esc_html( $source_badge_label ); ?></span>
 							<?php endif; ?>
 							<?php if ( $is_auction ) : ?>
@@ -266,12 +262,28 @@ if ( empty( $properties ) ) : ?>
 						<p class="lpnw-property-card__agent"><?php echo esc_html( sprintf( __( 'via %s', 'lpnw-alerts' ), $agent_line ) ); ?></p>
 					<?php endif; ?>
 
+					<?php if ( $is_off_market && '' !== $off_contact ) : ?>
+						<p class="lpnw-property-card__contact"><?php echo esc_html( $off_contact ); ?></p>
+					<?php endif; ?>
+
+					<?php if ( $is_off_market && '' !== $off_reason ) : ?>
+						<p class="lpnw-property-card__off-market-note"><?php echo esc_html( $off_reason ); ?></p>
+					<?php endif; ?>
+
 					<?php if ( '' !== $listed_label ) : ?>
 						<p class="<?php echo esc_attr( $listed_class ); ?>"><?php echo esc_html( $listed_label ); ?></p>
 					<?php endif; ?>
 
 					<footer class="lpnw-property-card__actions">
-						<?php if ( ! empty( $prop->source_url ) ) : ?>
+						<?php if ( $is_off_market ) : ?>
+							<?php if ( '' !== $contact_tel_href ) : ?>
+								<a href="<?php echo esc_url( $contact_tel_href ); ?>" class="lpnw-btn lpnw-btn--amber-outline"><?php echo esc_html( $off_contact ); ?></a>
+							<?php elseif ( '' !== $contact_email ) : ?>
+								<a href="<?php echo esc_url( 'mailto:' . $contact_email ); ?>" class="lpnw-btn lpnw-btn--amber-outline"><?php esc_html_e( 'Contact agent', 'lpnw-alerts' ); ?></a>
+							<?php else : ?>
+								<span class="lpnw-btn lpnw-btn--amber-outline lpnw-btn--off-market-static"><?php esc_html_e( 'Contact agent', 'lpnw-alerts' ); ?></span>
+							<?php endif; ?>
+						<?php elseif ( ! empty( $prop->source_url ) ) : ?>
 							<a href="<?php echo esc_url( $prop->source_url ); ?>" class="lpnw-btn lpnw-btn--amber-outline" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $view_label ); ?></a>
 						<?php endif; ?>
 						<?php if ( is_user_logged_in() ) : ?>
@@ -284,6 +296,9 @@ if ( empty( $properties ) ) : ?>
 					<?php
 					$lpnw_share_url = ! empty( $prop->source_url ) ? esc_url_raw( (string) $prop->source_url ) : '';
 					$lpnw_wa_text   = (string) $prop->address;
+					if ( $is_off_market && '' !== $off_contact ) {
+						$lpnw_wa_text .= ' — ' . $off_contact;
+					}
 					if ( $price_raw > 0 ) {
 						if ( $is_pcm ) {
 							$lpnw_wa_text .= ' - £' . number_format( $price_raw ) . ' pcm';
@@ -315,6 +330,9 @@ if ( empty( $properties ) ) : ?>
 					}
 					if ( '' !== $lpnw_share_url ) {
 						$lpnw_mail_body .= "\n" . $lpnw_share_url;
+					}
+					if ( $is_off_market && '' !== $off_contact ) {
+						$lpnw_mail_body .= "\n" . $off_contact;
 					}
 					/* translators: %s: property address */
 					$lpnw_share_subject = sprintf( __( 'Property: %s', 'lpnw-alerts' ), $prop->address );

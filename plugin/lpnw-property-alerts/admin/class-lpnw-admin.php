@@ -17,6 +17,10 @@ class LPNW_Admin {
 
 	public const FEED_LOG_PER_PAGE = 20;
 
+	public const ADD_OFF_MARKET_NONCE_ACTION = 'lpnw_add_off_market';
+
+	public const TRANSIENT_ADD_OFF_MARKET_NOTICE = 'lpnw_add_off_market_notice';
+
 	/** @var array<string, string> */
 	private static array $manual_feed_class_map = array(
 		'rightmove'    => LPNW_Feed_Portal_Rightmove::class,
@@ -32,6 +36,7 @@ class LPNW_Admin {
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'register_wp_dashboard_widget' ) );
 		add_action( 'admin_post_lpnw_run_feed', array( __CLASS__, 'handle_manual_feed_run' ) );
+		add_action( 'admin_post_lpnw_add_off_market', array( __CLASS__, 'handle_add_off_market' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'render_feed_run_admin_notice' ) );
 	}
 
@@ -71,6 +76,15 @@ class LPNW_Admin {
 			'manage_options',
 			'lpnw-alert-log',
 			array( __CLASS__, 'render_alert_log' )
+		);
+
+		add_submenu_page(
+			'lpnw-dashboard',
+			__( 'Add Off-Market Deal', 'lpnw-alerts' ),
+			__( 'Add Off-Market Deal', 'lpnw-alerts' ),
+			'manage_options',
+			'lpnw-off-market',
+			array( __CLASS__, 'render_add_off_market' )
 		);
 	}
 
@@ -658,5 +672,195 @@ class LPNW_Admin {
 
 	public static function render_alert_log(): void {
 		include LPNW_PLUGIN_DIR . 'admin/views/alert-log.php';
+	}
+
+	public static function render_add_off_market(): void {
+		$lpnw_om_notice = get_transient( self::TRANSIENT_ADD_OFF_MARKET_NOTICE . '_' . get_current_user_id() );
+		if ( is_array( $lpnw_om_notice ) ) {
+			delete_transient( self::TRANSIENT_ADD_OFF_MARKET_NOTICE . '_' . get_current_user_id() );
+		} else {
+			$lpnw_om_notice = null;
+		}
+
+		include LPNW_PLUGIN_DIR . 'admin/views/add-off-market.php';
+	}
+
+	/**
+	 * Create off_market property row and queue matching alerts.
+	 */
+	public static function handle_add_off_market(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to add off-market deals.', 'lpnw-alerts' ) );
+		}
+
+		check_admin_referer( self::ADD_OFF_MARKET_NONCE_ACTION );
+
+		$redirect_base = admin_url( 'admin.php?page=lpnw-off-market' );
+
+		$address = isset( $_POST['lpnw_address'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_address'] ) ) : '';
+		$postcode = isset( $_POST['lpnw_postcode'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_postcode'] ) ) : '';
+
+		if ( '' === $address || '' === $postcode ) {
+			self::set_add_off_market_notice(
+				'error',
+				__( 'Address and postcode are required.', 'lpnw-alerts' )
+			);
+			wp_safe_redirect( $redirect_base );
+			exit;
+		}
+
+		if ( ! self::postcode_is_nw( $postcode ) ) {
+			self::set_add_off_market_notice(
+				'error',
+				__( 'Postcode must be in the Northwest coverage area.', 'lpnw-alerts' )
+			);
+			wp_safe_redirect( $redirect_base );
+			exit;
+		}
+
+		$allowed_types = array( 'Detached', 'Semi-detached', 'Terraced', 'Flat/Maisonette', 'Auction lot', 'Other' );
+		$property_type = isset( $_POST['lpnw_property_type'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_property_type'] ) ) : '';
+		if ( '' === $property_type || ! in_array( $property_type, $allowed_types, true ) ) {
+			self::set_add_off_market_notice(
+				'error',
+				__( 'Please choose a property type.', 'lpnw-alerts' )
+			);
+			wp_safe_redirect( $redirect_base );
+			exit;
+		}
+
+		$allowed_tenure = array( '', 'freehold', 'leasehold', 'share of freehold' );
+		$tenure = isset( $_POST['lpnw_tenure'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_tenure'] ) ) : '';
+		if ( ! in_array( $tenure, $allowed_tenure, true ) ) {
+			$tenure = '';
+		}
+
+		$application_type = isset( $_POST['lpnw_application_type'] ) ? sanitize_key( wp_unslash( $_POST['lpnw_application_type'] ) ) : 'sale';
+		if ( 'rent' !== $application_type ) {
+			$application_type = 'sale';
+		}
+
+		$price = isset( $_POST['lpnw_price'] ) ? absint( $_POST['lpnw_price'] ) : 0;
+		$price = $price > 0 ? $price : null;
+
+		$bedrooms = null;
+		if ( isset( $_POST['lpnw_bedrooms'] ) && '' !== $_POST['lpnw_bedrooms'] ) {
+			$bedrooms = min( 50, max( 0, absint( $_POST['lpnw_bedrooms'] ) ) );
+		}
+
+		$bathrooms = null;
+		if ( isset( $_POST['lpnw_bathrooms'] ) && '' !== $_POST['lpnw_bathrooms'] ) {
+			$bathrooms = min( 50, max( 0, absint( $_POST['lpnw_bathrooms'] ) ) );
+		}
+
+		$description = isset( $_POST['lpnw_description'] ) ? wp_kses_post( wp_unslash( $_POST['lpnw_description'] ) ) : '';
+		$agent_name = isset( $_POST['lpnw_agent_name'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_agent_name'] ) ) : '';
+		$agent_contact = isset( $_POST['lpnw_agent_contact'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_agent_contact'] ) ) : '';
+		$off_reason = isset( $_POST['lpnw_off_market_reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['lpnw_off_market_reason'] ) ) : '';
+		$image_url = isset( $_POST['lpnw_image_url'] ) ? esc_url_raw( trim( wp_unslash( $_POST['lpnw_image_url'] ) ) ) : '';
+
+		$raw_payload = array(
+			'lpnw_off_market'   => true,
+			'agent_contact'     => $agent_contact,
+			'off_market_reason' => $off_reason,
+		);
+		if ( '' !== $image_url ) {
+			$raw_payload['imageUrl'] = $image_url;
+		}
+
+		$source_ref = function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'om_', true );
+
+		$data = array(
+			'source'           => 'off_market',
+			'source_ref'       => $source_ref,
+			'address'          => $address,
+			'postcode'         => $postcode,
+			'price'            => $price,
+			'property_type'    => $property_type,
+			'bedrooms'         => $bedrooms,
+			'bathrooms'        => $bathrooms,
+			'tenure_type'      => $tenure,
+			'description'      => $description,
+			'application_type' => $application_type,
+			'agent_name'       => $agent_name,
+			'key_features_text' => '',
+			'source_url'       => '',
+			'raw_data'         => $raw_payload,
+		);
+
+		if ( 'rent' === $application_type ) {
+			$data['price_frequency'] = 'pcm';
+		}
+
+		if ( ! empty( $data['postcode'] ) && class_exists( 'LPNW_Geocoder' ) ) {
+			$coords = LPNW_Geocoder::geocode( $data['postcode'] );
+			if ( null !== $coords ) {
+				$data['latitude']  = $coords['latitude'];
+				$data['longitude'] = $coords['longitude'];
+			}
+		}
+
+		$property_id = LPNW_Property::upsert( $data );
+
+		if ( ! $property_id ) {
+			self::set_add_off_market_notice(
+				'error',
+				__( 'Could not save the property. Check required fields and try again.', 'lpnw-alerts' )
+			);
+			wp_safe_redirect( $redirect_base );
+			exit;
+		}
+
+		$matcher = new LPNW_Matcher();
+		$queued  = $matcher->match_and_queue( array( (int) $property_id ) );
+
+		self::set_add_off_market_notice(
+			'success',
+			sprintf(
+				/* translators: 1: property ID, 2: number of queued alert rows */
+				__( 'Off-market deal saved (ID %1$d). Matcher queued %2$d alert row(s).', 'lpnw-alerts' ),
+				(int) $property_id,
+				(int) $queued
+			)
+		);
+
+		wp_safe_redirect( $redirect_base );
+		exit;
+	}
+
+	/**
+	 * @param string $type success|error.
+	 */
+	private static function set_add_off_market_notice( string $type, string $text ): void {
+		set_transient(
+			self::TRANSIENT_ADD_OFF_MARKET_NOTICE . '_' . get_current_user_id(),
+			array(
+				'type' => $type,
+				'text' => $text,
+			),
+			120
+		);
+	}
+
+	/**
+	 * Whether a postcode outward code is in LPNW_NW_POSTCODES.
+	 */
+	private static function postcode_is_nw( string $postcode ): bool {
+		$postcode = strtoupper( trim( $postcode ) );
+		if ( '' === $postcode ) {
+			return false;
+		}
+
+		foreach ( LPNW_NW_POSTCODES as $prefix ) {
+			if ( ! str_starts_with( $postcode, $prefix ) ) {
+				continue;
+			}
+			$next = substr( $postcode, strlen( $prefix ), 1 );
+			if ( ctype_digit( $next ) || ' ' === $next ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

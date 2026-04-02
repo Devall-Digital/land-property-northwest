@@ -85,6 +85,7 @@ if ( class_exists( 'LPNW_Matcher' ) && class_exists( 'LPNW_Property' ) ) {
 	$max_p_m = ( $prefs && isset( $prefs->max_price ) && null !== $prefs->max_price && '' !== $prefs->max_price ) ? (int) $prefs->max_price : null;
 
 	$sub_row = (object) array(
+		'user_id'             => get_current_user_id(),
 		'areas'               => wp_json_encode( $areas ),
 		'property_types'      => wp_json_encode( is_array( $property_types ) ? $property_types : array() ),
 		'alert_types'         => wp_json_encode( is_array( $alert_types ) ? $alert_types : array() ),
@@ -159,11 +160,12 @@ $available_types = array(
 );
 
 $available_alert_types = array(
-	'listing'  => 'New Property Listings (Rightmove and OnTheMarket)',
-	'planning' => 'Planning Applications',
-	'epc'      => 'EPC / Property Activity',
-	'price'    => 'Price Paid / Transactions',
-	'auction'  => 'Auction Lots',
+	'listing'    => 'New Property Listings (Rightmove and OnTheMarket)',
+	'planning'   => 'Planning Applications',
+	'epc'        => 'EPC / Property Activity',
+	'price'      => 'Price Paid / Transactions',
+	'auction'    => 'Auction Lots',
+	'off_market' => 'Off-Market Deals (VIP exclusive)',
 );
 
 $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/preferences/' ) ), 'lpnw_reset_prefs' );
@@ -375,13 +377,22 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 					</p>
 					<div class="lpnw-checkbox-group">
 						<?php foreach ( $available_alert_types as $value => $label ) : ?>
-							<label class="lpnw-checkbox-group__item">
+							<?php
+							$lpnw_off_market_locked = ( 'off_market' === $value && 'vip' !== $tier );
+							?>
+							<label class="lpnw-checkbox-group__item<?php echo $lpnw_off_market_locked ? ' lpnw-checkbox-group__item--muted' : ''; ?>">
 								<input type="checkbox" name="alert_types[]" value="<?php echo esc_attr( $value ); ?>"
-									<?php checked( in_array( $value, $alert_types, true ) ); ?>>
+									<?php checked( in_array( $value, $alert_types, true ) ); ?>
+									<?php disabled( $lpnw_off_market_locked ); ?>>
 								<span><?php echo esc_html( $label ); ?></span>
 							</label>
 						<?php endforeach; ?>
 					</div>
+					<?php if ( 'vip' !== $tier ) : ?>
+						<p class="lpnw-field__help lpnw-field__help--vip-off-market" id="lpnw-help-off-market">
+							<?php esc_html_e( 'Off-market deals are only available on the Investor VIP plan. Upgrade to VIP to receive alerts for exclusive network listings.', 'lpnw-alerts' ); ?>
+						</p>
+					<?php endif; ?>
 				</fieldset>
 
 				<div class="lpnw-field">

@@ -61,6 +61,14 @@ class LPNW_Matcher {
 	 * Check if a property matches a subscriber's preferences.
 	 */
 	private function matches( object $property, object $subscriber ): bool {
+		$src = trim( (string) ( $property->source ?? '' ) );
+		if ( 'off_market' === $src ) {
+			$uid = isset( $subscriber->user_id ) ? (int) $subscriber->user_id : 0;
+			if ( $uid <= 0 || 'vip' !== LPNW_Subscriber::get_tier( $uid ) ) {
+				return false;
+			}
+		}
+
 		if ( ! $this->matches_area( $property, $subscriber ) ) {
 			return false;
 		}
@@ -375,6 +383,12 @@ class LPNW_Matcher {
 		$alert_types     = is_array( $raw_alert_types )
 			? $raw_alert_types
 			: ( is_string( $raw_alert_types ) ? ( json_decode( $raw_alert_types, true ) ?: array() ) : array() );
+
+		$source = (string) ( $property->source ?? '' );
+		if ( str_starts_with( $source, 'off_market' ) ) {
+			return ! empty( $alert_types ) && in_array( 'off_market', $alert_types, true );
+		}
+
 		if ( empty( $alert_types ) ) {
 			return true;
 		}
@@ -387,9 +401,9 @@ class LPNW_Matcher {
 			'rightmove'    => 'listing',
 			'zoopla'       => 'listing',
 			'onthemarket'  => 'listing',
+			'off_market'   => 'off_market',
 		);
 
-		$source = $property->source ?? '';
 		foreach ( $source_map as $source_prefix => $alert_type ) {
 			if ( str_starts_with( $source, $source_prefix ) && in_array( $alert_type, $alert_types, true ) ) {
 				return true;

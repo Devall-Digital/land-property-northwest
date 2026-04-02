@@ -155,12 +155,31 @@ class LPNW_Dashboard {
 			$max    = isset( $prefs->max_price ) ? $prefs->max_price : null;
 		}
 
+		$listing_ch = array();
+		$tenure_p   = array();
+		$req_feat   = array();
+		$min_bed    = null;
+		$max_bed    = null;
+		if ( $prefs ) {
+			$listing_ch = is_array( $prefs->listing_channels ?? null ) ? $prefs->listing_channels : array();
+			$tenure_p   = is_array( $prefs->tenure_preferences ?? null ) ? $prefs->tenure_preferences : array();
+			$req_feat   = is_array( $prefs->required_features ?? null ) ? $prefs->required_features : array();
+			$min_bed    = isset( $prefs->min_bedrooms ) ? $prefs->min_bedrooms : null;
+			$max_bed    = isset( $prefs->max_bedrooms ) ? $prefs->max_bedrooms : null;
+		}
+
 		return (object) array(
-			'areas'          => wp_json_encode( $areas ),
-			'property_types' => wp_json_encode( $types ),
-			'alert_types'    => wp_json_encode( $alerts ),
-			'min_price'      => $min,
-			'max_price'      => $max,
+			'user_id'             => get_current_user_id(),
+			'areas'               => wp_json_encode( $areas ),
+			'property_types'      => wp_json_encode( $types ),
+			'alert_types'         => wp_json_encode( $alerts ),
+			'min_price'           => $min,
+			'max_price'           => $max,
+			'listing_channels'    => wp_json_encode( $listing_ch ),
+			'tenure_preferences'  => wp_json_encode( $tenure_p ),
+			'required_features'   => wp_json_encode( $req_feat ),
+			'min_bedrooms'        => $min_bed,
+			'max_bedrooms'        => $max_bed,
 		);
 	}
 
