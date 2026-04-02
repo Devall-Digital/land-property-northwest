@@ -72,6 +72,137 @@ add_action( 'wp_enqueue_scripts', function () {
 }, 20 );
 
 /**
+ * Inline glassmorphism interactions: scroll header state, reveal, hero parallax, stat counters, primary button shine.
+ *
+ * Attached to lpnw-theme; respects prefers-reduced-motion; passive listeners where applicable.
+ */
+function lpnw_theme_enqueue_glass_interactions_js(): void {
+	if ( is_admin() ) {
+		return;
+	}
+
+	$inline = <<<'JS'
+(function () {
+	'use strict';
+	document.addEventListener('DOMContentLoaded', function () {
+		var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		var scrollThreshold = 50;
+
+		window.addEventListener('scroll', function () {
+			document.body.classList.toggle('lpnw-scrolled', window.scrollY > scrollThreshold);
+		}, { passive: true });
+
+		var revealEls = document.querySelectorAll('.lpnw-reveal');
+		if (reduceMotion) {
+			revealEls.forEach(function (el) {
+				el.classList.add('lpnw-visible');
+			});
+		} else if ('IntersectionObserver' in window) {
+			var revealObs = new IntersectionObserver(function (entries) {
+				entries.forEach(function (entry) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('lpnw-visible');
+						revealObs.unobserve(entry.target);
+					}
+				});
+			}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+			revealEls.forEach(function (el) {
+				revealObs.observe(el);
+			});
+		} else {
+			revealEls.forEach(function (el) {
+				el.classList.add('lpnw-visible');
+			});
+		}
+
+		if (!reduceMotion && window.matchMedia('(hover: hover) and (min-width: 768px)').matches) {
+			var hero = document.querySelector('.lpnw-hero');
+			if (hero) {
+				var shapes = hero.querySelectorAll('.lpnw-hero__shape');
+				if (shapes.length) {
+					hero.addEventListener('mousemove', function (e) {
+						var rect = hero.getBoundingClientRect();
+						var x = (e.clientX - rect.left) / rect.width - 0.5;
+						var y = (e.clientY - rect.top) / rect.height - 0.5;
+						shapes.forEach(function (shape, i) {
+							var depth = (i + 1) * 15;
+							shape.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth) + 'px)';
+						});
+					}, { passive: true });
+				}
+			}
+		}
+
+		if (!reduceMotion && 'IntersectionObserver' in window) {
+			var parseCounterEl = function (el) {
+				var raw = el.textContent.replace(/,/g, '').trim();
+				var mPlus = raw.match(/^(\d+)\+$/);
+				var mNum = raw.match(/^(\d+)$/);
+				if (mPlus) {
+					return { target: parseInt(mPlus[1], 10), suffix: '+' };
+				}
+				if (mNum) {
+					return { target: parseInt(mNum[1], 10), suffix: '' };
+				}
+				return null;
+			};
+
+			var counterObs = new IntersectionObserver(function (entries) {
+				entries.forEach(function (entry) {
+					if (!entry.isIntersecting || entry.target.dataset.counted) {
+						return;
+					}
+					var el = entry.target;
+					var parsed = parseCounterEl(el);
+					if (!parsed || !parsed.target) {
+						return;
+					}
+					el.dataset.counted = '1';
+					counterObs.unobserve(el);
+					var target = parsed.target;
+					var suffix = parsed.suffix;
+					el.textContent = (0).toLocaleString() + suffix;
+					var current = 0;
+					var step = Math.ceil(target / 40);
+					var timer = setInterval(function () {
+						current += step;
+						if (current >= target) {
+							current = target;
+							clearInterval(timer);
+						}
+						el.textContent = current.toLocaleString() + suffix;
+					}, 30);
+				});
+			}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+			document.querySelectorAll('.lpnw-stats-bar__value').forEach(function (wrap) {
+				var counterEl = wrap.querySelector('.lpnw-property-count') || wrap;
+				if (parseCounterEl(counterEl)) {
+					counterObs.observe(counterEl);
+				}
+			});
+		}
+
+		if (!reduceMotion) {
+			document.querySelectorAll('.lpnw-btn--primary').forEach(function (btn) {
+				btn.addEventListener('mousemove', function (e) {
+					var r = btn.getBoundingClientRect();
+					var x = ((e.clientX - r.left) / r.width) * 100;
+					var y = ((e.clientY - r.top) / r.height) * 100;
+					btn.style.setProperty('--lpnw-shine-x', x + '%');
+					btn.style.setProperty('--lpnw-shine-y', y + '%');
+				}, { passive: true });
+			});
+		}
+	});
+})();
+JS;
+
+	wp_add_inline_script( 'lpnw-theme', $inline, 'after' );
+}
+add_action( 'wp_enqueue_scripts', 'lpnw_theme_enqueue_glass_interactions_js', 21 );
+
+/**
  * Set up theme support.
  */
 add_action( 'after_setup_theme', function () {

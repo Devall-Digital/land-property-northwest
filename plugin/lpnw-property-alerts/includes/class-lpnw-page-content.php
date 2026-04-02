@@ -30,6 +30,17 @@ class LPNW_Page_Content {
 
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
+	<div class="lpnw-hero__shapes" aria-hidden="true">
+		<svg class="lpnw-hero__shape lpnw-hero__shape--house" width="120" height="120" viewBox="0 0 120 120" fill="none">
+			<path d="M60 10L10 50V110H45V75H75V110H110V50L60 10Z" stroke="rgba(240,165,0,0.15)" stroke-width="2" fill="none"/>
+		</svg>
+		<svg class="lpnw-hero__shape lpnw-hero__shape--pin" width="60" height="80" viewBox="0 0 60 80" fill="none">
+			<path d="M30 0C13.4 0 0 13.4 0 30C0 52.5 30 80 30 80S60 52.5 60 30C60 13.4 46.6 0 30 0ZM30 40C24.5 40 20 35.5 20 30S24.5 20 30 20S40 24.5 40 30S35.5 40 30 40Z" fill="rgba(0,212,170,0.12)"/>
+		</svg>
+		<svg class="lpnw-hero__shape lpnw-hero__shape--bell" width="50" height="55" viewBox="0 0 50 55" fill="none">
+			<path d="M25 0C23.3 0 22 1.3 22 3V5.1C14.4 6.7 9 13.5 9 21.5V35L4 40V42.5H46V40L41 35V21.5C41 13.5 35.6 6.7 28 5.1V3C28 1.3 26.7 0 25 0ZM25 55C27.8 55 30 52.8 30 50H20C20 52.8 22.2 55 25 55Z" fill="rgba(255,255,255,0.08)"/>
+		</svg>
+	</div>
 	<h1 id="lpnw-hero-heading">Get NW property alerts before anyone else</h1>
 	<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
 	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
@@ -42,10 +53,45 @@ class LPNW_Page_Content {
 <section class="lpnw-stats-bar" aria-labelledby="lpnw-stats-bar-title">
 	<h2 id="lpnw-stats-bar-title" class="screen-reader-text">Coverage and update frequency</h2>
 	<ul class="lpnw-stats-bar__list" role="list">
-		<li><span class="lpnw-stats-bar__value">[lpnw_property_count plus="1"]</span> properties in our live index</li>
-		<li>From <span class="lpnw-stats-bar__value">[lpnw_total_sources format="stat"]</span> data sources</li>
-		<li><span class="lpnw-stats-bar__value">Entire Northwest England</span> covered</li>
-		<li>Listing checks and alert runs every <span class="lpnw-stats-bar__value">15 minutes</span></li>
+		<li class="lpnw-stats-bar__item">
+			<svg class="lpnw-stats-bar__icon" width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+				<rect x="10" y="30" width="18" height="40" rx="2" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<rect x="31" y="15" width="18" height="55" rx="2" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<rect x="52" y="5" width="18" height="65" rx="2" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+			</svg>
+			<span class="lpnw-stats-bar__value">[lpnw_property_count plus="1"]</span> properties in our live index
+		</li>
+		<li class="lpnw-stats-bar__item">
+			<svg class="lpnw-stats-bar__icon" width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+				<circle cx="20" cy="20" r="6" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<circle cx="60" cy="20" r="6" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<circle cx="40" cy="55" r="6" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<circle cx="15" cy="60" r="6" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<circle cx="65" cy="60" r="6" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<line x1="26" y1="22" x2="54" y2="22" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+				<line x1="22" y1="26" x2="38" y2="49" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+				<line x1="58" y1="26" x2="42" y2="49" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+				<line x1="21" y1="54" x2="34" y2="55" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+				<line x1="59" y1="54" x2="46" y2="55" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+			</svg>
+			From <span class="lpnw-stats-bar__value">[lpnw_total_sources format="stat"]</span> data sources
+		</li>
+		<li class="lpnw-stats-bar__item">
+			<svg class="lpnw-stats-bar__icon" width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+				<path d="M40 8C28 8 14 18 10 35C8 44 12 55 20 62L40 72L60 62C68 55 72 44 70 35C66 18 52 8 40 8Z" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<circle cx="40" cy="38" r="8" stroke="rgba(255,255,255,0.04)" stroke-width="1" fill="none"/>
+			</svg>
+			<span class="lpnw-stats-bar__value">Entire Northwest England</span> covered
+		</li>
+		<li class="lpnw-stats-bar__item">
+			<svg class="lpnw-stats-bar__icon" width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+				<circle cx="40" cy="40" r="28" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" fill="none"/>
+				<line x1="40" y1="18" x2="40" y2="40" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+				<line x1="40" y1="40" x2="55" y2="50" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>
+				<circle cx="40" cy="40" r="3" fill="rgba(255,255,255,0.04)"/>
+			</svg>
+			Listing checks and alert runs every <span class="lpnw-stats-bar__value">15 minutes</span>
+		</li>
 	</ul>
 </section>
 
@@ -53,17 +99,40 @@ class LPNW_Page_Content {
 	<h2 id="lpnw-how-it-works-title" class="lpnw-how-it-works__title">How it works</h2>
 	<div class="lpnw-steps">
 		<div class="lpnw-step">
-			<div class="lpnw-step__number" aria-hidden="true">1</div>
+			<div class="lpnw-step__icon" aria-hidden="true">
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+					<circle cx="20" cy="20" r="18" stroke="rgba(240,165,0,0.25)" stroke-width="1" fill="none"/>
+					<circle cx="20" cy="20" r="12" stroke="rgba(240,165,0,0.2)" stroke-width="1" fill="none"/>
+					<circle cx="20" cy="20" r="6" stroke="rgba(240,165,0,0.3)" stroke-width="1" fill="none"/>
+					<circle cx="20" cy="20" r="2" fill="rgba(240,165,0,0.5)"/>
+					<line x1="20" y1="20" x2="35" y2="8" stroke="rgba(240,165,0,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+				</svg>
+			</div>
 			<h3 id="lpnw-how-it-works-step-1" class="lpnw-step__title">We watch the whole region</h3>
 			<p class="lpnw-step__text">Our systems continuously scan property listings across the Northwest, checking for new properties every 15 minutes so nothing gets past you.</p>
 		</div>
 		<div class="lpnw-step">
-			<div class="lpnw-step__number" aria-hidden="true">2</div>
+			<div class="lpnw-step__icon" aria-hidden="true">
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+					<path d="M8 6L20 16L32 6" stroke="rgba(240,165,0,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+					<path d="M12 16L20 24L28 16" stroke="rgba(240,165,0,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+					<line x1="20" y1="24" x2="20" y2="36" stroke="rgba(240,165,0,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+					<circle cx="12" cy="30" r="2.5" stroke="rgba(240,165,0,0.35)" stroke-width="1" fill="rgba(240,165,0,0.15)"/>
+					<circle cx="28" cy="30" r="2.5" stroke="rgba(240,165,0,0.35)" stroke-width="1" fill="rgba(240,165,0,0.15)"/>
+					<circle cx="20" cy="36" r="2.5" stroke="rgba(240,165,0,0.35)" stroke-width="1" fill="rgba(240,165,0,0.15)"/>
+				</svg>
+			</div>
 			<h3 id="lpnw-how-it-works-step-2" class="lpnw-step__title">You set your criteria</h3>
 			<p class="lpnw-step__text">Choose areas, price bands, property types, and which sources you care about. Paid plans unlock full filtering so you only see deals you would actually pursue.</p>
 		</div>
 		<div class="lpnw-step">
-			<div class="lpnw-step__number" aria-hidden="true">3</div>
+			<div class="lpnw-step__icon" aria-hidden="true">
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+					<path d="M20 2C18.6 2 17.5 3.1 17.5 4.5V6.1C11.5 7.4 7 12.8 7 19.2V28L3.5 31.5V33H36.5V31.5L33 28V19.2C33 12.8 28.5 7.4 22.5 6.1V4.5C22.5 3.1 21.4 2 20 2Z" stroke="rgba(240,165,0,0.3)" stroke-width="1.5" fill="none"/>
+					<path d="M20 38C22.2 38 24 36.2 24 34H16C16 36.2 17.8 38 20 38Z" stroke="rgba(240,165,0,0.3)" stroke-width="1.5" fill="none"/>
+					<path d="M26 14L22 20H28L22 28" stroke="rgba(240,165,0,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+				</svg>
+			</div>
 			<h3 id="lpnw-how-it-works-step-3" class="lpnw-step__title">You get the alert</h3>
 			<p class="lpnw-step__text">When a new record matches, we email you. Pro and VIP send instant or daily alerts. Free accounts get a weekly digest so you can judge quality before you upgrade.</p>
 		</div>
@@ -83,6 +152,12 @@ class LPNW_Page_Content {
 	<p class="lpnw-home-pricing-teaser__lead">Start on the weekly digest, upgrade when you want instant alerts and full control. <a href="{$pricing}">Full comparison and FAQ on the pricing page</a>.</p>
 	<div class="lpnw-pricing">
 		<article class="lpnw-pricing-card" aria-labelledby="lpnw-home-tier-free">
+			<div class="lpnw-pricing-card__icon" aria-hidden="true">
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+					<path d="M20 4C18.9 4 18 4.9 18 6V7.5C13.2 8.6 9.5 12.8 9.5 18V26L6 29.5V31H34V29.5L30.5 26V18C30.5 12.8 26.8 8.6 22 7.5V6C22 4.9 21.1 4 20 4Z" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none"/>
+					<path d="M20 36C21.7 36 23 34.7 23 33H17C17 34.7 18.3 36 20 36Z" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none"/>
+				</svg>
+			</div>
 			<h3 id="lpnw-home-tier-free" class="lpnw-pricing-card__name">Free</h3>
 			<p class="lpnw-pricing-card__price">&pound;0</p>
 			<p class="lpnw-pricing-card__period">forever</p>
@@ -94,6 +169,16 @@ class LPNW_Page_Content {
 			<a class="lpnw-btn lpnw-btn--secondary" href="{$register}">Sign up free</a>
 		</article>
 		<article class="lpnw-pricing-card lpnw-pricing-card--featured" aria-labelledby="lpnw-home-tier-pro">
+			<div class="lpnw-pricing-card__icon" aria-hidden="true">
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+					<circle cx="20" cy="20" r="16" stroke="rgba(240,165,0,0.35)" stroke-width="1.5" fill="none"/>
+					<circle cx="20" cy="20" r="10" stroke="rgba(240,165,0,0.25)" stroke-width="1" fill="none"/>
+					<circle cx="20" cy="20" r="4" stroke="rgba(240,165,0,0.4)" stroke-width="1" fill="rgba(240,165,0,0.2)"/>
+					<path d="M32 8C28 12 24 14 20 16" stroke="rgba(240,165,0,0.35)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+					<path d="M34 14L36 8L30 10" stroke="rgba(240,165,0,0.3)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+					<path d="M36 14L38 8L32 10" stroke="rgba(240,165,0,0.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+				</svg>
+			</div>
 			<h3 id="lpnw-home-tier-pro" class="lpnw-pricing-card__name">Pro</h3>
 			<p class="lpnw-pricing-card__price">&pound;19.99</p>
 			<p class="lpnw-pricing-card__period">per month</p>
@@ -105,6 +190,14 @@ class LPNW_Page_Content {
 			<a class="lpnw-btn lpnw-btn--primary" href="{$shop_url}">Get Pro</a>
 		</article>
 		<article class="lpnw-pricing-card" aria-labelledby="lpnw-home-tier-vip">
+			<div class="lpnw-pricing-card__icon" aria-hidden="true">
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+					<path d="M20 4L24 14L34 14L26 20L29 31L20 24L11 31L14 20L6 14L16 14L20 4Z" stroke="rgba(0,212,170,0.4)" stroke-width="1.5" fill="rgba(0,212,170,0.08)"/>
+					<path d="M8 8L14 16" stroke="rgba(0,212,170,0.25)" stroke-width="1" stroke-linecap="round"/>
+					<path d="M32 8L26 16" stroke="rgba(0,212,170,0.25)" stroke-width="1" stroke-linecap="round"/>
+					<path d="M20 2L20 6" stroke="rgba(0,212,170,0.25)" stroke-width="1" stroke-linecap="round"/>
+				</svg>
+			</div>
 			<h3 id="lpnw-home-tier-vip" class="lpnw-pricing-card__name">VIP</h3>
 			<p class="lpnw-pricing-card__price">&pound;79.99</p>
 			<p class="lpnw-pricing-card__period">per month</p>
