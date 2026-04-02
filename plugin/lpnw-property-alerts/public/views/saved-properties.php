@@ -93,6 +93,14 @@ if ( empty( $saved ) ) : ?>
 					}
 				}
 			}
+
+			$is_new_listing = false;
+			if ( ! empty( $item->first_listed_date ) ) {
+				$listed_ts_new = strtotime( (string) $item->first_listed_date );
+				$is_new_listing = $listed_ts_new && ( time() - $listed_ts_new ) < 2 * DAY_IN_SECONDS;
+			}
+			$listed_class = $is_new_listing ? 'lpnw-property-card__listed lpnw-property-card__listed--recent' : 'lpnw-property-card__listed';
+
 			$price_raw   = isset( $item->price ) ? (int) $item->price : 0;
 			$is_pcm      = 'rent' === strtolower( trim( (string) ( $item->application_type ?? '' ) ) );
 			$source      = sanitize_key( $item->source ?? '' );
@@ -195,6 +203,9 @@ if ( empty( $saved ) ) : ?>
 			<li class="lpnw-property-list__item">
 				<article class="lpnw-property-card" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
 					<div class="lpnw-property-card__image">
+						<?php if ( $is_new_listing ) : ?>
+							<span class="lpnw-new-badge"><?php esc_html_e( 'NEW', 'lpnw-alerts' ); ?></span>
+						<?php endif; ?>
 						<?php if ( '' !== $image_url ) : ?>
 							<img src="<?php echo esc_url( $image_url ); ?>" alt="<?php echo esc_attr( $item->address ); ?>" loading="lazy">
 						<?php else : ?>
@@ -304,7 +315,7 @@ if ( empty( $saved ) ) : ?>
 					<?php endif; ?>
 
 					<?php if ( '' !== $listed_label ) : ?>
-						<p class="lpnw-property-card__listed"><?php echo esc_html( $listed_label ); ?></p>
+						<p class="<?php echo esc_attr( $listed_class ); ?>"><?php echo esc_html( $listed_label ); ?></p>
 					<?php endif; ?>
 
 					<footer class="lpnw-property-card__actions">

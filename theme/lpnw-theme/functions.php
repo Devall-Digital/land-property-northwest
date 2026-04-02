@@ -748,45 +748,108 @@ add_filter(
 );
 
 /**
- * GeneratePress: branded copyright line plus key links; remove theme credit.
+ * Blog / posts archive URL for footer and menus.
  *
  * @return string
  */
-add_filter(
-	'generate_copyright',
-	function () {
-		$year = (int) gmdate( 'Y' );
-		$text = sprintf(
-			/* translators: %d: current year (Gregorian). */
-			esc_html__( '&copy; %d Land & Property Northwest. NW Property Intelligence & Alerts.', 'lpnw-theme' ),
-			$year
-		);
-
-		$links_inner = sprintf(
-			'<a href="%1$s">%2$s</a><span class="lpnw-footer-dot" aria-hidden="true"> · </span><a href="%3$s">%4$s</a><span class="lpnw-footer-dot" aria-hidden="true"> · </span><a href="%5$s">%6$s</a>',
-			esc_url( home_url( '/pricing/' ) ),
-			esc_html__( 'Pricing', 'lpnw-theme' ),
-			esc_url( home_url( '/about/' ) ),
-			esc_html__( 'About', 'lpnw-theme' ),
-			esc_url( home_url( '/contact/' ) ),
-			esc_html__( 'Contact', 'lpnw-theme' )
-		);
-
-		$nav = sprintf(
-			'<nav class="lpnw-footer-links" aria-label="%1$s">%2$s</nav>',
-			esc_attr__( 'Footer quick links', 'lpnw-theme' ),
-			wp_kses(
-				$links_inner,
-				array(
-					'a'    => array( 'href' => true ),
-					'span' => array( 'class' => true, 'aria-hidden' => true ),
-				)
-			)
-		);
-
-		return '<span class="copyright">' . $text . '</span> ' . $nav;
+function lpnw_theme_get_blog_url(): string {
+	$posts_page_id = (int) get_option( 'page_for_posts' );
+	if ( $posts_page_id > 0 ) {
+		$permalink = get_permalink( $posts_page_id );
+		if ( is_string( $permalink ) && '' !== $permalink ) {
+			return $permalink;
+		}
 	}
-);
+
+	$archive = get_post_type_archive_link( 'post' );
+	if ( is_string( $archive ) && '' !== $archive ) {
+		return $archive;
+	}
+
+	return home_url( '/blog/' );
+}
+
+/**
+ * Output the three-column footer block (before GeneratePress copyright row).
+ */
+function lpnw_theme_render_footer_mega(): void {
+	$year = (int) gmdate( 'Y' );
+	$copyright = sprintf(
+		/* translators: %d: current year (Gregorian). */
+		esc_html__( '© %d Land & Property Northwest. NW Property Intelligence & Alerts.', 'lpnw-theme' ),
+		$year
+	);
+
+	$blog_url = lpnw_theme_get_blog_url();
+	$register = wp_registration_url();
+	if ( '' === $register ) {
+		$register = home_url( '/pricing/' );
+	}
+
+	$quick_links = array(
+		array( 'url' => home_url( '/' ), 'label' => __( 'Home', 'lpnw-theme' ) ),
+		array( 'url' => lpnw_theme_get_browse_properties_url(), 'label' => __( 'Browse Properties', 'lpnw-theme' ) ),
+		array( 'url' => home_url( '/pricing/' ), 'label' => __( 'Pricing', 'lpnw-theme' ) ),
+		array( 'url' => home_url( '/about/' ), 'label' => __( 'About', 'lpnw-theme' ) ),
+		array( 'url' => home_url( '/contact/' ), 'label' => __( 'Contact', 'lpnw-theme' ) ),
+		array( 'url' => $blog_url, 'label' => __( 'Blog', 'lpnw-theme' ) ),
+	);
+
+	$subscriber_links = array(
+		array( 'url' => home_url( '/dashboard/' ), 'label' => __( 'Dashboard', 'lpnw-theme' ) ),
+		array( 'url' => home_url( '/preferences/' ), 'label' => __( 'Alert Preferences', 'lpnw-theme' ) ),
+		array( 'url' => home_url( '/map/' ), 'label' => __( 'Property Map', 'lpnw-theme' ) ),
+		array( 'url' => home_url( '/saved/' ), 'label' => __( 'Saved Properties', 'lpnw-theme' ) ),
+	);
+
+	if ( is_user_logged_in() ) {
+		$subscriber_links[] = array(
+			'url' => wp_logout_url( home_url() ),
+			'label' => __( 'Log out', 'lpnw-theme' ),
+		);
+	} else {
+		$subscriber_links[] = array( 'url' => $register, 'label' => __( 'Register', 'lpnw-theme' ) );
+		$subscriber_links[] = array(
+			'url' => wp_login_url( home_url( '/dashboard/' ) ),
+			'label' => __( 'Log in', 'lpnw-theme' ),
+		);
+	}
+	?>
+	<div class="lpnw-footer-mega">
+		<div class="lpnw-footer-mega__inner">
+			<div class="lpnw-footer-mega__col lpnw-footer-mega__col--brand">
+				<p class="lpnw-footer-mega__brand-title"><?php echo esc_html__( 'Land & Property Northwest', 'lpnw-theme' ); ?></p>
+				<p class="lpnw-footer-mega__tagline"><?php echo esc_html__( 'Instant property alerts for Northwest England. Get notified when properties match your criteria.', 'lpnw-theme' ); ?></p>
+				<p class="lpnw-footer-mega__copyright"><?php echo esc_html( $copyright ); ?></p>
+			</div>
+			<nav class="lpnw-footer-mega__col" aria-label="<?php echo esc_attr__( 'Quick links', 'lpnw-theme' ); ?>">
+				<p class="lpnw-footer-mega__heading"><?php echo esc_html__( 'Quick Links', 'lpnw-theme' ); ?></p>
+				<ul class="lpnw-footer-mega__list">
+					<?php foreach ( $quick_links as $item ) : ?>
+						<li><a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
+			<nav class="lpnw-footer-mega__col" aria-label="<?php echo esc_attr__( 'Subscriber links', 'lpnw-theme' ); ?>">
+				<p class="lpnw-footer-mega__heading"><?php echo esc_html__( 'For Subscribers', 'lpnw-theme' ); ?></p>
+				<ul class="lpnw-footer-mega__list">
+					<?php foreach ( $subscriber_links as $item ) : ?>
+						<li><a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a></li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
+		</div>
+	</div>
+	<?php
+}
+add_action( 'generate_before_copyright', 'lpnw_theme_render_footer_mega', 4 );
+
+/**
+ * GeneratePress: hide default copyright row (brand and links live in lpnw_theme_render_footer_mega).
+ *
+ * @return string
+ */
+add_filter( 'generate_copyright', '__return_empty_string' );
 
 /**
  * Whether Rank Math SEO is active (outputs its own Article/NewsArticle JSON-LD for posts).

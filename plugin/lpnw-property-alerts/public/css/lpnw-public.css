@@ -350,6 +350,22 @@
 	transform: translateY(-2px);
 }
 
+.lpnw-new-badge {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	background: #E8A317;
+	color: white;
+	font-size: 0.65rem;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	padding: 4px 10px;
+	border-radius: 4px;
+	z-index: 2;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
 .lpnw-property-card__image {
 	position: relative;
 	aspect-ratio: 16 / 10;
@@ -2418,10 +2434,15 @@
  * when the listing is today or yesterday (CSS cannot match translated copy).
  */
 .lpnw-property-card__listed--recent {
-	font-weight: 700;
+	font-weight: 600;
 	font-style: normal;
 	color: var(--lpnw-amber, #E8A317);
 	letter-spacing: 0.02em;
+}
+
+.lpnw-dashboard .lpnw-property-card__listed.lpnw-property-card__listed--recent {
+	color: var(--lpnw-amber, #E8A317);
+	font-weight: 600;
 }
 
 body.page-saved .entry-content > p:first-child,
