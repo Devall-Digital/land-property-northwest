@@ -23,12 +23,16 @@ class LPNW_Admin {
 
 	/** @var array<string, string> */
 	private static array $manual_feed_class_map = array(
-		'rightmove'    => LPNW_Feed_Portal_Rightmove::class,
-		'zoopla'       => LPNW_Feed_Portal_Zoopla::class,
-		'onthemarket'  => LPNW_Feed_Portal_OnTheMarket::class,
-		'planning'     => LPNW_Feed_Planning::class,
-		'epc'          => LPNW_Feed_EPC::class,
-		'landregistry' => LPNW_Feed_LandRegistry::class,
+		'rightmove'       => LPNW_Feed_Portal_Rightmove::class,
+		'zoopla'          => LPNW_Feed_Portal_Zoopla::class,
+		'onthemarket'     => LPNW_Feed_Portal_OnTheMarket::class,
+		'planning'        => LPNW_Feed_Planning::class,
+		'epc'             => LPNW_Feed_EPC::class,
+		'landregistry'    => LPNW_Feed_LandRegistry::class,
+		'auction_pugh'    => LPNW_Feed_Auction_Pugh::class,
+		'auction_sdl'     => LPNW_Feed_Auction_SDL::class,
+		'auction_ahnw'    => LPNW_Feed_Auction_AHNW::class,
+		'auction_allsop'  => LPNW_Feed_Auction_Allsop::class,
 	);
 
 	public static function init(): void {
@@ -187,15 +191,27 @@ class LPNW_Admin {
 		global $wpdb;
 
 		$feed_key = isset( $_POST['feed'] ) ? sanitize_key( wp_unslash( $_POST['feed'] ) ) : 'rightmove';
-		if ( ! isset( self::$manual_feed_class_map[ $feed_key ] ) ) {
-			$feed_key = 'rightmove';
-		}
 
-		$class = self::$manual_feed_class_map[ $feed_key ];
 		$max_before = (int) $wpdb->get_var( "SELECT MAX(id) FROM {$wpdb->prefix}lpnw_feed_log" );
 
-		$feed = new $class();
-		$feed->run();
+		if ( 'auctions' === $feed_key ) {
+			$auction_keys = array( 'auction_pugh', 'auction_sdl', 'auction_ahnw', 'auction_allsop' );
+			foreach ( $auction_keys as $key ) {
+				$class = self::$manual_feed_class_map[ $key ];
+				$feed  = new $class();
+				$feed->run();
+			}
+			$feed_key  = 'auctions';
+			$feed_name = __( 'All auction feeds', 'lpnw-alerts' );
+		} else {
+			if ( ! isset( self::$manual_feed_class_map[ $feed_key ] ) ) {
+				$feed_key = 'rightmove';
+			}
+			$class = self::$manual_feed_class_map[ $feed_key ];
+			$feed  = new $class();
+			$feed->run();
+			$feed_name = method_exists( $feed, 'get_source_name' ) ? $feed->get_source_name() : $feed_key;
+		}
 
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
@@ -213,7 +229,7 @@ class LPNW_Admin {
 				'found'     => $found,
 				'new'       => $new,
 				'feed_key'  => $feed_key,
-				'feed_name' => method_exists( $feed, 'get_source_name' ) ? $feed->get_source_name() : $feed_key,
+				'feed_name' => $feed_name,
 			),
 			120
 		);
@@ -221,6 +237,8 @@ class LPNW_Admin {
 		$redirect_target = isset( $_POST['lpnw_redirect_to'] ) ? sanitize_key( wp_unslash( $_POST['lpnw_redirect_to'] ) ) : 'lpnw';
 		if ( 'wp_dashboard' === $redirect_target ) {
 			$url = add_query_arg( 'lpnw_feed_notice', '1', admin_url( 'index.php' ) );
+		} elseif ( 'settings' === $redirect_target ) {
+			$url = add_query_arg( 'lpnw_feed_notice', '1', admin_url( 'admin.php?page=lpnw-settings' ) );
 		} else {
 			$url = add_query_arg( 'lpnw_feed_notice', '1', admin_url( 'admin.php?page=lpnw-dashboard' ) );
 		}
@@ -240,8 +258,9 @@ class LPNW_Admin {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		$on_wp_dashboard = $screen && 'dashboard' === $screen->id;
 		$on_lpnw         = isset( $_GET['page'] ) && 'lpnw-dashboard' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$on_settings     = isset( $_GET['page'] ) && 'lpnw-settings' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-		if ( empty( $_GET['lpnw_feed_notice'] ) || ( ! $on_wp_dashboard && ! $on_lpnw ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['lpnw_feed_notice'] ) || ( ! $on_wp_dashboard && ! $on_lpnw && ! $on_settings ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 

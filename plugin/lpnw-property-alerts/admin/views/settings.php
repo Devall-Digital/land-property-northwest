@@ -20,18 +20,27 @@ defined( 'ABSPATH' ) || exit;
 	<hr>
 
 	<h2><?php esc_html_e( 'Manual Feed Run', 'lpnw-alerts' ); ?></h2>
-	<p><?php esc_html_e( 'Use these buttons to trigger a feed run immediately (useful for testing).', 'lpnw-alerts' ); ?></p>
+	<p><?php esc_html_e( 'Trigger a feed run immediately (useful for testing).', 'lpnw-alerts' ); ?></p>
 
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<?php wp_nonce_field( 'lpnw_manual_feed', 'lpnw_nonce' ); ?>
+		<?php wp_nonce_field( LPNW_Admin::FEED_RUN_NONCE_ACTION ); ?>
 		<input type="hidden" name="action" value="lpnw_run_feed">
+		<input type="hidden" name="lpnw_redirect_to" value="settings">
 
 		<p>
-			<select name="feed_name">
-				<option value="planning">Planning Portal</option>
-				<option value="epc">EPC Open Data</option>
-				<option value="landregistry">Land Registry</option>
-				<option value="auctions">Auction Houses</option>
+			<label for="lpnw_manual_feed" class="screen-reader-text"><?php esc_html_e( 'Select feed', 'lpnw-alerts' ); ?></label>
+			<select name="feed" id="lpnw_manual_feed">
+				<optgroup label="<?php esc_attr_e( 'Portals', 'lpnw-alerts' ); ?>">
+					<option value="rightmove"><?php esc_html_e( 'Rightmove', 'lpnw-alerts' ); ?></option>
+					<option value="zoopla"><?php esc_html_e( 'Zoopla', 'lpnw-alerts' ); ?></option>
+					<option value="onthemarket"><?php esc_html_e( 'OnTheMarket', 'lpnw-alerts' ); ?></option>
+				</optgroup>
+				<optgroup label="<?php esc_attr_e( 'Other data', 'lpnw-alerts' ); ?>">
+					<option value="planning"><?php esc_html_e( 'Planning Portal', 'lpnw-alerts' ); ?></option>
+					<option value="epc"><?php esc_html_e( 'EPC Open Data', 'lpnw-alerts' ); ?></option>
+					<option value="landregistry"><?php esc_html_e( 'Land Registry', 'lpnw-alerts' ); ?></option>
+					<option value="auctions"><?php esc_html_e( 'All auction feeds (Pugh, SDL, AHNW, Allsop)', 'lpnw-alerts' ); ?></option>
+				</optgroup>
 			</select>
 			<?php submit_button( __( 'Run Feed Now', 'lpnw-alerts' ), 'secondary', 'submit', false ); ?>
 		</p>

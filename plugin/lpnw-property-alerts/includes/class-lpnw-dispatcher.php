@@ -170,7 +170,7 @@ class LPNW_Dispatcher {
 			)
 		);
 
-		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		$headers = LPNW_Email_Branding::get_alert_mail_headers();
 
 		return wp_mail( $user->user_email, $subject, $body, $headers );
 	}

@@ -609,10 +609,8 @@ class LPNW_Public {
 			$message
 		);
 
-		$headers = array(
-			'Content-Type: text/plain; charset=UTF-8',
-			'Reply-To: ' . $email,
-		);
+		$headers   = LPNW_Email_Branding::get_contact_mail_headers();
+		$headers[] = 'Reply-To: ' . $email;
 
 		$sent = wp_mail( $admin_email, $mail_subject, $body, $headers );
 
