@@ -100,6 +100,7 @@ if ( empty( $alerts ) ) : ?>
 			$is_pcm      = 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) );
 			$source      = sanitize_key( $prop->source ?? '' );
 			$source_root = '' !== $source ? explode( '_', $source, 2 )[0] : '';
+			$is_auction  = ( '' !== $source && str_starts_with( $source, 'auction_' ) );
 
 			$view_label = __( 'View source', 'lpnw-alerts' );
 			if ( 'rightmove' === $source ) {
@@ -119,7 +120,35 @@ if ( empty( $alerts ) ) : ?>
 			}
 
 			$source_badge_label = ucwords( str_replace( '_', ' ', $source ) );
-			$type_label         = trim( (string) ( $prop->property_type ?? '' ) );
+			if ( $is_auction ) {
+				$ah_suffix = preg_replace( '/^auction_/', '', $source );
+				$source_badge_label = '' !== $ah_suffix ? strtoupper( $ah_suffix ) : $source_badge_label;
+			}
+			$type_label = trim( (string) ( $prop->property_type ?? '' ) );
+
+			$auction_date_raw = isset( $prop->auction_date ) ? trim( (string) $prop->auction_date ) : '';
+			$lpnw_auction_date_html  = '';
+			$lpnw_auction_date_class = '';
+			if ( $is_auction && '' !== $auction_date_raw ) {
+				try {
+					$ad_dt       = new DateTimeImmutable( $auction_date_raw, wp_timezone() );
+					$auction_day = $ad_dt->format( 'Y-m-d' );
+					$today_day   = current_time( 'Y-m-d' );
+					if ( $auction_day < $today_day ) {
+						$lpnw_auction_date_html  = __( 'Auction ended', 'lpnw-alerts' );
+						$lpnw_auction_date_class = 'lpnw-auction-date lpnw-auction-date--ended';
+					} else {
+						$lpnw_auction_date_html = sprintf(
+							/* translators: %s: auction date (DD/MM/YYYY). */
+							__( 'Auction: %s', 'lpnw-alerts' ),
+							wp_date( 'd/m/Y', $ad_dt->getTimestamp() )
+						);
+						$lpnw_auction_date_class = 'lpnw-auction-date';
+					}
+				} catch ( Exception $e ) {
+					unset( $e );
+				}
+			}
 
 			$raw       = json_decode( (string) ( $prop->raw_data ?? '' ), true );
 			$image_url = '';
@@ -130,6 +159,18 @@ if ( empty( $alerts ) ) : ?>
 					$image_url = $raw['propertyImages']['mainImageSrc'];
 				} elseif ( ! empty( $raw['images'][0]['srcUrl'] ) ) {
 					$image_url = $raw['images'][0]['srcUrl'];
+				}
+				if ( empty( $image_url ) && ! empty( $raw['images'][0]['url'] ) ) {
+					$image_url = $raw['images'][0]['url'];
+				}
+				if ( empty( $image_url ) && ! empty( $raw['media'][0]['url'] ) ) {
+					$image_url = $raw['media'][0]['url'];
+				}
+				if ( empty( $image_url ) && ! empty( $raw['imageUrl'] ) ) {
+					$image_url = $raw['imageUrl'];
+				}
+				if ( empty( $image_url ) && ! empty( $raw['photos'][0] ) ) {
+					$image_url = is_string( $raw['photos'][0] ) ? $raw['photos'][0] : ( $raw['photos'][0]['url'] ?? '' );
 				}
 			}
 			?>
@@ -157,12 +198,18 @@ if ( empty( $alerts ) ) : ?>
 							<?php if ( '' !== $source ) : ?>
 								<span class="lpnw-source-badge lpnw-source-badge--<?php echo esc_attr( $source_root ); ?>"><?php echo esc_html( $source_badge_label ); ?></span>
 							<?php endif; ?>
+							<?php if ( $is_auction ) : ?>
+								<span class="lpnw-auction-badge"><?php esc_html_e( 'Auction', 'lpnw-alerts' ); ?></span>
+							<?php endif; ?>
 							<?php if ( '' !== $tenure_badge_label ) : ?>
 								<span class="lpnw-tenure-badge"><?php echo esc_html( $tenure_badge_label ); ?></span>
 							<?php endif; ?>
 						</div>
 						<?php if ( $price_raw > 0 ) : ?>
-							<p class="lpnw-property-card__price<?php echo $is_pcm ? ' lpnw-property-card__price--pcm' : ' lpnw-property-card__price--sale'; ?>">
+							<p class="lpnw-property-card__price<?php echo $is_pcm ? ' lpnw-property-card__price--pcm' : ' lpnw-property-card__price--sale'; ?><?php echo $is_auction ? ' lpnw-guide-price' : ''; ?>">
+								<?php if ( $is_auction ) : ?>
+									<span class="lpnw-guide-price__label"><?php esc_html_e( 'Guide:', 'lpnw-alerts' ); ?></span>
+								<?php endif; ?>
 								<span class="lpnw-property-card__price-currency">&pound;<?php echo esc_html( number_format_i18n( $price_raw ) ); ?></span>
 								<?php if ( $is_pcm ) : ?>
 									<span class="lpnw-property-card__price-suffix">pcm</span>
@@ -170,6 +217,9 @@ if ( empty( $alerts ) ) : ?>
 							</p>
 						<?php endif; ?>
 					</div>
+					<?php if ( '' !== $lpnw_auction_date_html ) : ?>
+						<p class="<?php echo esc_attr( $lpnw_auction_date_class ); ?> lpnw-property-card__auction-date"><?php echo esc_html( $lpnw_auction_date_html ); ?></p>
+					<?php endif; ?>
 
 					<?php if ( null !== $beds || null !== $baths ) : ?>
 						<p class="lpnw-property-card__rooms">
@@ -202,8 +252,19 @@ if ( empty( $alerts ) ) : ?>
 						</div>
 					<?php endif; ?>
 
-					<?php if ( ! empty( $prop->description ) ) : ?>
-						<p class="lpnw-property-card__description"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $prop->description ), 50 ) ); ?></p>
+					<?php
+					$lpnw_card_desc = '';
+					if ( ! empty( $prop->description ) ) {
+						$lpnw_card_desc = wp_strip_all_tags( (string) $prop->description );
+						if ( $is_auction && preg_match( '/^\s*auction\s+lot\b/i', $lpnw_card_desc ) ) {
+							$lpnw_card_desc = preg_replace( '/^\s*auction\s+lot[^.]*\.\s*/i', '', $lpnw_card_desc );
+							$lpnw_card_desc = trim( $lpnw_card_desc );
+						}
+						$lpnw_card_desc = wp_trim_words( $lpnw_card_desc, 50 );
+					}
+					?>
+					<?php if ( '' !== $lpnw_card_desc ) : ?>
+						<p class="lpnw-property-card__description"><?php echo esc_html( $lpnw_card_desc ); ?></p>
 					<?php endif; ?>
 
 					<?php if ( '' !== $agent_line ) : ?>
@@ -227,14 +288,33 @@ if ( empty( $alerts ) ) : ?>
 					$lpnw_share_url = ! empty( $prop->source_url ) ? esc_url_raw( (string) $prop->source_url ) : '';
 					$lpnw_wa_text   = (string) $prop->address;
 					if ( $price_raw > 0 ) {
-						$lpnw_wa_text .= ' - ' . ( $is_pcm ? '£' . number_format( $price_raw ) . ' pcm' : '£' . number_format_i18n( $price_raw ) );
+						if ( $is_pcm ) {
+							$lpnw_wa_text .= ' - £' . number_format( $price_raw ) . ' pcm';
+						} elseif ( $is_auction ) {
+							$lpnw_wa_text .= ' - ' . sprintf(
+								/* translators: %s: formatted price e.g. £120,000 */
+								__( 'Guide %s', 'lpnw-alerts' ),
+								'£' . number_format_i18n( $price_raw )
+							);
+						} else {
+							$lpnw_wa_text .= ' - £' . number_format_i18n( $price_raw );
+						}
 					}
 					if ( '' !== $lpnw_share_url ) {
 						$lpnw_wa_text .= ' ' . $lpnw_share_url;
 					}
 					$lpnw_mail_body = (string) $prop->address;
 					if ( $price_raw > 0 ) {
-						$lpnw_mail_body .= "\n" . ( $is_pcm ? '£' . number_format( $price_raw ) . ' pcm' : '£' . number_format_i18n( $price_raw ) );
+						if ( $is_pcm ) {
+							$lpnw_mail_body .= "\n" . '£' . number_format( $price_raw ) . ' pcm';
+						} elseif ( $is_auction ) {
+							$lpnw_mail_body .= "\n" . sprintf(
+								__( 'Guide %s', 'lpnw-alerts' ),
+								'£' . number_format_i18n( $price_raw )
+							);
+						} else {
+							$lpnw_mail_body .= "\n" . '£' . number_format_i18n( $price_raw );
+						}
 					}
 					if ( '' !== $lpnw_share_url ) {
 						$lpnw_mail_body .= "\n" . $lpnw_share_url;
