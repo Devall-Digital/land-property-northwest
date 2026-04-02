@@ -41,6 +41,14 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
  * Enqueue parent and child styles, plus Google Fonts.
  */
 add_action( 'wp_enqueue_scripts', function () {
+	$child_theme = wp_get_theme();
+	$style_path  = get_stylesheet_directory() . '/style.css';
+	$script_path = get_stylesheet_directory() . '/assets/js/theme.js';
+	$asset_ver   = $child_theme->get( 'Version' );
+	if ( is_readable( $style_path ) ) {
+		$asset_ver = (string) filemtime( $style_path );
+	}
+
 	wp_enqueue_style(
 		'generatepress-parent',
 		get_template_directory_uri() . '/style.css',
@@ -59,14 +67,16 @@ add_action( 'wp_enqueue_scripts', function () {
 		'lpnw-child',
 		get_stylesheet_uri(),
 		array( 'generatepress-parent', 'lpnw-fonts' ),
-		wp_get_theme()->get( 'Version' )
+		$asset_ver
 	);
+
+	$script_ver = is_readable( $script_path ) ? (string) filemtime( $script_path ) : $child_theme->get( 'Version' );
 
 	wp_enqueue_script(
 		'lpnw-theme',
 		get_stylesheet_directory_uri() . '/assets/js/theme.js',
 		array(),
-		wp_get_theme()->get( 'Version' ),
+		$script_ver,
 		true
 	);
 }, 20 );
