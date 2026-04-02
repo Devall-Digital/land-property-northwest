@@ -30,20 +30,179 @@ class LPNW_Page_Content {
 
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
-	<div class="lpnw-hero__shapes" aria-hidden="true">
-		<svg class="lpnw-hero__shape lpnw-hero__shape--house" width="120" height="120" viewBox="0 0 120 120" fill="none">
-			<path d="M60 10L10 50V110H45V75H75V110H110V50L60 10Z" stroke="rgba(240,165,0,0.15)" stroke-width="2" fill="none"/>
+	<canvas id="lpnw-hero-particles" class="lpnw-hero__canvas" aria-hidden="true"></canvas>
+	<div class="lpnw-hero__scene" aria-hidden="true">
+		<svg class="lpnw-hero__illustration" viewBox="0 0 1400 500" preserveAspectRatio="xMidYMax meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<!-- Sky gradient -->
+			<defs>
+				<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stop-color="#080E1A"/>
+					<stop offset="70%" stop-color="#0F1D35"/>
+					<stop offset="100%" stop-color="#1A2D4F"/>
+				</linearGradient>
+				<linearGradient id="groundGlow" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stop-color="rgba(240,165,0,0.12)"/>
+					<stop offset="100%" stop-color="transparent"/>
+				</linearGradient>
+				<radialGradient id="lampLight" cx="0.5" cy="0" r="0.8">
+					<stop offset="0%" stop-color="rgba(240,165,0,0.25)"/>
+					<stop offset="100%" stop-color="transparent"/>
+				</radialGradient>
+				<filter id="windowGlow">
+					<feGaussianBlur in="SourceGraphic" stdDeviation="1.5"/>
+				</filter>
+			</defs>
+			<!-- Ground glow -->
+			<rect x="0" y="420" width="1400" height="80" fill="url(#groundGlow)"/>
+			<!-- Back buildings - lighter navy -->
+			<rect x="50" y="260" width="80" height="240" rx="2" fill="#1E3A5F"/>
+			<rect x="55" y="275" width="8" height="6" rx="1" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="75" y="275" width="8" height="6" rx="1" fill="#F0A500" opacity="0.35"/>
+			<rect x="95" y="275" width="8" height="6" rx="1" fill="#FFF" opacity="0.15"/>
+			<rect x="55" y="295" width="8" height="6" rx="1" fill="#FFF" opacity="0.12"/>
+			<rect x="75" y="295" width="8" height="6" rx="1" fill="#F0A500" opacity="0.45" filter="url(#windowGlow)"/>
+			<rect x="95" y="295" width="8" height="6" rx="1" fill="#F0A500" opacity="0.3"/>
+			<rect x="55" y="315" width="8" height="6" rx="1" fill="#F0A500" opacity="0.4"/>
+			<rect x="75" y="315" width="8" height="6" rx="1" fill="#FFF" opacity="0.18"/>
+			<rect x="95" y="315" width="8" height="6" rx="1" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="55" y="335" width="8" height="6" rx="1" fill="#FFF" opacity="0.1"/>
+			<rect x="75" y="335" width="8" height="6" rx="1" fill="#F0A500" opacity="0.35"/>
+			<rect x="95" y="335" width="8" height="6" rx="1" fill="#FFF" opacity="0.15"/>
+			<!-- Liver Building inspired -->
+			<rect x="160" y="200" width="100" height="300" rx="2" fill="#1A2D4F"/>
+			<rect x="195" y="170" width="30" height="30" fill="#1A2D4F"/>
+			<polygon points="210,145 195,170 225,170" fill="#1E3A5F"/>
+			<rect x="206" y="145" width="8" height="10" fill="#2D4470"/>
+			<rect x="170" y="220" width="10" height="8" rx="1" fill="#F0A500" opacity="0.6" filter="url(#windowGlow)"/>
+			<rect x="195" y="220" width="10" height="8" rx="1" fill="#FFF" opacity="0.2"/>
+			<rect x="220" y="220" width="10" height="8" rx="1" fill="#F0A500" opacity="0.45"/>
+			<rect x="170" y="245" width="10" height="8" rx="1" fill="#FFF" opacity="0.15"/>
+			<rect x="195" y="245" width="10" height="8" rx="1" fill="#F0A500" opacity="0.55" filter="url(#windowGlow)"/>
+			<rect x="220" y="245" width="10" height="8" rx="1" fill="#F0A500" opacity="0.3"/>
+			<rect x="170" y="270" width="10" height="8" rx="1" fill="#F0A500" opacity="0.4"/>
+			<rect x="195" y="270" width="10" height="8" rx="1" fill="#F0A500" opacity="0.35"/>
+			<rect x="220" y="270" width="10" height="8" rx="1" fill="#FFF" opacity="0.2"/>
+			<rect x="170" y="295" width="10" height="8" rx="1" fill="#FFF" opacity="0.12"/>
+			<rect x="195" y="295" width="10" height="8" rx="1" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="220" y="295" width="10" height="8" rx="1" fill="#F0A500" opacity="0.4"/>
+			<rect x="170" y="320" width="10" height="8" rx="1" fill="#F0A500" opacity="0.45"/>
+			<rect x="195" y="320" width="10" height="8" rx="1" fill="#FFF" opacity="0.18"/>
+			<rect x="220" y="320" width="10" height="8" rx="1" fill="#F0A500" opacity="0.35" filter="url(#windowGlow)"/>
+			<!-- Terrace row - left -->
+			<rect x="290" y="360" width="45" height="140" rx="1" fill="#2D4470"/>
+			<rect x="340" y="355" width="45" height="145" rx="1" fill="#253D65"/>
+			<rect x="390" y="365" width="45" height="135" rx="1" fill="#2D4470"/>
+			<polygon points="290,360 312,340 335,360" fill="#1E3A5F"/>
+			<polygon points="340,355 362,335 385,355" fill="#1A2D4F"/>
+			<polygon points="390,365 412,345 435,365" fill="#1E3A5F"/>
+			<rect x="300" y="380" width="8" height="8" rx="1" fill="#F0A500" opacity="0.6" filter="url(#windowGlow)"/>
+			<rect x="318" y="380" width="8" height="8" rx="1" fill="#F0A500" opacity="0.4"/>
+			<rect x="350" y="375" width="8" height="8" rx="1" fill="#FFF" opacity="0.2"/>
+			<rect x="368" y="375" width="8" height="8" rx="1" fill="#F0A500" opacity="0.55" filter="url(#windowGlow)"/>
+			<rect x="400" y="385" width="8" height="8" rx="1" fill="#F0A500" opacity="0.35"/>
+			<rect x="418" y="385" width="8" height="8" rx="1" fill="#FFF" opacity="0.15"/>
+			<rect x="305" y="435" width="12" height="25" rx="1" fill="#F0A500" opacity="0.2"/>
+			<rect x="357" y="430" width="12" height="25" rx="1" fill="#F0A500" opacity="0.25"/>
+			<rect x="407" y="440" width="12" height="25" rx="1" fill="#F0A500" opacity="0.18"/>
+			<!-- FOR SALE sign -->
+			<rect x="445" y="410" width="4" height="90" fill="#3D5A80"/>
+			<rect x="435" y="400" width="55" height="30" rx="3" fill="#F0A500"/>
+			<rect x="439" y="404" width="47" height="22" rx="2" fill="#FFF"/>
+			<!-- Tree -->
+			<ellipse cx="510" cy="420" rx="22" ry="30" fill="#0D7D5F" opacity="0.7"/>
+			<ellipse cx="518" cy="410" rx="18" ry="25" fill="#00D4AA" opacity="0.35"/>
+			<rect x="508" y="445" width="5" height="55" fill="#1A4035"/>
+			<!-- CENTER: Notification bell with pulse rings -->
+			<g transform="translate(660, 300)">
+				<circle cx="40" cy="40" r="70" fill="none" stroke="#F0A500" stroke-width="1" opacity="0.15" class="lpnw-pulse-ring lpnw-pulse-ring--1"/>
+				<circle cx="40" cy="40" r="50" fill="none" stroke="#F0A500" stroke-width="1.5" opacity="0.25" class="lpnw-pulse-ring lpnw-pulse-ring--2"/>
+				<circle cx="40" cy="40" r="30" fill="none" stroke="#00D4AA" stroke-width="1" opacity="0.2" class="lpnw-pulse-ring lpnw-pulse-ring--3"/>
+				<g class="lpnw-hero__bell-swing">
+					<circle cx="40" cy="40" r="45" fill="rgba(240,165,0,0.06)"/>
+					<path d="M40 10C37.5 10 35.5 12 35.5 14.5V17.8C25 19.8 17 28.8 17 39.5V55L10 62V65H70V62L63 55V39.5C63 28.8 55 19.8 44.5 17.8V14.5C44.5 12 42.5 10 40 10Z" fill="#F0A500" opacity="0.9"/>
+					<path d="M40 75C43.3 75 46 72.3 46 69H34C34 72.3 36.7 75 40 75Z" fill="#F7C23A" opacity="0.8"/>
+					<circle cx="58" cy="18" r="6" fill="#00D4AA" opacity="0.9"/>
+					<text x="55" y="21" fill="#FFF" font-size="8" font-weight="700" text-anchor="middle">3</text>
+				</g>
+			</g>
+			<!-- Right: Beetham Tower inspired -->
+			<rect x="880" y="80" width="35" height="420" rx="1" fill="#162B48"/>
+			<rect x="878" y="75" width="39" height="8" fill="#1E3A5F"/>
+			<polygon points="897,40 878,75 917,75" fill="#1A2D4F"/>
+			<rect x="886" y="100" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="900" y="100" width="5" height="4" rx="0.5" fill="#FFF" opacity="0.15"/>
+			<rect x="886" y="120" width="5" height="4" rx="0.5" fill="#FFF" opacity="0.12"/>
+			<rect x="900" y="120" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.45"/>
+			<rect x="886" y="140" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.55" filter="url(#windowGlow)"/>
+			<rect x="900" y="140" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.3"/>
+			<rect x="886" y="160" width="5" height="4" rx="0.5" fill="#FFF" opacity="0.18"/>
+			<rect x="900" y="160" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.4"/>
+			<rect x="886" y="180" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.35"/>
+			<rect x="900" y="180" width="5" height="4" rx="0.5" fill="#FFF" opacity="0.12"/>
+			<rect x="886" y="200" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="900" y="200" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.25"/>
+			<rect x="886" y="250" width="5" height="4" rx="0.5" fill="#FFF" opacity="0.15"/>
+			<rect x="900" y="250" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.45" filter="url(#windowGlow)"/>
+			<rect x="886" y="300" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.4"/>
+			<rect x="900" y="300" width="5" height="4" rx="0.5" fill="#FFF" opacity="0.1"/>
+			<rect x="886" y="350" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.35"/>
+			<rect x="900" y="350" width="5" height="4" rx="0.5" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<!-- Mid-right buildings -->
+			<rect x="950" y="280" width="70" height="220" rx="2" fill="#1E3A5F"/>
+			<rect x="958" y="300" width="8" height="6" rx="1" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="978" y="300" width="8" height="6" rx="1" fill="#FFF" opacity="0.18"/>
+			<rect x="998" y="300" width="8" height="6" rx="1" fill="#F0A500" opacity="0.4"/>
+			<rect x="958" y="325" width="8" height="6" rx="1" fill="#FFF" opacity="0.12"/>
+			<rect x="978" y="325" width="8" height="6" rx="1" fill="#F0A500" opacity="0.55" filter="url(#windowGlow)"/>
+			<rect x="998" y="325" width="8" height="6" rx="1" fill="#F0A500" opacity="0.3"/>
+			<rect x="958" y="350" width="8" height="6" rx="1" fill="#F0A500" opacity="0.45"/>
+			<rect x="978" y="350" width="8" height="6" rx="1" fill="#F0A500" opacity="0.35"/>
+			<rect x="998" y="350" width="8" height="6" rx="1" fill="#FFF" opacity="0.2"/>
+			<!-- Crane -->
+			<g class="lpnw-hero__crane">
+				<line x1="1060" y1="180" x2="1060" y2="500" stroke="#2D4470" stroke-width="4"/>
+				<line x1="1020" y1="185" x2="1120" y2="185" stroke="#2D4470" stroke-width="3"/>
+				<line x1="1060" y1="185" x2="1020" y2="200" stroke="#2D4470" stroke-width="2"/>
+				<line x1="1060" y1="185" x2="1120" y2="195" stroke="#2D4470" stroke-width="2"/>
+				<line x1="1120" y1="195" x2="1120" y2="230" stroke="#3D5A80" stroke-width="1.5"/>
+				<rect x="1115" y="230" width="10" height="8" fill="#F0A500" opacity="0.3"/>
+			</g>
+			<!-- Far right terraces -->
+			<rect x="1150" y="370" width="50" height="130" rx="1" fill="#253D65"/>
+			<rect x="1205" y="380" width="50" height="120" rx="1" fill="#2D4470"/>
+			<rect x="1260" y="375" width="50" height="125" rx="1" fill="#253D65"/>
+			<polygon points="1150,370 1175,350 1200,370" fill="#1E3A5F"/>
+			<polygon points="1205,380 1230,360 1255,380" fill="#1A2D4F"/>
+			<polygon points="1260,375 1285,355 1310,375" fill="#1E3A5F"/>
+			<rect x="1160" y="392" width="7" height="7" rx="1" fill="#F0A500" opacity="0.5" filter="url(#windowGlow)"/>
+			<rect x="1180" y="392" width="7" height="7" rx="1" fill="#FFF" opacity="0.15"/>
+			<rect x="1215" y="400" width="7" height="7" rx="1" fill="#F0A500" opacity="0.4"/>
+			<rect x="1235" y="400" width="7" height="7" rx="1" fill="#F0A500" opacity="0.55" filter="url(#windowGlow)"/>
+			<rect x="1270" y="396" width="7" height="7" rx="1" fill="#FFF" opacity="0.18"/>
+			<rect x="1290" y="396" width="7" height="7" rx="1" fill="#F0A500" opacity="0.35"/>
+			<!-- Lamppost with light cone -->
+			<rect x="830" y="410" width="3" height="90" fill="#3D5A80"/>
+			<ellipse cx="831" cy="408" rx="12" ry="4" fill="#F0A500" opacity="0.15"/>
+			<rect x="826" y="405" width="10" height="6" rx="2" fill="#F0A500" opacity="0.7"/>
+			<ellipse cx="831" cy="470" rx="35" ry="30" fill="url(#lampLight)" opacity="0.5"/>
+			<!-- Ground line -->
+			<line x1="0" y1="500" x2="1400" y2="500" stroke="#2D4470" stroke-width="1" opacity="0.3"/>
 		</svg>
-		<svg class="lpnw-hero__shape lpnw-hero__shape--pin" width="60" height="80" viewBox="0 0 60 80" fill="none">
-			<path d="M30 0C13.4 0 0 13.4 0 30C0 52.5 30 80 30 80S60 52.5 60 30C60 13.4 46.6 0 30 0ZM30 40C24.5 40 20 35.5 20 30S24.5 20 30 20S40 24.5 40 30S35.5 40 30 40Z" fill="rgba(0,212,170,0.12)"/>
-		</svg>
-		<svg class="lpnw-hero__shape lpnw-hero__shape--bell" width="50" height="55" viewBox="0 0 50 55" fill="none">
-			<path d="M25 0C23.3 0 22 1.3 22 3V5.1C14.4 6.7 9 13.5 9 21.5V35L4 40V42.5H46V40L41 35V21.5C41 13.5 35.6 6.7 28 5.1V3C28 1.3 26.7 0 25 0ZM25 55C27.8 55 30 52.8 30 50H20C20 52.8 22.2 55 25 55Z" fill="rgba(255,255,255,0.08)"/>
-		</svg>
+		<!-- Scan line overlay -->
+		<div class="lpnw-hero__scan-line"></div>
 	</div>
-	<h1 id="lpnw-hero-heading">Get NW property alerts before anyone else</h1>
-	<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
-	<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
+	<div class="lpnw-hero__content">
+		<h1 id="lpnw-hero-heading" class="lpnw-hero__title">
+			<span class="lpnw-hero__line lpnw-hero__line--1">Property <em>alerts</em></span>
+			<span class="lpnw-hero__line lpnw-hero__line--2">before <em>anyone</em></span>
+			<span class="lpnw-hero__line lpnw-hero__line--3">else.</span>
+		</h1>
+		<p class="lpnw-hero__subtitle">We scan every listing across Northwest England and alert you the moment something matches. While others are still browsing, you already have the details.</p>
+		<div class="lpnw-hero__actions">
+			<a class="lpnw-btn lpnw-btn--primary" href="{$register}">Start free</a>
+			<a class="lpnw-btn lpnw-btn--ghost" href="{$pricing}">See pricing</a>
+		</div>
+	</div>
 </section>
 
 <section class="lpnw-trust-bar" aria-label="How often listings are refreshed">
@@ -287,6 +446,12 @@ HTML;
 
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-pricing-hero-heading">
+	<div class="lpnw-hero__cityscape lpnw-hero__cityscape--pricing" aria-hidden="true">
+		<svg class="lpnw-hero__skyline lpnw-hero__skyline--mid" viewBox="0 0 1600 200" preserveAspectRatio="xMidYMax slice" fill="none">
+			<path d="M0 200V170L40 170L40 155L60 155L60 140L65 135L70 140L70 155L100 155L100 170L200 170L200 150L210 150L210 135L220 135L220 120L225 115L230 120L230 135L240 135L240 150L250 150L250 170L400 170L400 145L410 145L410 130L420 130L420 100L424 90L428 90L428 130L440 130L440 145L450 145L450 170L600 170L600 155L610 155L610 140L620 140L620 155L640 155L640 170L800 170L800 150L810 150L810 135L820 135L820 150L840 150L840 170L1000 170L1000 155L1010 155L1010 140L1020 140L1020 155L1040 155L1040 170L1200 170L1200 160L1220 160L1220 145L1240 145L1240 160L1260 160L1260 170L1400 170L1400 162L1420 162L1420 170L1600 170V200Z" fill="rgba(10,20,38,0.5)"/>
+		</svg>
+		<div class="lpnw-hero__glow"></div>
+	</div>
 	<h1 id="lpnw-pricing-hero-heading">Pricing</h1>
 	<p>We scan Rightmove listings for Northwest England every 15 minutes, match them to your criteria where your plan allows, and email you. Three plans: a free weekly digest, Pro for full filters and alerts as listings are found, and Investor VIP if you want your alerts processed about half an hour before Pro subscribers.</p>
 </section>
@@ -312,33 +477,33 @@ HTML;
 				</tr>
 				<tr>
 					<th scope="row">Area filtering</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td>&mdash;</td>
+					<td>&#10003;</td>
+					<td>&#10003;</td>
 				</tr>
 				<tr>
 					<th scope="row">Bedroom/price/type filters</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td>&mdash;</td>
+					<td>&#10003;</td>
+					<td>&#10003;</td>
 				</tr>
 				<tr>
 					<th scope="row">Subscriber dashboard</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td>&mdash;</td>
+					<td>&#10003;</td>
+					<td>&#10003;</td>
 				</tr>
 				<tr>
 					<th scope="row">Saved properties</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td>&mdash;</td>
+					<td>&#10003;</td>
+					<td>&#10003;</td>
 				</tr>
 				<tr>
 					<th scope="row">Property map</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td>&mdash;</td>
+					<td>&#10003;</td>
+					<td>&#10003;</td>
 				</tr>
 			</tbody>
 		</table>
@@ -382,18 +547,30 @@ HTML;
 <section class="lpnw-how-it-works" id="lpnw-pricing-faq" aria-labelledby="lpnw-pricing-faq-title">
 	<h2 id="lpnw-pricing-faq-title" class="lpnw-how-it-works__title">Frequently asked questions</h2>
 	<div class="lpnw-faq">
-		<h3 class="lpnw-step__title">What exactly does this service do?</h3>
-		<p class="lpnw-step__text">We run an automated check on Rightmove listings for Northwest England roughly every 15 minutes. When a listing matches a paying subscriber&rsquo;s criteria, we send an email. Free accounts get a single weekly digest instead of instant or daily alerts, and they cannot narrow listings with our filters or use the dashboard.</p>
-		<h3 class="lpnw-step__title">How quickly will I get alerts?</h3>
-		<p class="lpnw-step__text">We scan every 15 minutes. On Pro and Investor VIP, you can get an email as soon as we detect a match (or choose a daily summary). Free tier is weekly only. Investor VIP alerts are queued about 30 minutes before the same matches go to Pro.</p>
-		<h3 class="lpnw-step__title">Can I cancel anytime?</h3>
-		<p class="lpnw-step__text">Yes. Cancel whenever you like, no questions asked. You keep access until the end of the billing period you have already paid for.</p>
-		<h3 class="lpnw-step__title">What areas do you cover?</h3>
-		<p class="lpnw-step__text">Northwest England: broadly Manchester, Liverpool, Lancashire, Cheshire, and Cumbria, using the postcode areas we support across the region.</p>
-		<h3 class="lpnw-step__title">Do I need a Rightmove account?</h3>
-		<p class="lpnw-step__text">No. We run the scans; you do not need to log in to Rightmove for this service.</p>
-		<h3 class="lpnw-step__title">Is my payment secure?</h3>
-		<p class="lpnw-step__text">Yes. Card payments go through Stripe. We never see or store your full card details on our site.</p>
+		<details class="lpnw-faq__item" open>
+			<summary class="lpnw-faq__question">What exactly does this service do?</summary>
+			<div class="lpnw-faq__answer"><p>We run an automated check on Rightmove listings for Northwest England roughly every 15 minutes. When a listing matches a paying subscriber&rsquo;s criteria, we send an email. Free accounts get a single weekly digest instead of instant or daily alerts, and they cannot narrow listings with our filters or use the dashboard.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">How quickly will I get alerts?</summary>
+			<div class="lpnw-faq__answer"><p>We scan every 15 minutes. On Pro and Investor VIP, you can get an email as soon as we detect a match (or choose a daily summary). Free tier is weekly only. Investor VIP alerts are queued about 30 minutes before the same matches go to Pro.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Can I cancel anytime?</summary>
+			<div class="lpnw-faq__answer"><p>Yes. Cancel whenever you like, no questions asked. You keep access until the end of the billing period you have already paid for.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">What areas do you cover?</summary>
+			<div class="lpnw-faq__answer"><p>Northwest England: broadly Manchester, Liverpool, Lancashire, Cheshire, and Cumbria, using the postcode areas we support across the region.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Do I need a Rightmove account?</summary>
+			<div class="lpnw-faq__answer"><p>No. We run the scans; you do not need to log in to Rightmove for this service.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Is my payment secure?</summary>
+			<div class="lpnw-faq__answer"><p>Yes. Card payments go through Stripe. We never see or store your full card details on our site.</p></div>
+		</details>
 	</div>
 </section>
 HTML;

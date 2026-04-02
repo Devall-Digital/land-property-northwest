@@ -19,10 +19,22 @@
 	--lpnw-success: #059669;
 	--lpnw-danger: #DC2626;
 	--lpnw-glass-bg: rgba(255, 255, 255, 0.08);
-	--lpnw-glass-bg-light: rgba(255, 255, 255, 0.65);
+	--lpnw-glass-bg-light: rgba(255, 255, 255, 0.10);
 	--lpnw-glass-border: rgba(255, 255, 255, 0.15);
 	--lpnw-glass-blur: 16px;
 	--lpnw-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Override GeneratePress contrast vars for dark theme */
+.lpnw-dashboard,
+.lpnw-subscriber-area,
+.lpnw-preferences-form,
+.lpnw-property-search,
+.lpnw-email-preview {
+	--contrast: rgba(255, 255, 255, 0.88);
+	--contrast-2: rgba(255, 255, 255, 0.65);
+	--contrast-3: rgba(255, 255, 255, 0.4);
+	--base-3: transparent;
 }
 
 /* About / marketing: NW area property counts */
@@ -35,7 +47,7 @@
 	margin: 0 0 1.25rem;
 	font-size: 0.9375rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-total-sources {
@@ -43,7 +55,7 @@
 	font-size: 1rem;
 	font-weight: 600;
 	line-height: 1.5;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-area-stats__grid {
@@ -97,7 +109,7 @@
 	font-size: 0.875rem;
 	line-height: 1.45;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 /* Property search / browse shortcode */
@@ -159,7 +171,7 @@
 .lpnw-property-search__label {
 	font-size: 0.8125rem;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.3;
 }
 
@@ -179,7 +191,7 @@
 	background: rgba(255, 255, 255, 0.4);
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
@@ -206,13 +218,13 @@
 	margin: 0 0 1rem;
 	font-size: 0.9375rem;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.5;
 }
 
 .lpnw-property-search__count--empty {
 	font-weight: 500;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-property-search__count-suffix {
@@ -220,7 +232,7 @@
 	margin-top: 0.35rem;
 	font-size: 0.875rem;
 	font-weight: 500;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-property-search__results-wrap {
@@ -282,7 +294,7 @@
 	margin: 0 0 0.5rem;
 	font-size: 1.125rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.3;
 }
 
@@ -290,7 +302,7 @@
 	margin: 0 0 1.125rem;
 	font-size: 0.875rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-property-search__gate-actions {
@@ -635,13 +647,13 @@
 	font-size: 1.125rem;
 	line-height: 1.35;
 	margin: 0 0 0.25rem;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-property-card__postcode {
 	margin: 0;
 	font-size: 0.8125rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	letter-spacing: 0.02em;
 }
 
@@ -672,7 +684,7 @@
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	line-height: 1.3;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	background: rgba(255, 255, 255, 0.45);
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
@@ -708,7 +720,7 @@
 	margin-left: 0.35rem;
 	font-size: 0.8125rem;
 	font-weight: 600;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	text-transform: lowercase;
 	vertical-align: middle;
 }
@@ -717,7 +729,7 @@
 	margin: 0 0 0.625rem;
 	font-size: 0.8125rem;
 	font-weight: 600;
-	color: var(--lpnw-navy-light, #1A2D4F);
+	color: rgba(255, 255, 255, 0.85);
 }
 
 .lpnw-property-card__meta {
@@ -725,7 +737,7 @@
 	gap: 12px;
 	flex-wrap: wrap;
 	font-size: 0.875rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	margin-bottom: 8px;
 }
 
@@ -733,7 +745,7 @@
 	flex: 1 1 auto;
 	font-size: 0.875rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	margin: 0 0 1rem;
 }
 
@@ -758,7 +770,7 @@
 }
 
 .lpnw-share-link {
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	text-decoration: none;
 	font-weight: 500;
 	transition: color 0.2s ease;
@@ -879,7 +891,7 @@
 }
 
 .lpnw-auction-date--ended {
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	background: transparent;
 	border: none;
 	font-weight: 500;
@@ -900,7 +912,7 @@
 	font-weight: 800;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	margin-right: 0.35rem;
 	vertical-align: baseline;
 }
@@ -927,7 +939,7 @@
 	font-size: 0.65rem;
 	font-weight: 600;
 	line-height: 1.25;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	background: rgba(255, 255, 255, 0.4);
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
@@ -950,7 +962,7 @@
 	font-size: 0.625rem;
 	font-weight: 500;
 	line-height: 1.35;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	border: 1px solid var(--lpnw-glass-border);
 	background: rgba(255, 255, 255, 0.35);
 	backdrop-filter: blur(6px);
@@ -961,7 +973,7 @@
 	margin: 0 0 0.35rem;
 	font-size: 0.75rem;
 	line-height: 1.45;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-property-card--off-market {
@@ -989,14 +1001,14 @@
 	font-size: 0.8125rem;
 	line-height: 1.5;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0f1d35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-property-card__off-market-note {
 	margin: 0 0 0.75rem;
 	font-size: 0.8125rem;
 	line-height: 1.5;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	padding: 0.5rem 0.625rem;
 	background: rgba(15, 29, 53, 0.045);
 	border-radius: 6px;
@@ -1016,7 +1028,7 @@
 .lpnw-field__help--vip-off-market {
 	margin-top: 0.5rem;
 	font-size: 0.8125rem;
-	color: var(--lpnw-navy-light, #1a2d4f);
+	color: rgba(255, 255, 255, 0.85);
 }
 
 .lpnw-property-card__listed {
@@ -1024,7 +1036,7 @@
 	font-size: 0.75rem;
 	line-height: 1.45;
 	font-style: italic;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-btn {
@@ -1073,7 +1085,7 @@
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
 	border: 1px solid rgba(255, 255, 255, 0.2);
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-btn--outline:hover {
@@ -1087,14 +1099,14 @@
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
 	border: 2px solid var(--lpnw-amber, #F0A500);
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	text-decoration: none;
 }
 
 .lpnw-btn--amber-outline:hover {
 	background: linear-gradient(135deg, rgba(240, 165, 0, 0.18) 0%, rgba(0, 212, 170, 0.08) 100%);
 	border-color: var(--lpnw-amber-light, #F7C23A);
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	box-shadow: 0 0 16px rgba(240, 165, 0, 0.15);
 }
 
@@ -1111,7 +1123,7 @@
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
 	border: 1px solid var(--lpnw-glass-border);
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	padding: 8px 12px;
 	letter-spacing: 0.01em;
 }
@@ -1153,7 +1165,7 @@
 	font-size: clamp(2rem, 6vw, 3rem);
 	font-weight: 700;
 	line-height: 1.05;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	margin: 0 0.2em;
 	vertical-align: middle;
 }
@@ -1209,14 +1221,14 @@
 	font-weight: 700;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-dashboard-welcome__title {
 	margin: 0;
 	font-size: clamp(1.35rem, 3vw, 1.85rem);
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.25;
 }
 
@@ -1224,7 +1236,7 @@
 	margin: 0.625rem 0 0;
 	font-size: 0.9375rem;
 	line-height: 1.5;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-dashboard-welcome__tier {
@@ -1293,7 +1305,7 @@
 	font-size: 1rem;
 	font-weight: 600;
 	line-height: 1.45;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	background: var(--lpnw-glass-bg-light);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
@@ -1318,7 +1330,7 @@
 	margin: 0 0 1rem;
 	font-size: 1rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-dashboard-coverage__row {
@@ -1343,12 +1355,12 @@
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-dashboard-coverage__value {
 	font-size: 0.8125rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	text-align: right;
 	flex: 1 1 auto;
 	min-width: 0;
@@ -1400,7 +1412,7 @@
 	flex-shrink: 0;
 	font-size: 0.75rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	min-width: 2.5rem;
 	text-align: right;
 }
@@ -1408,7 +1420,7 @@
 .lpnw-dashboard__title {
 	font-size: clamp(1.25rem, 2.5vw, 1.75rem);
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	margin: 0 0 1.25rem;
 	line-height: 1.3;
 }
@@ -1416,7 +1428,7 @@
 .lpnw-dashboard__section-heading {
 	font-size: 1.125rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	margin: 1.75rem 0 1rem;
 }
 
@@ -1452,7 +1464,7 @@
 	background: var(--lpnw-glass-bg-light);
 	backdrop-filter: blur(var(--lpnw-glass-blur));
 	-webkit-backdrop-filter: blur(var(--lpnw-glass-blur));
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	text-decoration: none;
 	cursor: pointer;
 	box-shadow: var(--lpnw-glass-shadow);
@@ -1498,7 +1510,7 @@
 	box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18), 0 0 16px rgba(240, 165, 0, 0.06);
 	transform: translateY(-4px);
 	background: rgba(255, 255, 255, 0.72);
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-action-card:hover::before {
@@ -1567,12 +1579,12 @@
 .lpnw-action-card__desc {
 	font-size: 0.875rem;
 	line-height: 1.5;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	margin: 0;
 }
 
 .lpnw-action-card:hover .lpnw-action-card__desc {
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 /* Dashboard promo: premium panel (marketing full-bleed strip may be styled in theme). */
@@ -1667,7 +1679,7 @@
 	margin: 0 0 0.75rem;
 	font-size: 1.5rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-email-preview__intro,
@@ -1675,13 +1687,13 @@
 	margin: 0 0 1rem;
 	font-size: 0.9375rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-email-preview__meta {
 	margin-bottom: 1.25rem;
 	font-size: 0.875rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-email-preview__chrome {
@@ -1716,7 +1728,7 @@
 	margin: 0 0 0.75rem;
 	font-size: 0.9375rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-email-preview__empty p:last-of-type {
@@ -1730,7 +1742,7 @@
 
 .lpnw-email-preview__link {
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
@@ -1743,7 +1755,7 @@
 	margin: 0 0 0.625rem;
 	font-size: 0.8125rem;
 	font-weight: 500;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-property-card__description--notes {
@@ -1752,7 +1764,7 @@
 
 .lpnw-property-card__description--notes em {
 	font-style: italic;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 /* Signup shortcode */
@@ -1765,7 +1777,7 @@
 	margin: 0 0 0.75rem;
 	font-size: 1.25rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-signup-form__intro,
@@ -1773,7 +1785,7 @@
 	margin: 0 0 1.25rem;
 	font-size: 0.9375rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-signup-form__lead {
@@ -1782,7 +1794,7 @@
 
 .lpnw-signup-form__lead a {
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
@@ -1888,7 +1900,7 @@
 .lpnw-stat-card__number {
 	font-size: 2.375rem;
 	font-weight: 800;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1;
 	margin-bottom: 6px;
 	letter-spacing: -0.02em;
@@ -1896,7 +1908,7 @@
 
 .lpnw-stat-card__label {
 	font-size: 0.875rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-preferences-form {
@@ -1929,7 +1941,7 @@
 	margin: 0 0 0.75rem;
 	font-size: 1.125rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-preferences-coverage__stat {
@@ -1937,19 +1949,19 @@
 	font-size: 1rem;
 	font-weight: 500;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-preferences-coverage__stat strong {
 	font-weight: 800;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-preferences-coverage__note {
 	margin: 0;
 	font-size: 0.8125rem;
 	line-height: 1.5;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-preferences-form__header-row {
@@ -1976,7 +1988,7 @@
 .lpnw-preferences-form__reset {
 	font-size: 0.875rem;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	text-decoration: underline;
 	text-underline-offset: 3px;
 	transition: color 0.18s ease;
@@ -2055,7 +2067,7 @@
 	padding: 1rem 1.125rem;
 	cursor: pointer;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	list-style: none;
 	transition: background 0.2s ease, color 0.2s ease;
 }
@@ -2075,7 +2087,7 @@
 	grid-row: 2;
 	font-size: 0.8125rem;
 	font-weight: 500;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-prefs-section__summary::after {
@@ -2120,7 +2132,7 @@
 }
 
 .lpnw-preferences-form__intro {
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	font-size: 0.9375rem;
 	line-height: 1.5;
 	margin: 0 0 1.5rem;
@@ -2140,7 +2152,7 @@
 	display: block;
 	font-weight: 600;
 	margin-bottom: 6px;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	font-size: 0.9375rem;
 }
 
@@ -2158,7 +2170,7 @@
 .lpnw-preferences-form .lpnw-fieldset__legend {
 	font-weight: 700;
 	font-size: 1rem;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	padding: 0 0.35rem;
 	margin-bottom: 0.25rem;
 }
@@ -2166,7 +2178,7 @@
 .lpnw-preferences-form .lpnw-field__help {
 	font-size: 0.8125rem;
 	line-height: 1.5;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	margin: 0 0 1rem;
 	max-width: 52ch;
 }
@@ -2185,7 +2197,7 @@
 .lpnw-select-all-label {
 	margin: 0;
 	font-size: 0.8125rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	display: inline-flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -2204,7 +2216,7 @@
 	font: inherit;
 	font-size: inherit;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	cursor: pointer;
 	text-decoration: underline;
 	text-underline-offset: 2px;
@@ -2239,7 +2251,7 @@
 	display: block;
 	font-weight: 600;
 	margin-bottom: 6px;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	font-size: 0.875rem;
 }
 
@@ -2254,7 +2266,7 @@
 	background-color: rgba(255, 255, 255, 0.4);
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	transition:
 		border-color 0.3s ease,
 		box-shadow 0.3s ease,
@@ -2315,7 +2327,7 @@
 
 .lpnw-field__optional {
 	font-weight: 400;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	font-size: 0.875em;
 }
 
@@ -2337,11 +2349,11 @@
 	margin: 1rem 0 0;
 	font-size: 0.875rem;
 	line-height: 1.5;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-signup-form__foot a {
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	font-weight: 600;
 	text-decoration: underline;
 	text-underline-offset: 2px;
@@ -2401,7 +2413,7 @@
 
 .lpnw-checkbox-group__item input:checked + span {
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 }
 
 .lpnw-checkbox-group__item:has(input:checked) {
@@ -2717,7 +2729,7 @@
 	font-size: 0.8125rem;
 	font-weight: 600;
 	font-style: normal;
-	color: var(--lpnw-navy-light, #1A2D4F);
+	color: rgba(255, 255, 255, 0.85);
 	transition: color 0.2s ease;
 }
 
@@ -2748,7 +2760,7 @@ body.page-saved-properties .entry-content > p:first-child {
 	text-align: center;
 	font-size: 0.9375rem;
 	line-height: 1.6;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	border: 1px solid var(--lpnw-glass-border);
 	border-radius: 16px;
 	background: var(--lpnw-glass-bg-light);
@@ -2779,7 +2791,7 @@ body.page-saved-properties .entry-content > p:first-child::before {
 body.page-saved .entry-content > p:first-child a,
 body.page-saved-properties .entry-content > p:first-child a {
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	text-decoration: underline;
 	text-underline-offset: 2px;
 	transition: color 0.2s ease;
@@ -2926,7 +2938,7 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 .lpnw-property-search__label {
 	font-size: 0.8125rem;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.3;
 }
 
@@ -2948,7 +2960,7 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 	background: rgba(255, 255, 255, 0.4);
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 	transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 
@@ -2967,13 +2979,13 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 	margin: 0 0 1rem;
 	font-size: 0.9375rem;
 	font-weight: 600;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.45;
 }
 
 .lpnw-property-search__count--empty {
 	font-weight: 500;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-property-search__count--gated .lpnw-property-search__count-suffix {
@@ -2981,7 +2993,7 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 	margin-top: 0.35rem;
 	font-size: 0.8125rem;
 	font-weight: 500;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 }
 
 .lpnw-property-search__results-wrap {
@@ -3042,7 +3054,7 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 	margin: 0 0 0.5rem;
 	font-size: 1.25rem;
 	font-weight: 700;
-	color: var(--lpnw-navy, #0F1D35);
+	color: var(--lpnw-white, #FFFFFF);
 	line-height: 1.25;
 }
 
@@ -3050,7 +3062,7 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 	margin: 0 0 1.125rem;
 	font-size: 0.9375rem;
 	line-height: 1.55;
-	color: var(--lpnw-grey-dark, #374151);
+	color: rgba(255, 255, 255, 0.78);
 }
 
 .lpnw-property-search__gate-actions {
@@ -3076,7 +3088,7 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 	cursor: not-allowed;
 	font-weight: 600;
 	font-size: 0.875rem;
-	color: var(--lpnw-grey, #6B7280);
+	color: rgba(255, 255, 255, 0.55);
 	padding: 8px 16px;
 	border-radius: 6px;
 	border: 1px solid var(--lpnw-grey-light, #E5E7EB);
@@ -3086,5 +3098,589 @@ body.page-email-preview .site-header .main-navigation .main-nav ul li.lpnw-nav-l
 @media (min-width: 900px) {
 	.lpnw-property-search__field--submit {
 		flex: 0 0 auto;
+	}
+}
+
+/* -------------------------------------------------------------------------
+   Dark-theme text readability fixes
+   Glass panels are nearly transparent; force light text throughout.
+   ------------------------------------------------------------------------- */
+
+/* Slightly more visible glass for key panels */
+.lpnw-prefs-section,
+.lpnw-preferences-coverage,
+.lpnw-dashboard-welcome,
+.lpnw-dashboard-coverage,
+.lpnw-dashboard-summary,
+.lpnw-action-card,
+.lpnw-stat-card,
+.lpnw-email-preview__chrome,
+.lpnw-email-preview__empty,
+.lpnw-property-search__filters,
+.lpnw-property-search__gate-panel,
+.lpnw-login-prompt {
+	background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Form controls: readable text and visible borders */
+.lpnw-preferences-form select,
+.lpnw-preferences-form input[type="number"],
+.lpnw-contact-form input[type="text"],
+.lpnw-contact-form input[type="email"],
+.lpnw-contact-form textarea {
+	background-color: rgba(255, 255, 255, 0.08) !important;
+	color: rgba(255, 255, 255, 0.88) !important;
+	border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.lpnw-preferences-form select:focus,
+.lpnw-preferences-form input[type="number"]:focus,
+.lpnw-contact-form input[type="text"]:focus,
+.lpnw-contact-form input[type="email"]:focus,
+.lpnw-contact-form textarea:focus {
+	background-color: rgba(255, 255, 255, 0.12) !important;
+	color: #FFFFFF !important;
+}
+
+.lpnw-preferences-form select option {
+	background: #1A2D4F;
+	color: #FFFFFF;
+}
+
+/* Checkbox group items on dark background */
+.lpnw-checkbox-group__item {
+	background: rgba(255, 255, 255, 0.06) !important;
+	color: rgba(255, 255, 255, 0.78) !important;
+	border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.lpnw-checkbox-group__item:hover {
+	background: rgba(255, 255, 255, 0.12) !important;
+	border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.lpnw-checkbox-group__item:has(input:checked) {
+	background: rgba(240, 165, 0, 0.15) !important;
+	border-color: rgba(240, 165, 0, 0.4) !important;
+	color: #FFFFFF !important;
+}
+
+/* Preferences section summary/body */
+.lpnw-prefs-section__summary {
+	color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.lpnw-prefs-section__summary:hover {
+	background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.lpnw-prefs-section__summary::after {
+	border-color: var(--lpnw-amber, #F0A500) !important;
+}
+
+.lpnw-prefs-section__body {
+	border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.lpnw-prefs-section__hint {
+	color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Property card text on dark glass */
+.lpnw-property-card__title,
+.lpnw-property-card__address {
+	color: #FFFFFF !important;
+}
+
+.lpnw-property-card__postcode {
+	color: rgba(255, 255, 255, 0.55) !important;
+}
+
+.lpnw-property-card__description {
+	color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.lpnw-property-card__rooms {
+	color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ==========================================================================
+   PREMIUM PROPTECH DARK THEME OVERHAUL
+   ========================================================================== */
+
+/* Dashboard, Preferences, and subscriber page panels */
+.lpnw-dashboard-welcome,
+.lpnw-dashboard-coverage,
+.lpnw-dashboard-summary,
+.lpnw-preferences-coverage,
+.lpnw-prefs-section,
+.lpnw-action-card,
+.lpnw-stat-card,
+.lpnw-email-preview__chrome,
+.lpnw-email-preview__empty,
+.lpnw-login-prompt,
+.lpnw-property-search__filters,
+.lpnw-property-search__gate-panel {
+	background: rgba(26, 45, 79, 0.55) !important;
+	border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Property cards - solid dark navy background */
+.lpnw-property-card {
+	background: rgba(26, 45, 79, 0.6) !important;
+	border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.lpnw-property-card:hover {
+	background: rgba(26, 45, 79, 0.75) !important;
+	border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+/* All text on dark backgrounds */
+.lpnw-property-card__title,
+.lpnw-property-card__address,
+.lpnw-dashboard-welcome__title,
+.lpnw-dashboard-coverage__heading,
+.lpnw-dashboard__title,
+.lpnw-dashboard__section-heading,
+.lpnw-action-card__title,
+.lpnw-stat-card__number,
+.lpnw-preferences-coverage__title,
+.lpnw-email-preview__title,
+.lpnw-property-search__gate-title {
+	color: #FFFFFF !important;
+}
+
+.lpnw-property-card__description,
+.lpnw-action-card__desc,
+.lpnw-dashboard-welcome__hint,
+.lpnw-preferences-coverage__stat,
+.lpnw-email-preview__intro,
+.lpnw-email-preview__meta,
+.lpnw-property-search__gate-text {
+	color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.lpnw-property-card__postcode,
+.lpnw-property-card__agent,
+.lpnw-property-card__rooms,
+.lpnw-stat-card__label,
+.lpnw-dashboard-welcome__kicker,
+.lpnw-dashboard-coverage__value,
+.lpnw-dashboard-coverage__title,
+.lpnw-preferences-coverage__note,
+.lpnw-property-card__listed,
+.lpnw-property-card__saved-meta {
+	color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Price always amber */
+.lpnw-property-card__price-currency {
+	color: var(--lpnw-amber, #F0A500) !important;
+}
+
+/* Form controls on dark background */
+.lpnw-preferences-form select,
+.lpnw-preferences-form input[type="number"],
+.lpnw-property-search__control,
+.lpnw-contact-form input[type="text"],
+.lpnw-contact-form input[type="email"],
+.lpnw-contact-form textarea {
+	background: rgba(15, 29, 53, 0.8) !important;
+	color: rgba(255, 255, 255, 0.9) !important;
+	border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.lpnw-preferences-form select:focus,
+.lpnw-preferences-form input[type="number"]:focus,
+.lpnw-property-search__control:focus,
+.lpnw-contact-form input[type="text"]:focus,
+.lpnw-contact-form input[type="email"]:focus,
+.lpnw-contact-form textarea:focus {
+	background: rgba(15, 29, 53, 0.95) !important;
+	color: #FFFFFF !important;
+	border-color: var(--lpnw-amber, #F0A500) !important;
+}
+
+.lpnw-preferences-form select option {
+	background: #1A2D4F;
+	color: #FFFFFF;
+}
+
+/* Checkbox groups */
+.lpnw-checkbox-group__item {
+	background: rgba(15, 29, 53, 0.6) !important;
+	color: rgba(255, 255, 255, 0.8) !important;
+	border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.lpnw-checkbox-group__item:hover {
+	background: rgba(26, 45, 79, 0.7) !important;
+	border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.lpnw-checkbox-group__item:has(input:checked) {
+	background: rgba(240, 165, 0, 0.15) !important;
+	border-color: rgba(240, 165, 0, 0.4) !important;
+	color: #FFFFFF !important;
+}
+
+/* Preferences section headers */
+.lpnw-prefs-section__summary {
+	color: #FFFFFF !important;
+}
+
+.lpnw-prefs-section__hint {
+	color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.lpnw-prefs-section__summary:hover {
+	background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.lpnw-prefs-section__summary::after {
+	border-color: var(--lpnw-amber, #F0A500) !important;
+}
+
+.lpnw-prefs-section__body {
+	border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Preferences form labels and help text */
+.lpnw-preferences-form .lpnw-field > label,
+.lpnw-preferences-form .lpnw-fieldset__legend,
+.lpnw-price-range__field label,
+.lpnw-property-search__label {
+	color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.lpnw-preferences-form .lpnw-field__help,
+.lpnw-property-search__count,
+.lpnw-property-search__count--empty {
+	color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Dashboard stat card icon visibility */
+.lpnw-stat-card__icon {
+	opacity: 0.8;
+}
+
+/* Action card icon visibility */
+.lpnw-action-card__icon {
+	box-shadow: none !important;
+}
+
+/* Dashboard welcome tier card */
+.lpnw-dashboard-welcome__tier {
+	background: rgba(15, 29, 53, 0.9) !important;
+}
+
+/* Progress bar tracks */
+.lpnw-progress__track {
+	background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.lpnw-progress__pct {
+	color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Browse Properties search count and filter labels */
+.lpnw-property-search__count {
+	color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.lpnw-property-search__count-suffix {
+	color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Saved properties empty state */
+body.page-saved .entry-content > p:first-child,
+body.page-saved-properties .entry-content > p:first-child {
+	background: rgba(26, 45, 79, 0.55) !important;
+	color: rgba(255, 255, 255, 0.72) !important;
+}
+
+body.page-saved .entry-content > p:first-child a,
+body.page-saved-properties .entry-content > p:first-child a {
+	color: var(--lpnw-teal, #00D4AA) !important;
+}
+
+/* Area stats on About page */
+.lpnw-area-stats__item {
+	background: rgba(26, 45, 79, 0.55) !important;
+	border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.lpnw-area-stats__text {
+	color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.lpnw-total-sources {
+	color: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* WooCommerce My Account pages - dark theme */
+.woocommerce-account .woocommerce,
+.woocommerce-account .woocommerce-MyAccount-content {
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.woocommerce-account .woocommerce table,
+.woocommerce-account .woocommerce-orders-table {
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.woocommerce-account .woocommerce table th {
+	color: #FFFFFF;
+	background: rgba(15, 29, 53, 0.6);
+	border-color: rgba(255, 255, 255, 0.08);
+}
+
+.woocommerce-account .woocommerce table td {
+	color: rgba(255, 255, 255, 0.78);
+	border-color: rgba(255, 255, 255, 0.06);
+	background: transparent;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li a {
+	display: block;
+	padding: 10px 16px;
+	color: rgba(255, 255, 255, 0.78) !important;
+	text-decoration: none;
+	border-radius: 8px;
+	margin-bottom: 4px;
+	transition: background 0.15s ease;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li a:hover {
+	background: rgba(255, 255, 255, 0.06);
+	color: #FFFFFF !important;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+	background: rgba(240, 165, 0, 0.12);
+	color: var(--lpnw-amber, #F0A500) !important;
+	font-weight: 600;
+}
+
+.woocommerce-account .woocommerce input[type="text"],
+.woocommerce-account .woocommerce input[type="email"],
+.woocommerce-account .woocommerce input[type="password"],
+.woocommerce-account .woocommerce input[type="tel"],
+.woocommerce-account .woocommerce select,
+.woocommerce-account .woocommerce textarea {
+	background: rgba(15, 29, 53, 0.8) !important;
+	color: rgba(255, 255, 255, 0.9) !important;
+	border: 1px solid rgba(255, 255, 255, 0.15) !important;
+	border-radius: 8px;
+	padding: 10px 14px;
+}
+
+.woocommerce-account .woocommerce input:focus,
+.woocommerce-account .woocommerce select:focus,
+.woocommerce-account .woocommerce textarea:focus {
+	border-color: var(--lpnw-amber, #F0A500) !important;
+	background: rgba(15, 29, 53, 0.95) !important;
+}
+
+.woocommerce-account .woocommerce label {
+	color: rgba(255, 255, 255, 0.85);
+	font-weight: 600;
+}
+
+.woocommerce-account .woocommerce h2,
+.woocommerce-account .woocommerce h3 {
+	color: #FFFFFF;
+}
+
+.woocommerce-account .woocommerce .woocommerce-Message,
+.woocommerce-account .woocommerce .woocommerce-info,
+.woocommerce-account .woocommerce .woocommerce-message {
+	background: rgba(26, 45, 79, 0.55);
+	border-left-color: var(--lpnw-amber, #F0A500);
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.woocommerce-account .woocommerce .button,
+.woocommerce-account .woocommerce button[type="submit"] {
+	background: linear-gradient(135deg, var(--lpnw-amber, #F0A500) 0%, #C58700 100%) !important;
+	color: #FFFFFF !important;
+	border: none !important;
+	border-radius: 8px !important;
+	padding: 12px 24px !important;
+	font-weight: 600 !important;
+	cursor: pointer;
+}
+
+.woocommerce-account .woocommerce .button:hover,
+.woocommerce-account .woocommerce button[type="submit"]:hover {
+	box-shadow: 0 4px 16px rgba(240, 165, 0, 0.3) !important;
+}
+
+/* Map page container */
+.lpnw-map-wrap {
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.lpnw-map-controls {
+	background: rgba(26, 45, 79, 0.6) !important;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	padding: 12px 16px;
+}
+
+.lpnw-map-controls select {
+	background: rgba(15, 29, 53, 0.8) !important;
+	color: rgba(255, 255, 255, 0.9) !important;
+	border: 1px solid rgba(255, 255, 255, 0.15) !important;
+	border-radius: 8px;
+	padding: 8px 12px;
+	font-size: 0.875rem;
+}
+
+/* Map legend */
+.lpnw-map-legend {
+	background: rgba(26, 45, 79, 0.8) !important;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+	padding: 8px 12px;
+	color: rgba(255, 255, 255, 0.8);
+	font-size: 0.8125rem;
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLES 4-7
+   ========================================================================== */
+
+/* Property card - subtle left-border accent by source */
+.lpnw-property-card:has(.lpnw-source-badge--rightmove) {
+	border-left: 3px solid rgba(0, 163, 80, 0.4);
+}
+
+.lpnw-property-card:has(.lpnw-source-badge--onthemarket) {
+	border-left: 3px solid rgba(147, 51, 234, 0.4);
+}
+
+.lpnw-property-card:has(.lpnw-source-badge--auction) {
+	border-left: 3px solid rgba(220, 38, 38, 0.4);
+}
+
+/* Property card NEW badge - better pulse */
+.lpnw-new-badge {
+	background: linear-gradient(135deg, rgba(240, 165, 0, 0.9) 0%, rgba(197, 135, 0, 0.85) 100%) !important;
+	font-size: 0.6rem !important;
+	padding: 3px 8px !important;
+}
+
+/* Pricing card feature list - better spacing */
+.lpnw-pricing-card__features li {
+	padding: 12px 0 !important;
+	font-size: 0.9rem !important;
+}
+
+/* Preferences coverage preview - more prominent */
+.lpnw-preferences-coverage__stat strong {
+	color: var(--lpnw-amber, #F0A500) !important;
+	font-size: 1.25rem !important;
+}
+
+/* Dashboard stat card number - larger and bolder */
+.lpnw-stat-card__number {
+	font-size: 2.75rem !important;
+	color: #FFFFFF !important;
+}
+
+/* Dashboard summary message - amber left border */
+.lpnw-dashboard-summary {
+	border-left-color: var(--lpnw-amber, #F0A500) !important;
+}
+
+/* Action card - hover glow */
+.lpnw-action-card:hover {
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 20px rgba(240, 165, 0, 0.06) !important;
+	border-color: rgba(240, 165, 0, 0.15) !important;
+}
+
+/* Browse Properties filter bar - better look */
+.lpnw-property-search__filters {
+	border-radius: 12px !important;
+}
+
+/* Property search gate panel - centered and polished */
+.lpnw-property-search__gate-panel {
+	border-radius: 16px !important;
+	box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Map wrapper styling */
+.lpnw-map-wrap,
+#lpnw-map {
+	border-radius: 12px !important;
+	overflow: hidden !important;
+	border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Leaflet map popup styling for dark theme */
+.leaflet-popup-content-wrapper {
+	background: rgba(26, 45, 79, 0.95) !important;
+	color: rgba(255, 255, 255, 0.88) !important;
+	border-radius: 10px !important;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-popup-tip {
+	background: rgba(26, 45, 79, 0.95) !important;
+}
+
+.leaflet-popup-content a {
+	color: var(--lpnw-teal, #00D4AA) !important;
+}
+
+/* Contact form field focus glow */
+.lpnw-contact-form input:focus,
+.lpnw-contact-form textarea:focus {
+	box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.15), 0 0 12px rgba(240, 165, 0, 0.08) !important;
+}
+
+/* About page area stats - better card look */
+.lpnw-area-stats__item {
+	border-radius: 10px !important;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+.lpnw-area-stats__item:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+	border-color: rgba(240, 165, 0, 0.2) !important;
+}
+
+/* Saved properties unsave button - cleaner */
+.lpnw-unsave-property {
+	border-radius: 8px !important;
+}
+
+/* Email preview iframe chrome */
+.lpnw-email-preview__chrome {
+	border-radius: 12px !important;
+}
+
+/* Mobile: ensure touch targets are large enough */
+@media (max-width: 480px) {
+	.lpnw-property-card__actions .lpnw-btn {
+		min-height: 48px !important;
+		font-size: 0.9375rem !important;
+	}
+	
+	.lpnw-checkbox-group__item {
+		min-height: 48px !important;
+		font-size: 0.9375rem !important;
 	}
 }

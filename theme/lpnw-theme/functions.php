@@ -50,7 +50,7 @@ add_action( 'wp_enqueue_scripts', function () {
 
 	wp_enqueue_style(
 		'lpnw-fonts',
-		'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
+		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
 		array(),
 		null
 	);
@@ -92,7 +92,7 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 			document.body.classList.toggle('lpnw-scrolled', window.scrollY > scrollThreshold);
 		}, { passive: true });
 
-		var revealEls = document.querySelectorAll('.lpnw-reveal');
+		var revealEls = document.querySelectorAll('.lpnw-reveal, .lpnw-trust-bar, .lpnw-stats-bar, .lpnw-how-it-works, .lpnw-home-feed, .lpnw-pricing-section, .lpnw-cta-banner:not(.lpnw-cta-banner--dashboard)');
 		if (reduceMotion) {
 			revealEls.forEach(function (el) {
 				el.classList.add('lpnw-visible');
@@ -115,22 +115,115 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 			});
 		}
 
-		if (!reduceMotion && window.matchMedia('(hover: hover) and (min-width: 768px)').matches) {
-			var hero = document.querySelector('.lpnw-hero');
-			if (hero) {
-				var shapes = hero.querySelectorAll('.lpnw-hero__shape');
-				if (shapes.length) {
-					hero.addEventListener('mousemove', function (e) {
-						var rect = hero.getBoundingClientRect();
-						var x = (e.clientX - rect.left) / rect.width - 0.5;
-						var y = (e.clientY - rect.top) / rect.height - 0.5;
-						shapes.forEach(function (shape, i) {
-							var depth = (i + 1) * 15;
-							shape.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth) + 'px)';
-						});
-					}, { passive: true });
+		var heroIllustration = document.querySelector('.lpnw-hero__illustration');
+		var illParallaxTarget = 0;
+		var illParallaxCurr = 0;
+		if (heroIllustration && !reduceMotion) {
+			window.addEventListener('scroll', function () {
+				var sy = window.scrollY;
+				illParallaxTarget = sy < 1000 ? -sy * 0.092 : -92;
+			}, { passive: true });
+			function lpnwHeroParallaxFrame() {
+				illParallaxCurr += (illParallaxTarget - illParallaxCurr) * 0.14;
+				heroIllustration.style.transform = 'translateY(' + illParallaxCurr + 'px)';
+				requestAnimationFrame(lpnwHeroParallaxFrame);
+			}
+			requestAnimationFrame(lpnwHeroParallaxFrame);
+		}
+
+		var heroCanvas = document.getElementById('lpnw-hero-particles');
+		if (heroCanvas && !reduceMotion) {
+			var ctx = heroCanvas.getContext('2d');
+			var particles = [];
+			var mouse = { x: -999, y: -999 };
+			var numParticles = 72;
+			var connectDist = 128;
+
+			function resizeCanvas() {
+				var hero = heroCanvas.closest('.lpnw-hero');
+				if (hero) {
+					heroCanvas.width = hero.offsetWidth;
+					heroCanvas.height = hero.offsetHeight;
 				}
 			}
+			resizeCanvas();
+			window.addEventListener('resize', resizeCanvas);
+
+			var colors = [
+				'rgba(240,165,0,0.6)',
+				'rgba(240,165,0,0.4)',
+				'rgba(0,212,170,0.5)',
+				'rgba(0,212,170,0.3)',
+				'rgba(255,255,255,0.3)',
+				'rgba(255,255,255,0.2)'
+			];
+
+			for (var i = 0; i < numParticles; i++) {
+				particles.push({
+					x: Math.random() * heroCanvas.width,
+					y: Math.random() * heroCanvas.height,
+					vx: (Math.random() - 0.5) * 0.4,
+					vy: -Math.random() * 0.6 - 0.1,
+					r: Math.random() * 2.5 + 0.5,
+					color: colors[Math.floor(Math.random() * colors.length)],
+					alpha: Math.random() * 0.5 + 0.3
+				});
+			}
+
+			heroCanvas.addEventListener('mousemove', function (e) {
+				var rect = heroCanvas.getBoundingClientRect();
+				mouse.x = e.clientX - rect.left;
+				mouse.y = e.clientY - rect.top;
+			}, { passive: true });
+			heroCanvas.addEventListener('mouseleave', function () {
+				mouse.x = -999; mouse.y = -999;
+			});
+
+			function drawParticles() {
+				ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+				var scrollFade = Math.max(0, 1 - window.scrollY / (heroCanvas.height || 600));
+				ctx.globalAlpha = scrollFade;
+
+				for (var i = 0; i < particles.length; i++) {
+					var p = particles[i];
+					var dx = mouse.x - p.x;
+					var dy = mouse.y - p.y;
+					var dist = Math.sqrt(dx * dx + dy * dy);
+					if (dist < 100 && dist > 0) {
+						p.x -= (dx / dist) * 1.5;
+						p.y -= (dy / dist) * 1.5;
+					}
+					p.x += p.vx;
+					p.y += p.vy;
+					if (p.y < -10) { p.y = heroCanvas.height + 10; p.x = Math.random() * heroCanvas.width; }
+					if (p.x < -10) p.x = heroCanvas.width + 10;
+					if (p.x > heroCanvas.width + 10) p.x = -10;
+
+					ctx.beginPath();
+					ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+					ctx.fillStyle = p.color;
+					ctx.fill();
+
+					for (var j = i + 1; j < particles.length; j++) {
+						var p2 = particles[j];
+						var d = Math.sqrt((p.x - p2.x) * (p.x - p2.x) + (p.y - p2.y) * (p.y - p2.y));
+						if (d < connectDist) {
+							ctx.beginPath();
+							ctx.moveTo(p.x, p.y);
+							ctx.lineTo(p2.x, p2.y);
+							var fade = 0.09 * (1 - d / connectDist);
+							ctx.strokeStyle = (i + j) % 4 === 0
+								? 'rgba(0,212,170,' + (fade * 0.85) + ')'
+								: 'rgba(240,165,0,' + fade + ')';
+							ctx.lineWidth = 0.55;
+							ctx.stroke();
+						}
+					}
+				}
+				ctx.globalAlpha = 1;
+				requestAnimationFrame(drawParticles);
+			}
+			drawParticles();
 		}
 
 		if (!reduceMotion && 'IntersectionObserver' in window) {
@@ -589,7 +682,7 @@ add_filter(
 		if ( is_front_page() ) {
 			return false;
 		}
-		if ( is_page( array( 'dashboard', 'preferences', 'saved', 'saved-properties', 'map', 'email-preview' ) ) ) {
+		if ( is_page( array( 'dashboard', 'preferences', 'saved', 'saved-properties', 'map', 'email-preview', 'pricing' ) ) ) {
 			return false;
 		}
 		return $show;
@@ -619,6 +712,14 @@ add_filter(
  */
 function lpnw_theme_get_browse_properties_url(): string {
 	$page = get_page_by_path( 'properties' );
+	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
+		$permalink = get_permalink( $page );
+		if ( is_string( $permalink ) && '' !== $permalink ) {
+			return $permalink;
+		}
+	}
+
+	$page = get_page_by_path( 'browse-properties' );
 	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
 		$permalink = get_permalink( $page );
 		if ( is_string( $permalink ) && '' !== $permalink ) {
@@ -676,14 +777,14 @@ function lpnw_theme_nav_item_is_browse_properties( $item ): bool {
 	if ( isset( $item->object_id, $item->type, $item->object )
 		&& 'post_type' === $item->type && 'page' === $item->object ) {
 		$page = get_post( (int) $item->object_id );
-		if ( $page instanceof WP_Post && 'properties' === $page->post_name ) {
+		if ( $page instanceof WP_Post && in_array( $page->post_name, array( 'properties', 'browse-properties' ), true ) ) {
 			return true;
 		}
 	}
 
 	if ( ! empty( $item->url ) && is_string( $item->url ) ) {
 		$path = wp_parse_url( $item->url, PHP_URL_PATH );
-		if ( is_string( $path ) && preg_match( '#(^|/)properties/?$#', $path ) ) {
+		if ( is_string( $path ) && preg_match( '#(^|/)(properties|browse-properties)/?$#', $path ) ) {
 			return true;
 		}
 	}

@@ -212,7 +212,8 @@ class LPNW_Dispatcher {
 			$dashboard_url          = home_url( '/dashboard/' );
 			$unsubscribe_url        = add_query_arg( 'tab', 'preferences', $dashboard_url );
 			include $template_path;
-			return ob_get_clean();
+			$html = ob_get_clean();
+			return is_string( $html ) ? $html : '';
 		}
 
 		return self::build_plain_email( $properties );
