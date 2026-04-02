@@ -30,6 +30,10 @@ $saved_count = (int) $wpdb->get_var(
 	)
 );
 
+$show_alert_schedule_tip = is_user_logged_in() && in_array( strtolower( (string) $tier ), array( 'pro', 'vip' ), true )
+	? LPNW_WooCommerce_Notices::consume_alert_schedule_tip( $user_id )
+	: false;
+
 $tier_key = strtolower( (string) $tier );
 switch ( $tier_key ) {
 	case 'vip':
@@ -73,6 +77,29 @@ $type_bar_label  = $types_selected > 0
 ?>
 
 <div class="lpnw-dashboard lpnw-dashboard--subscriber lpnw-subscriber-area">
+	<?php if ( $show_alert_schedule_tip ) : ?>
+		<div class="lpnw-dashboard-notice lpnw-dashboard-notice--info" role="status">
+			<p class="lpnw-dashboard-notice__title"><?php esc_html_e( 'How your alerts are sent', 'lpnw-alerts' ); ?></p>
+			<p class="lpnw-dashboard-notice__text">
+				<?php
+				if ( 'vip' === $tier_key ) {
+					esc_html_e(
+						'Thank you for upgrading. Alerts are sent when new listings match your saved preferences. You can choose instant emails or a daily digest under Alert preferences. Weekly digest is not used on VIP; if you had weekly selected, we use daily instead.',
+						'lpnw-alerts'
+					);
+				} else {
+					esc_html_e(
+						'Thank you for upgrading. Alerts are sent when new listings match your saved preferences. Choose instant emails or a daily digest under Alert preferences. If you expected instant mail and see a delay, check that frequency is set to instant and allow a few minutes after checkout.',
+						'lpnw-alerts'
+					);
+				}
+				?>
+			</p>
+			<p class="lpnw-dashboard-notice__cta">
+				<a class="lpnw-btn lpnw-btn--outline" href="<?php echo esc_url( home_url( '/preferences/' ) ); ?>"><?php esc_html_e( 'Review alert preferences', 'lpnw-alerts' ); ?></a>
+			</p>
+		</div>
+	<?php endif; ?>
 	<section class="lpnw-dashboard-welcome" aria-labelledby="lpnw-dashboard-welcome-heading">
 		<div class="lpnw-dashboard-welcome__main">
 			<p class="lpnw-dashboard-welcome__kicker"><?php esc_html_e( 'Subscriber dashboard', 'lpnw-alerts' ); ?></p>

@@ -36,7 +36,11 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **Shallow checks** (curl status codes, public REST) catch outages only. **Deep dives** need many probes in parallel: key URLs, forms, logged-in flows, WooCommerce paths, feed admin screens, mobile breakpoints, console errors, and cross-links. That is best done with **several agents or browser sessions at once**, each owning a slice (e.g. one on commerce, one on subscriber UX, one on plugin admin, one on SEO/schema). I will use that pattern whenever you want maximum coverage quickly.
 
-**Branch discipline:** Until you explicitly allow deploys to production, work stays on the agreed git branch; live site is **read-only** from our side except agreed smoke checks.
+**GitHub vs live:** This repo is the **source of truth** for **plugin and theme code**. Pushing to GitHub means you can redeploy or rebuild the custom product after a host failure. A full site restore also needs **WordPress database, uploads, and wp-config** (use **UpdraftPlus** or 20i backups on a schedule). FTP deploy only replaces the two custom folders.
+
+**Live deploy:** After commits are on GitHub, deploy plugin + theme with `./tools/deploy-ftp.sh` (or manual FTP per `docs/DEPLOYMENT.md`).
+
+**If portals block the server:** The product is built to use **many sources** (Rightmove, OnTheMarket, Zoopla, auctions, planning, EPC, Land Registry). If one portal blocks scraping, **others keep feeding** the index; watch **LPNW Alerts → Feed Status**. Longer term: **official feed or data licence**, **partner API**, or a **dedicated egress IP / proxy** agreed with the portal (legal and commercial, not a code flip). Keep **EPC API key** and **non-portal feeds** enabled to widen coverage.
 
 ---
 

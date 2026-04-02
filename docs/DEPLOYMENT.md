@@ -35,6 +35,16 @@ Get these from 20i panel > Manage Hosting > FTP Users:
 3. Upload the entire `lpnw-theme/` folder (overwrite existing)
 4. No further action needed; changes take effect immediately
 
+## Automated mirror (from repo root)
+
+With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
+
+```bash
+./tools/deploy-ftp.sh
+```
+
+This mirrors `plugin/lpnw-property-alerts/` and `theme/lpnw-theme/` into `public_html/wp-content/` on the 20i package (same layout as manual upload).
+
 ## Quick Deploy Script
 
 If you have `lftp` or `ncftp` installed, you can script the deployment:
