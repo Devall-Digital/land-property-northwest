@@ -27,6 +27,29 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 ---
 
+## How we test (depth and parallelism)
+
+**Shallow checks** (curl status codes, public REST) catch outages only. **Deep dives** need many probes in parallel: key URLs, forms, logged-in flows, WooCommerce paths, feed admin screens, mobile breakpoints, console errors, and cross-links. That is best done with **several agents or browser sessions at once**, each owning a slice (e.g. one on commerce, one on subscriber UX, one on plugin admin, one on SEO/schema). I will use that pattern whenever you want maximum coverage quickly.
+
+**Branch discipline:** Until you explicitly allow deploys to production, work stays on the agreed git branch; live site is **read-only** from our side except agreed smoke checks.
+
+---
+
+## WordPress admin on 20i (login workaround)
+
+20i can block **normal** `wp-login.php` access for automated or scripted use. The repo ships **temporary** PHP helpers that log a user in by setting auth cookies on `init`, then redirect (they are **not** a replacement for proper security).
+
+| Script (in repo) | Purpose |
+|------------------|---------|
+| `tools/lpnw-autologin.php` | One-shot login as **first administrator** (by user ID), redirect to **wp-admin**, then **deletes itself**. |
+| `mu-plugins/lpnw-login-as.php` | One-shot login as **admin** (same as above) or **test** subscriber (`admin@codevall.co.uk` → dashboard), then **deletes itself**. |
+
+**Typical use:** Upload the chosen file to `wp-content/mu-plugins/` (must load on every request), hit the URL once with the query args defined **inside that file** (`lpnw_autologin` / `lpnw_login_as` and `key`), complete the review in the browser, confirm the file removed itself (or delete it if something failed). **Never leave these on the server after use.** If the shared `key` in those files could have leaked, change it in the repo and on any future copy you upload.
+
+Authenticated API checks (e.g. custom endpoints) are an alternative once a session or application password exists; the script path matches what you described for admin visibility under 20i.
+
+---
+
 ## Last live verification
 
 **Checked:** 2 April 2026 (automated smoke checks from agent environment)
@@ -41,7 +64,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **Observed on REST index (live):** Namespaces include **WooCommerce** (`wc/v3`, store, analytics), **Wordfence**, **Redirection**, **Jetpack**, **GeneratePress**. The repo brief lists a core set of plugins; production may include additional plugins—treat this as *live truth* for integrations, not only what SETUP.md lists.
 
-**Not verified in this pass:** Logged-in dashboard behaviour, checkout, actual email send, feed row counts, or deployed plugin/theme version strings (would need wp-admin, authenticated API, or server files).
+**Not verified in this pass:** Logged-in dashboard behaviour, checkout, actual email send, feed row counts, or deployed plugin/theme version strings. Next step: admin deep dive via the **20i workaround** above (upload, one hit, remove file), or parallel browser agents once a session exists.
 
 ---
 
