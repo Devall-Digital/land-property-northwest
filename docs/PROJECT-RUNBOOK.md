@@ -42,6 +42,10 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **If portals block the server:** The product is built to use **many sources** (Rightmove, OnTheMarket, Zoopla, auctions, planning, EPC, Land Registry). If one portal blocks scraping, **others keep feeding** the index; watch **LPNW Alerts → Feed Status**. Longer term: **official feed or data licence**, **partner API**, or a **dedicated egress IP / proxy** agreed with the portal (legal and commercial, not a code flip). Keep **EPC API key** and **non-portal feeds** enabled to widen coverage.
 
+**Cloudflare / bot blocks (e.g. Zoopla):** Workarounds that sometimes help: **residential or ISP-class proxy** with stable IP and strict rate limits; **data partnership** or licensed feed; **server IP allowlisting** if the vendor offers it. There is no guaranteed code-only bypass; rotating user-agents alone is fragile. Prefer **more sources** (OTM, auctions, planning, EPC) so one block does not empty the product.
+
+**EPC Open Data:** Register at https://epc.opendatacommunities.org/ — you receive an **email + API key** used as HTTP Basic auth. Paste both into **LPNW Alerts → Settings** (EPC email + EPC API key). The agent cannot create accounts in your name; once credentials exist in WP settings or env, feeds can be verified from **Feed Status**.
+
 ---
 
 ## WordPress admin on 20i (login workaround)

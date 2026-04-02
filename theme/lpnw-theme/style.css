@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.0.1
+Version: 6.1.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -166,6 +166,26 @@ Text Domain: lpnw-theme
 @keyframes lpnw-hero-particles {
 	0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.5; }
 	50% { transform: translate3d(1.2%, -1.8%, 0); opacity: 0.62; }
+}
+
+@keyframes lpnw-hero-cloud-drift-a {
+	0%, 100% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(8%, 2%, 0); }
+}
+
+@keyframes lpnw-hero-cloud-drift-b {
+	0%, 100% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(-6%, 3%, 0); }
+}
+
+@keyframes lpnw-hero-cloud-drift-c {
+	0%, 100% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(5%, -2%, 0); }
+}
+
+@keyframes lpnw-hero-city-glow {
+	0%, 100% { opacity: 0.45; }
+	50% { opacity: 0.7; }
 }
 
 @keyframes lpnw-shimmer {
@@ -523,7 +543,7 @@ body.no-sidebar .site-main {
 	position: relative;
 	isolation: isolate;
 	overflow: hidden;
-	background: transparent;
+	background: linear-gradient(165deg, #070d18 0%, #0f1d35 38%, #152a4a 72%, #0d1829 100%);
 	color: var(--lpnw-white);
 	padding: clamp(100px, 12vw, 160px) 24px clamp(100px, 10vw, 160px);
 	text-align: center;
@@ -534,41 +554,135 @@ body.no-sidebar .site-main {
 	box-sizing: border-box;
 }
 
-.lpnw-hero::before {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 700px;
-	height: 700px;
-	border-radius: 50%;
-	background: radial-gradient(circle, rgba(240, 165, 0, 0.15) 0%, rgba(0, 212, 170, 0.08) 40%, transparent 70%);
-	transform: translate(-50%, -50%);
-	z-index: 0;
-	pointer-events: none;
-	animation: lpnw-orb-pulse 8s ease-in-out infinite;
-}
-
-.lpnw-hero::after {
-	content: '';
+.lpnw-hero__bg {
 	position: absolute;
 	inset: 0;
 	z-index: 0;
 	pointer-events: none;
+	overflow: hidden;
+}
+
+.lpnw-hero__sky {
+	position: absolute;
+	inset: 0;
+	background:
+		radial-gradient(ellipse 120% 80% at 50% -20%, rgba(96, 165, 250, 0.12) 0%, transparent 55%),
+		linear-gradient(180deg, rgba(7, 13, 24, 0.2) 0%, transparent 45%);
+}
+
+.lpnw-hero__cloud {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(24px);
+	opacity: 0.35;
+}
+
+.lpnw-hero__cloud--a {
+	width: min(55vw, 420px);
+	height: min(22vw, 140px);
+	top: 8%;
+	left: -5%;
+	background: radial-gradient(ellipse, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+}
+
+.lpnw-hero__cloud--b {
+	width: min(45vw, 360px);
+	height: min(18vw, 110px);
+	top: 18%;
+	right: -8%;
+	background: radial-gradient(ellipse, rgba(147, 197, 253, 0.45) 0%, transparent 68%);
+}
+
+.lpnw-hero__cloud--c {
+	width: min(40vw, 300px);
+	height: min(14vw, 90px);
+	top: 32%;
+	left: 25%;
+	background: radial-gradient(ellipse, rgba(255, 255, 255, 0.22) 0%, transparent 65%);
+	opacity: 0.28;
+}
+
+.lpnw-hero__cityscape {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: min(42%, 220px);
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	gap: clamp(2px, 0.8vw, 8px);
+	padding: 0 clamp(8px, 3vw, 32px);
+	box-sizing: border-box;
+}
+
+.lpnw-hero__shape {
+	display: block;
+	flex: 0 0 auto;
+	align-self: flex-end;
+	background: linear-gradient(180deg, rgba(45, 68, 112, 0.95) 0%, rgba(15, 29, 53, 0.98) 55%, rgba(8, 14, 26, 1) 100%);
+	border-radius: 2px 2px 0 0;
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.12),
+		0 0 20px rgba(0, 212, 170, 0.06),
+		0 -4px 24px rgba(240, 165, 0, 0.04);
+	transform-origin: bottom center;
+	will-change: transform;
+}
+
+.lpnw-hero__shape--1 { width: clamp(28px, 5vw, 44px); height: clamp(52px, 14vh, 100px); }
+.lpnw-hero__shape--2 { width: clamp(36px, 6vw, 56px); height: clamp(88px, 22vh, 160px); }
+.lpnw-hero__shape--3 { width: clamp(24px, 4vw, 38px); height: clamp(64px, 16vh, 118px); }
+.lpnw-hero__shape--4 { width: clamp(44px, 7vw, 68px); height: clamp(110px, 28vh, 200px); }
+.lpnw-hero__shape--5 { width: clamp(30px, 5vw, 48px); height: clamp(72px, 18vh, 130px); }
+.lpnw-hero__shape--6 { width: clamp(38px, 6vw, 54px); height: clamp(96px, 24vh, 175px); }
+.lpnw-hero__shape--7 { width: clamp(22px, 3.5vw, 34px); height: clamp(48px, 12vh, 88px); }
+.lpnw-hero__shape--8 { width: clamp(32px, 5vw, 50px); height: clamp(78px, 19vh, 140px); }
+
+.lpnw-hero__shape--2,
+.lpnw-hero__shape--4,
+.lpnw-hero__shape--6 {
+	background: linear-gradient(180deg, rgba(55, 82, 130, 0.98) 0%, rgba(20, 36, 62, 0.99) 50%, rgba(10, 18, 32, 1) 100%);
+}
+
+.lpnw-hero__orb {
+	position: absolute;
+	top: 42%;
+	left: 50%;
+	width: min(90vw, 700px);
+	height: min(90vw, 700px);
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(240, 165, 0, 0.14) 0%, rgba(0, 212, 170, 0.07) 40%, transparent 68%);
+	transform: translate(-50%, -50%);
+	animation: lpnw-orb-pulse 8s ease-in-out infinite;
+}
+
+.lpnw-hero__particles {
+	position: absolute;
+	inset: 0;
 	background-image:
-		radial-gradient(circle at 12% 28%, rgba(255, 255, 255, 0.07) 0, transparent 1.5px),
-		radial-gradient(circle at 78% 18%, rgba(147, 197, 253, 0.18) 0, transparent 1.5px),
-		radial-gradient(circle at 44% 72%, rgba(255, 255, 255, 0.05) 0, transparent 1px),
-		radial-gradient(circle at 88% 62%, rgba(96, 165, 250, 0.14) 0, transparent 1.5px),
-		radial-gradient(circle at 22% 82%, rgba(255, 255, 255, 0.04) 0, transparent 1px),
-		radial-gradient(circle at 62% 38%, rgba(147, 197, 253, 0.1) 0, transparent 1px);
-	opacity: 0.6;
+		radial-gradient(circle at 12% 28%, rgba(255, 255, 255, 0.08) 0, transparent 1.5px),
+		radial-gradient(circle at 78% 18%, rgba(147, 197, 253, 0.2) 0, transparent 1.5px),
+		radial-gradient(circle at 44% 72%, rgba(255, 255, 255, 0.06) 0, transparent 1px),
+		radial-gradient(circle at 88% 62%, rgba(96, 165, 250, 0.16) 0, transparent 1.5px),
+		radial-gradient(circle at 22% 82%, rgba(255, 255, 255, 0.05) 0, transparent 1px),
+		radial-gradient(circle at 62% 38%, rgba(240, 165, 0, 0.08) 0, transparent 1px);
+	opacity: 0.65;
 	animation: lpnw-hero-particles 38s ease-in-out infinite;
 }
 
-.lpnw-hero > * {
+.lpnw-hero__vignette {
+	position: absolute;
+	inset: 0;
+	background: radial-gradient(ellipse 90% 70% at 50% 100%, rgba(0, 0, 0, 0.45) 0%, transparent 55%);
+	pointer-events: none;
+}
+
+.lpnw-hero__content {
 	position: relative;
-	z-index: 1;
+	z-index: 2;
+	max-width: 52rem;
+	margin: 0 auto;
 }
 
 .lpnw-hero h1 {
@@ -1733,9 +1847,13 @@ body.no-sidebar .site-main {
 		padding: clamp(64px, 18vw, 100px) 16px clamp(72px, 16vw, 100px);
 	}
 
-	.lpnw-hero::before {
-		width: 350px;
-		height: 350px;
+	.lpnw-hero__orb {
+		width: min(95vw, 350px);
+		height: min(95vw, 350px);
+	}
+
+	.lpnw-hero__cityscape {
+		height: min(36%, 160px);
 	}
 
 	.lpnw-hero h1 {
@@ -1985,12 +2103,28 @@ body.no-sidebar .site-main {
    ========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
-	.lpnw-hero::after {
+	.lpnw-hero__particles {
 		animation: lpnw-hero-particles 38s ease-in-out infinite;
 	}
 
-	.lpnw-hero::before {
+	.lpnw-hero__orb {
 		animation: lpnw-orb-pulse 8s ease-in-out infinite;
+	}
+
+	.lpnw-hero__cloud--a {
+		animation: lpnw-hero-cloud-drift-a 48s ease-in-out infinite;
+	}
+
+	.lpnw-hero__cloud--b {
+		animation: lpnw-hero-cloud-drift-b 56s ease-in-out infinite;
+	}
+
+	.lpnw-hero__cloud--c {
+		animation: lpnw-hero-cloud-drift-c 64s ease-in-out infinite;
+	}
+
+	.lpnw-hero__cityscape {
+		animation: lpnw-hero-city-glow 10s ease-in-out infinite;
 	}
 
 	.lpnw-hero .lpnw-btn--primary {
@@ -2002,13 +2136,13 @@ body.no-sidebar .site-main {
 	}
 
 	@supports (animation-timeline: scroll(root)) {
-		.lpnw-hero h1 {
+		.lpnw-hero__content h1 {
 			animation: lpnw-hero-parallax-h1 linear both;
 			animation-timeline: scroll(root);
 			animation-range: 0min 38vh;
 		}
 
-		.lpnw-hero p {
+		.lpnw-hero__content p {
 			animation: lpnw-hero-parallax-p linear both;
 			animation-timeline: scroll(root);
 			animation-range: 0min 38vh;
@@ -2183,8 +2317,10 @@ body.no-sidebar .site-main {
 		animation: none !important;
 	}
 
-	.lpnw-hero::before,
-	.lpnw-hero::after {
+	.lpnw-hero__orb,
+	.lpnw-hero__particles,
+	.lpnw-hero__cloud,
+	.lpnw-hero__cityscape {
 		animation: none !important;
 	}
 
@@ -2254,8 +2390,8 @@ body.no-sidebar .site-main {
 		transform: none !important;
 	}
 
-	.lpnw-hero h1,
-	.lpnw-hero p {
+	.lpnw-hero__content h1,
+	.lpnw-hero__content p {
 		animation: none !important;
 		transform: none !important;
 	}

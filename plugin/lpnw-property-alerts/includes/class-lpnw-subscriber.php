@@ -136,6 +136,18 @@ class LPNW_Subscriber {
 				continue;
 			}
 
+			if ( method_exists( $order, 'get_status' ) && 'refunded' === $order->get_status() ) {
+				continue;
+			}
+
+			if ( method_exists( $order, 'get_total' ) && method_exists( $order, 'get_total_refunded' ) ) {
+				$total     = (float) $order->get_total();
+				$refunded  = (float) $order->get_total_refunded();
+				if ( $total > 0 && $refunded >= $total - 0.01 ) {
+					continue;
+				}
+			}
+
 			foreach ( $order->get_items() as $item ) {
 				if ( ! is_object( $item ) || ! method_exists( $item, 'get_product' ) ) {
 					continue;

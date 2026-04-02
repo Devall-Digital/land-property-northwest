@@ -121,18 +121,44 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 		if (!reduceMotion && window.matchMedia('(hover: hover) and (min-width: 768px)').matches) {
 			var hero = document.querySelector('.lpnw-hero');
 			if (hero) {
-				var shapes = hero.querySelectorAll('.lpnw-hero__shape');
+				var shapes = hero.querySelectorAll('.lpnw-hero__cityscape .lpnw-hero__shape');
+				var clouds = hero.querySelectorAll('.lpnw-hero__cloud');
 				if (shapes.length) {
 					hero.addEventListener('mousemove', function (e) {
 						var rect = hero.getBoundingClientRect();
 						var x = (e.clientX - rect.left) / rect.width - 0.5;
 						var y = (e.clientY - rect.top) / rect.height - 0.5;
 						shapes.forEach(function (shape, i) {
-							var depth = (i + 1) * 15;
-							shape.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth) + 'px)';
+							var depth = (i + 1) * 12;
+							shape.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth * 0.35) + 'px)';
+						});
+						clouds.forEach(function (cloud, j) {
+							var cd = (j + 1) * 6;
+							cloud.style.transform = 'translate(' + (x * cd) + 'px, ' + (y * cd * 0.5) + 'px)';
 						});
 					}, { passive: true });
 				}
+			}
+		}
+
+		if (!reduceMotion) {
+			var heroScroll = document.querySelector('.lpnw-hero');
+			if (heroScroll) {
+				var sky = heroScroll.querySelector('.lpnw-hero__sky');
+				var city = heroScroll.querySelector('.lpnw-hero__cityscape');
+				window.addEventListener('scroll', function () {
+					var rect = heroScroll.getBoundingClientRect();
+					if (rect.bottom < 0 || rect.top > window.innerHeight) {
+						return;
+					}
+					var p = Math.max(0, Math.min(1, 1 - (rect.top + rect.height * 0.3) / window.innerHeight));
+					if (sky) {
+						sky.style.transform = 'translateY(' + (p * 12) + 'px)';
+					}
+					if (city) {
+						city.style.transform = 'translateY(' + (p * 8) + 'px)';
+					}
+				}, { passive: true });
 			}
 		}
 
