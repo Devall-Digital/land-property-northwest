@@ -66,13 +66,17 @@ class LPNW_Dispatcher {
 			return;
 		}
 
-		$by_user = array();
+		$by_user    = array();
+		$tier_cache = array();
 		foreach ( $candidates as $row ) {
 			$uid = (int) $row->user_id;
 			if ( $uid < 1 ) {
 				continue;
 			}
-			if ( 'free' !== LPNW_Subscriber::get_tier( $uid ) ) {
+			if ( ! isset( $tier_cache[ $uid ] ) ) {
+				$tier_cache[ $uid ] = LPNW_Subscriber::get_tier( $uid );
+			}
+			if ( 'free' !== $tier_cache[ $uid ] ) {
 				continue;
 			}
 			if ( ! isset( $by_user[ $uid ] ) ) {
