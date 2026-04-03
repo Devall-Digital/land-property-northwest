@@ -125,7 +125,7 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 ### Repo quality (from codebase review — verify before closing)
 
 8. **Plugin:** Ensure `uninstall.php` clears **all** scheduled hooks including portal cron if present (consistency with activator/deactivator).
-9. **Theme:** Fix login inline CSS structure if broken; align scroll class (`lpnw-scrolled` vs `.site-header.scrolled`) and animation classes with actual CSS so intended motion works.
+9. **Theme:** Fix login inline CSS structure if broken. **Scroll:** JS toggles `.site-header.scrolled` (aligned with CSS).
 
 ### VIP / brief promises (confirm in code and copy)
 

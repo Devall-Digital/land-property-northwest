@@ -17,6 +17,7 @@ $heading    = isset( $heading ) ? $heading : __( 'Northwest property alerts befo
 $subheading = isset( $subheading ) ? $subheading : __( 'Planning, auctions, EPC signals, and Land Registry activity in one feed. Set your criteria and get there first.', 'lpnw-theme' );
 $cta_text   = isset( $cta_text ) ? $cta_text : __( 'Get started', 'lpnw-theme' );
 $cta_url    = isset( $cta_url ) ? $cta_url : wp_registration_url();
+$pricing_url = isset( $pricing_url ) ? $pricing_url : home_url( '/pricing/' );
 ?>
 <section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
 	<div class="lpnw-hero__bg" aria-hidden="true">
@@ -39,8 +40,11 @@ $cta_url    = isset( $cta_url ) ? $cta_url : wp_registration_url();
 		<div class="lpnw-hero__vignette"></div>
 	</div>
 	<div class="lpnw-hero__content">
-		<h1 id="lpnw-hero-heading"><?php echo esc_html( $heading ); ?></h1>
-		<p><?php echo esc_html( $subheading ); ?></p>
-		<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( $cta_url ); ?>"><?php echo esc_html( $cta_text ); ?></a>
+		<h1 id="lpnw-hero-heading" class="lpnw-hero__title"><?php echo esc_html( $heading ); ?></h1>
+		<p class="lpnw-hero__subtitle"><?php echo esc_html( $subheading ); ?></p>
+		<div class="lpnw-hero__actions">
+			<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( $cta_url ); ?>"><?php echo esc_html( $cta_text ); ?></a>
+			<a class="lpnw-btn lpnw-btn--ghost" href="<?php echo esc_url( $pricing_url ); ?>"><?php esc_html_e( 'See pricing', 'lpnw-theme' ); ?></a>
+		</div>
 	</div>
 </section>

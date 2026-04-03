@@ -72,7 +72,7 @@
 
 ### Theme
 
-25. **Scroll class bug** — JS sets `lpnw-scrolled` on `body`; CSS targets `.site-header.scrolled`.
+25. **Scroll class bug** — **Resolved:** inline JS toggles `scrolled` on `.site-header` (matches theme CSS).
 26. **Login CSS broken** — Orphan rules after `#login h1 a` block in `functions.php`.
 27. **Version drift** — Repo `style.css` **2.0.0** vs live **6.0.0** until deploy aligned. **Visual / premium (April 2026):** **`docs/VISUAL-AUDIT.md`** — VM browser audit (test user): dashboard preview **images vs placeholders**, **preferences** label contrast, **pricing** duplicate title + table UX, **VIP** card differentiation, **chip/gold** contrast, **hero** CTAs, **micro-interactions**; **shop/checkout/map** still to audit.
 
