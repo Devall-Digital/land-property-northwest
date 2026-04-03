@@ -82,7 +82,7 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 | **Mautic** | Status row: **Connected (HTTP 200)** |
 | **Cron** | Next runs listed (portals, planning, EPC, land registry, auctions, dispatch, free digest); `DISABLE_WP_CRON` not set |
 | **Feed Status** | All listed feeds **0 failed runs**; **Zoopla** cumulative new **0**; **Allsop** **0**; Rightmove / OTM / others show healthy activity |
-| **LPNW Settings** | EPC email + API key fields **empty**; Mautic URL set; **VIP/Pro/Free Mautic email IDs** auto-filled from API when templates named *LPNW Alert — VIP/Pro* and *LPNW Weekly Digest — Free* exist (plugin 1.0.11+) |
+| **LPNW Settings** | EPC email + API key fields **empty**; Mautic URL set; **VIP/Pro/Free Mautic email IDs** auto-filled from API when templates named *LPNW Alert — VIP/Pro* and *LPNW Weekly Digest — Free* exist (plugin 1.0.12+) |
 | **Alert log** | **1,017** total rows (sample); many recent rows **Queued** for PRO |
 | **Plugins** | Active include **LPNW 1.0.0**, WooCommerce, Stripe gateway, Rank Math, Wordfence, WPForms Lite, Cookie Notice, Business Directory, Redirection, UpdraftPlus, etc. |
 | **Themes** | Active: **LPNW Theme 6.0.0** child of GeneratePress |

@@ -17,12 +17,36 @@ class LPNW_Hero_Svg {
 	private const VIEW_H = 500;
 
 	public static function init(): void {
+		// `the_content` runs with `is_main_query()` false on many themes; scope the filter to the main loop only.
+		add_action( 'loop_start', array( __CLASS__, 'maybe_add_content_filter' ) );
+		add_action( 'loop_end', array( __CLASS__, 'maybe_remove_content_filter' ) );
+	}
+
+	/**
+	 * @param \WP_Query $query Current query.
+	 */
+	public static function maybe_add_content_filter( $query ): void {
+		if ( ! $query instanceof \WP_Query || ! $query->is_main_query() ) {
+			return;
+		}
+		if ( ! is_front_page() || is_feed() ) {
+			return;
+		}
 		add_filter( 'the_content', array( __CLASS__, 'filter_replace_illustration' ), 8 );
 	}
 
+	/**
+	 * @param \WP_Query $query Current query.
+	 */
+	public static function maybe_remove_content_filter( $query ): void {
+		if ( ! $query instanceof \WP_Query || ! $query->is_main_query() ) {
+			return;
+		}
+		remove_filter( 'the_content', array( __CLASS__, 'filter_replace_illustration' ), 8 );
+	}
+
 	public static function filter_replace_illustration( string $content ): string {
-		// Static front pages often render outside a normal "loop"; do not require in_the_loop().
-		if ( ! is_front_page() || ! is_main_query() || is_feed() ) {
+		if ( ! is_front_page() || is_feed() ) {
 			return $content;
 		}
 
