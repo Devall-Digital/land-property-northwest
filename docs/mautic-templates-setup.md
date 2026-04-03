@@ -4,6 +4,18 @@ Use **Mautic → Channels → Emails** (segment / template emails). Publish each
 
 After plugin **1.0.9+**, the Settings screen lists **recent emails from the API** so you can copy IDs without hunting in Mautic.
 
+## Seeded templates (API)
+
+If the instance was empty, three **template** emails were created via `tools/mautic-seed-alert-emails.php` using `MAUTIC_URL` / `MAUTIC_USER` / `MAUTIC_PASS`:
+
+| Field in WordPress | Typical Mautic ID | Email name |
+|--------------------|-------------------|------------|
+| VIP Alert Email ID | **2** | LPNW Alert — VIP |
+| Pro Alert Email ID | **3** | LPNW Alert — Pro |
+| Free Digest Email ID | **4** | LPNW Weekly Digest — Free |
+
+Paste those IDs into **LPNW Alert Settings** and **Save**. If your Mautic already had other emails, IDs may differ; use the table on the Settings page or Mautic’s email list.
+
 ## Tokens (passed on send)
 
 Use these in the email HTML body as Mautic tokens (same names):

@@ -10,7 +10,7 @@ Short list you can run through in order. The agent keeps working the technical b
 
 2. **EPC:** Register at [epc.opendatacommunities.org](https://epc.opendatacommunities.org/), then paste **email + API key** in **LPNW Alerts → Settings**.
 
-3. **Mautic:** Enter **email template IDs** (VIP / Pro / free digest) if you want sends through Mautic instead of plain `wp_mail`.
+3. **Mautic:** In **LPNW Alert Settings**, paste **VIP / Pro / Free** email IDs. If templates were seeded via API, try **2 / 3 / 4** first (`docs/mautic-templates-setup.md`). Otherwise use the **ID table** on the Settings page.
 
 4. **SEO / WooCommerce:** When you are ready to sell and rank: clear **Rank Math “No Index”** (or Reading settings) and turn off **WooCommerce “Store coming soon”**.
 
