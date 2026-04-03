@@ -20,6 +20,7 @@ Get these from 20i panel > Manage Hosting > FTP Users:
 |-----------|-------------|
 | `plugin/lpnw-property-alerts/` | `wp-content/plugins/lpnw-property-alerts/` |
 | `theme/lpnw-theme/` | `wp-content/themes/lpnw-theme/` |
+| `mu-plugins/` (e.g. `lpnw-cron-endpoint.php`) | `wp-content/mu-plugins/` |
 
 ### Deploying Plugin Updates
 
@@ -35,6 +36,16 @@ Get these from 20i panel > Manage Hosting > FTP Users:
 3. Upload the entire `lpnw-theme/` folder (overwrite existing)
 4. No further action needed; changes take effect immediately
 
+## Automated mirror (from repo root, Linux / macOS / CI)
+
+With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
+
+```bash
+./tools/deploy-ftp.sh
+```
+
+This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugins/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
+
 ## PowerShell deploy (Windows)
 
 From the repo root, with `.env` filled in (copy from `.env.example`):
@@ -44,6 +55,26 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\deploy-ftp.ps1
 ```
 
 This uploads `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and any `mu-plugins/*.php` to `public_html/wp-content/`. Never commit `.env`.
+
+### 20i CDN cache (seeing your changes)
+
+20i’s CDN can cache full pages and assets. After a deploy, if the site still looks old, open **`https://YOUR-DOMAIN/?nocache`** or verify while **logged into WordPress as admin** (both usually bypass or refresh reliably). Purge stack cache in the 20i panel if you use it alongside the CDN.
+
+### Pricing / About / Home HTML (stored in the database)
+
+Some marketing pages are **WordPress page post_content**, not read directly from PHP on every request. After changing **`class-lpnw-page-content.php`**, refresh the database:
+
+1. **Recommended (plugin 1.0.17+):** while logged in as **administrator**, visit  
+   `https://YOUR-DOMAIN/?nocache=1&lpnw_update=pages`  
+   (no `key` needed). Or use the same URL with **`&key=...`** if you are not logged in: define **`LPNW_PAGE_SYNC_SECRET`** in `wp-config.php` and pass that value, or use the same value as **`LPNW_CRON_SECRET`**, or the legacy default **`lpnw2026setup`** if neither constant is set.  
+   **20i CDN note:** the **home URL** can be edge-cached as full HTML, so the sync may appear to “do nothing” (you still see the normal page). If that happens, run the same query string on another path, e.g. **`https://YOUR-DOMAIN/pricing/?nocache=1&lpnw_update=pages&key=...`** — the handler runs on any front request.
+2. **Legacy:** upload **`tools/lpnw-update-pages.php`** or **`mu-plugins/lpnw-update-pages.php`** and hit the URL once (that copy **self-deletes**).
+
+If you skip the sync, live pages keep **old HTML** (e.g. pricing table without recent markup).
+
+### Cron URL secret (`LPNW_CRON_SECRET`)
+
+If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
 
 ## Quick Deploy Script (lftp)
 

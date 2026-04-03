@@ -9,23 +9,16 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( empty( $saved ) ) : ?>
-	<p>
-		<?php
-		echo wp_kses(
-			sprintf(
-				/* translators: 1: alerts URL, 2: map URL */
-				__( 'You have not saved any properties yet. Browse your <a href="%1$s">alerts</a> or the <a href="%2$s">property map</a> to find and save properties.', 'lpnw-alerts' ),
-				esc_url( home_url( '/dashboard/' ) ),
-				esc_url( home_url( '/map/' ) )
-			),
-			array(
-				'a' => array(
-					'href' => array(),
-				),
-			)
-		);
-		?>
-	</p>
+	<div class="lpnw-empty-state lpnw-empty-state--saved" role="status">
+		<p class="lpnw-empty-state__title"><?php esc_html_e( 'No saved properties yet', 'lpnw-alerts' ); ?></p>
+		<p class="lpnw-empty-state__text">
+			<?php esc_html_e( 'Save listings from your alert feed or the property map to build a shortlist you can revisit anytime.', 'lpnw-alerts' ); ?>
+		</p>
+		<p class="lpnw-empty-state__cta">
+			<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>"><?php esc_html_e( 'View alert feed', 'lpnw-alerts' ); ?></a>
+			<a class="lpnw-btn lpnw-btn--outline" href="<?php echo esc_url( home_url( '/map/' ) ); ?>"><?php esc_html_e( 'Open property map', 'lpnw-alerts' ); ?></a>
+		</p>
+	</div>
 <?php else : ?>
 	<ul class="lpnw-property-list lpnw-property-list--grid" id="lpnw-saved-properties-list">
 		<?php foreach ( $saved as $item ) : ?>

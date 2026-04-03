@@ -13,24 +13,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
 
-add_action( 'init', function () {
-	if ( ! isset( $_GET['lpnw_cron'] ) || 'tick' !== $_GET['lpnw_cron'] ) {
-		return;
-	}
+add_action(
+	'init',
+	function () {
+		if ( ! isset( $_GET['lpnw_cron'] ) || 'tick' !== $_GET['lpnw_cron'] ) {
+			return;
+		}
 
-	// Prevent page output
-	if ( ! defined( 'DOING_CRON' ) ) {
-		define( 'DOING_CRON', true );
-	}
+		if ( class_exists( 'LPNW_Cron_HTTP', false ) && ! LPNW_Cron_HTTP::request_is_authorized() ) {
+			status_header( 403 );
+			header( 'Content-Type: text/plain; charset=utf-8' );
+			echo 'Forbidden';
+			exit;
+		}
 
-	// Run any due cron events
-	if ( function_exists( 'wp_cron' ) ) {
-		wp_cron();
-	}
+		if ( ! defined( 'DOING_CRON' ) ) {
+			define( 'DOING_CRON', true );
+		}
 
-	// Return a simple 200 OK so the cron service sees success
-	header( 'Content-Type: text/plain; charset=utf-8' );
-	header( 'X-LPNW-Cron: ok' );
-	echo 'ok';
-	exit;
-}, 0 );
+		if ( function_exists( 'wp_cron' ) ) {
+			wp_cron();
+		}
+
+		header( 'Content-Type: text/plain; charset=utf-8' );
+		header( 'X-LPNW-Cron: ok' );
+		echo 'ok';
+		exit;
+	},
+	0
+);

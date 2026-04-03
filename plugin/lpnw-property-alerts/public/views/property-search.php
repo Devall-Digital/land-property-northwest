@@ -208,6 +208,18 @@ $signup_url = add_query_arg(
 			<?php else : ?>
 				<span class="lpnw-property-search__page-link lpnw-property-search__page-link--disabled"><?php esc_html_e( 'Next', 'lpnw-alerts' ); ?></span>
 			<?php endif; ?>
+			<?php if ( $lpnw_search_total_pages > 1 ) : ?>
+				<p class="lpnw-property-search__pagination-hint">
+					<?php
+					printf(
+						/* translators: 1: current page, 2: total pages */
+						esc_html__( 'Page %1$s of %2$s — use Previous and Next to see more listings.', 'lpnw-alerts' ),
+						(int) $lpnw_search_page,
+						(int) $lpnw_search_total_pages
+					);
+					?>
+				</p>
+			<?php endif; ?>
 		</nav>
 	<?php endif; ?>
 </div>

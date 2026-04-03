@@ -590,7 +590,10 @@ class LPNW_Public {
 			);
 		}
 
-		$admin_email = get_option( 'admin_email' );
+		$admin_email = LPNW_Email_Branding::get_contact_notification_to_email();
+		if ( '' === $admin_email || ! is_email( $admin_email ) ) {
+			$admin_email = get_option( 'admin_email' );
+		}
 		if ( ! is_email( $admin_email ) ) {
 			wp_send_json_error(
 				array(
@@ -622,10 +625,8 @@ class LPNW_Public {
 			$message
 		);
 
-		$headers = array(
-			'Content-Type: text/plain; charset=UTF-8',
-			'Reply-To: ' . $email,
-		);
+		$headers   = LPNW_Email_Branding::get_contact_mail_headers();
+		$headers[] = 'Reply-To: ' . $email;
 
 		$sent = wp_mail( $admin_email, $mail_subject, $body, $headers );
 

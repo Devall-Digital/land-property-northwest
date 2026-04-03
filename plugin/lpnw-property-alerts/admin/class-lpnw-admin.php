@@ -23,12 +23,16 @@ class LPNW_Admin {
 
 	/** @var array<string, string> */
 	private static array $manual_feed_class_map = array(
-		'rightmove'    => LPNW_Feed_Portal_Rightmove::class,
-		'zoopla'       => LPNW_Feed_Portal_Zoopla::class,
-		'onthemarket'  => LPNW_Feed_Portal_OnTheMarket::class,
-		'planning'     => LPNW_Feed_Planning::class,
-		'epc'          => LPNW_Feed_EPC::class,
-		'landregistry' => LPNW_Feed_LandRegistry::class,
+		'rightmove'       => LPNW_Feed_Portal_Rightmove::class,
+		'zoopla'          => LPNW_Feed_Portal_Zoopla::class,
+		'onthemarket'     => LPNW_Feed_Portal_OnTheMarket::class,
+		'planning'        => LPNW_Feed_Planning::class,
+		'epc'             => LPNW_Feed_EPC::class,
+		'landregistry'    => LPNW_Feed_LandRegistry::class,
+		'auction_pugh'    => LPNW_Feed_Auction_Pugh::class,
+		'auction_sdl'     => LPNW_Feed_Auction_SDL::class,
+		'auction_ahnw'    => LPNW_Feed_Auction_AHNW::class,
+		'auction_allsop'  => LPNW_Feed_Auction_Allsop::class,
 	);
 
 	public static function init(): void {
@@ -187,15 +191,27 @@ class LPNW_Admin {
 		global $wpdb;
 
 		$feed_key = isset( $_POST['feed'] ) ? sanitize_key( wp_unslash( $_POST['feed'] ) ) : 'rightmove';
-		if ( ! isset( self::$manual_feed_class_map[ $feed_key ] ) ) {
-			$feed_key = 'rightmove';
-		}
 
-		$class = self::$manual_feed_class_map[ $feed_key ];
 		$max_before = (int) $wpdb->get_var( "SELECT MAX(id) FROM {$wpdb->prefix}lpnw_feed_log" );
 
-		$feed = new $class();
-		$feed->run();
+		if ( 'auctions' === $feed_key ) {
+			$auction_keys = array( 'auction_pugh', 'auction_sdl', 'auction_ahnw', 'auction_allsop' );
+			foreach ( $auction_keys as $key ) {
+				$class = self::$manual_feed_class_map[ $key ];
+				$feed  = new $class();
+				$feed->run();
+			}
+			$feed_key  = 'auctions';
+			$feed_name = __( 'All auction feeds', 'lpnw-alerts' );
+		} else {
+			if ( ! isset( self::$manual_feed_class_map[ $feed_key ] ) ) {
+				$feed_key = 'rightmove';
+			}
+			$class = self::$manual_feed_class_map[ $feed_key ];
+			$feed  = new $class();
+			$feed->run();
+			$feed_name = method_exists( $feed, 'get_source_name' ) ? $feed->get_source_name() : $feed_key;
+		}
 
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
@@ -213,7 +229,7 @@ class LPNW_Admin {
 				'found'     => $found,
 				'new'       => $new,
 				'feed_key'  => $feed_key,
-				'feed_name' => method_exists( $feed, 'get_source_name' ) ? $feed->get_source_name() : $feed_key,
+				'feed_name' => $feed_name,
 			),
 			120
 		);
@@ -221,6 +237,8 @@ class LPNW_Admin {
 		$redirect_target = isset( $_POST['lpnw_redirect_to'] ) ? sanitize_key( wp_unslash( $_POST['lpnw_redirect_to'] ) ) : 'lpnw';
 		if ( 'wp_dashboard' === $redirect_target ) {
 			$url = add_query_arg( 'lpnw_feed_notice', '1', admin_url( 'index.php' ) );
+		} elseif ( 'settings' === $redirect_target ) {
+			$url = add_query_arg( 'lpnw_feed_notice', '1', admin_url( 'admin.php?page=lpnw-settings' ) );
 		} else {
 			$url = add_query_arg( 'lpnw_feed_notice', '1', admin_url( 'admin.php?page=lpnw-dashboard' ) );
 		}
@@ -240,8 +258,9 @@ class LPNW_Admin {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		$on_wp_dashboard = $screen && 'dashboard' === $screen->id;
 		$on_lpnw         = isset( $_GET['page'] ) && 'lpnw-dashboard' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$on_settings     = isset( $_GET['page'] ) && 'lpnw-settings' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-		if ( empty( $_GET['lpnw_feed_notice'] ) || ( ! $on_wp_dashboard && ! $on_lpnw ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['lpnw_feed_notice'] ) || ( ! $on_wp_dashboard && ! $on_lpnw && ! $on_settings ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 
@@ -546,11 +565,12 @@ class LPNW_Admin {
 		add_settings_section(
 			'lpnw_mautic_section',
 			__( 'Mautic Integration', 'lpnw-alerts' ),
-			null,
+			array( __CLASS__, 'render_mautic_section_intro' ),
 			'lpnw-settings'
 		);
 
 		$feed_fields = array(
+			'portals_enabled'      => 'Enable portal feeds (Rightmove, Zoopla, OnTheMarket)',
 			'planning_enabled'     => 'Enable Planning Portal feed',
 			'epc_enabled'          => 'Enable EPC Open Data feed',
 			'epc_api_email'        => 'EPC account email (Basic auth username)',
@@ -599,13 +619,36 @@ class LPNW_Admin {
 	}
 
 	/**
+	 * Help text under Mautic settings: merge tokens for alert emails.
+	 */
+	public static function render_mautic_section_intro(): void {
+		echo '<p class="description">';
+		esc_html_e(
+			'When sending via Mautic, your email templates can use these tokens on send: {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html} (listing summary). Add matching tokens in Mautic or use the HTML block token for the full list.',
+			'lpnw-alerts'
+		);
+		echo '</p>';
+	}
+
+	/**
 	 * @param array<string, mixed> $input Raw settings input.
 	 * @return array<string, mixed>
 	 */
 	public static function sanitize_settings( array $input ): array {
+		$prev = get_option( 'lpnw_settings', array() );
+		if ( ! is_array( $prev ) ) {
+			$prev = array();
+		}
+
 		$sanitized = array();
 
-		$checkboxes = array( 'planning_enabled', 'epc_enabled', 'landregistry_enabled', 'auctions_enabled' );
+		$checkboxes = array(
+			'portals_enabled',
+			'planning_enabled',
+			'epc_enabled',
+			'landregistry_enabled',
+			'auctions_enabled',
+		);
 		foreach ( $checkboxes as $key ) {
 			$sanitized[ $key ] = ! empty( $input[ $key ] );
 		}
@@ -620,7 +663,7 @@ class LPNW_Admin {
 			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
 		}
 
-		return $sanitized;
+		return array_merge( $prev, $sanitized );
 	}
 
 	/**
@@ -633,6 +676,9 @@ class LPNW_Admin {
 		$value    = $settings[ $key ] ?? '';
 
 		if ( 'checkbox' === $type ) {
+			if ( 'portals_enabled' === $key && ! array_key_exists( 'portals_enabled', $settings ) ) {
+				$value = true;
+			}
 			printf(
 				'<input type="checkbox" name="lpnw_settings[%s]" value="1" %s />',
 				esc_attr( $key ),
@@ -663,6 +709,14 @@ class LPNW_Admin {
 	}
 
 	public static function render_settings(): void {
+		$lpnw_mautic_email_catalog = array();
+		if ( class_exists( 'LPNW_Mautic' ) ) {
+			$lpnw_mautic_client = new LPNW_Mautic();
+			if ( $lpnw_mautic_client->is_configured() ) {
+				$lpnw_mautic_email_catalog = $lpnw_mautic_client->list_channel_emails_for_admin( 50 );
+			}
+		}
+
 		include LPNW_PLUGIN_DIR . 'admin/views/settings.php';
 	}
 

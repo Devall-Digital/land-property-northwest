@@ -2,6 +2,10 @@
 
 This is the single source of truth for what we are building. Every contributor (human or AI agent) must read this before writing any code.
 
+## How we work
+
+The **director** (business owner) sets goals and priorities. The **project manager** role is fulfilled by the lead AI agent: it plans execution, owns delivery quality, and decides when to delegate. **Sub-agents** are the PM’s staff for parallel work (code search, browser review, debugging) when that speeds up or deepens a task. The director does not need to micromanage implementation details as long as outcomes align with this brief and **STATUS.md**.
+
 ## The Product (one sentence)
 
 A paid subscription service that instantly alerts users the moment a property or land opportunity appears on the market anywhere in Northwest England, giving them a speed advantage over everyone else.

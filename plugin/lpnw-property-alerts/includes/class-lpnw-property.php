@@ -15,14 +15,19 @@ class LPNW_Property {
 	 * Insert or update a property record. Returns the property ID.
 	 *
 	 * @param array<string, mixed> $data Normalised property data.
+	 * @param bool|null            $inserted_new If a non-null variable is passed, set to true when a new row was inserted, false when an existing row was updated.
 	 * @return int|false Property ID on success, false on failure.
 	 */
-	public static function upsert( array $data ) {
+	public static function upsert( array $data, ?bool &$inserted_new = null ) {
 		global $wpdb;
 
 		$table  = $wpdb->prefix . 'lpnw_properties';
 		$source = sanitize_text_field( $data['source'] ?? '' );
 		$ref    = sanitize_text_field( $data['source_ref'] ?? '' );
+
+		if ( null !== $inserted_new ) {
+			$inserted_new = false;
+		}
 
 		if ( empty( $source ) || empty( $ref ) ) {
 			return false;
@@ -68,7 +73,11 @@ class LPNW_Property {
 		}
 
 		$wpdb->insert( $table, $row );
-		return $wpdb->insert_id ? (int) $wpdb->insert_id : false;
+		$new_id = $wpdb->insert_id ? (int) $wpdb->insert_id : false;
+		if ( $new_id && null !== $inserted_new ) {
+			$inserted_new = true;
+		}
+		return $new_id;
 	}
 
 	/**
@@ -799,6 +808,9 @@ class LPNW_Property {
 		if ( '' === $image_url && ! empty( $raw['photos'][0] ) ) {
 			$image_url = is_string( $raw['photos'][0] ) ? (string) $raw['photos'][0] : (string) ( $raw['photos'][0]['url'] ?? '' );
 		}
+		if ( '' === $image_url ) {
+			$image_url = self::discover_image_url_in_raw( $raw );
+		}
 
 		$image_url = '' !== $image_url ? esc_url_raw( $image_url ) : '';
 
@@ -834,6 +846,74 @@ class LPNW_Property {
 			'off_market_reason' => $off_market_reason,
 			'contact_email'     => $contact_email,
 			'contact_tel_href'  => $contact_tel_href,
+		);
+	}
+
+	/**
+	 * Fallback when known keys are empty (e.g. Rightmove __NEXT_DATA__ shape drift).
+	 *
+	 * @param array<string, mixed> $raw Decoded raw_data.
+	 */
+	private static function discover_image_url_in_raw( array $raw ): string {
+		$found = self::walk_raw_for_image_url( $raw, 0 );
+		return is_string( $found ) ? $found : '';
+	}
+
+	/**
+	 * Depth-limited walk for https URLs that look like listing photos.
+	 *
+	 * @param mixed $node Current node.
+	 * @param int   $depth Recursion depth.
+	 * @return string
+	 */
+	private static function walk_raw_for_image_url( $node, int $depth ): string {
+		if ( $depth > 8 ) {
+			return '';
+		}
+		if ( is_string( $node ) ) {
+			$t = trim( $node );
+			if ( '' === $t || ! self::is_likely_property_image_url( $t ) ) {
+				return '';
+			}
+			return $t;
+		}
+		if ( ! is_array( $node ) ) {
+			return '';
+		}
+		$prefer = array( 'propertyImages', 'images', 'photos', 'media', 'gallery', 'image', 'thumbnails' );
+		foreach ( $prefer as $k ) {
+			if ( isset( $node[ $k ] ) ) {
+				$u = self::walk_raw_for_image_url( $node[ $k ], $depth + 1 );
+				if ( '' !== $u ) {
+					return $u;
+				}
+			}
+		}
+		foreach ( $node as $v ) {
+			$u = self::walk_raw_for_image_url( $v, $depth + 1 );
+			if ( '' !== $u ) {
+				return $u;
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Avoid picking arbitrary external links (agent sites, etc.).
+	 *
+	 * @param string $url Candidate URL.
+	 */
+	private static function is_likely_property_image_url( string $url ): bool {
+		if ( ! preg_match( '#^https?://#i', $url ) ) {
+			return false;
+		}
+		$l = strtolower( $url );
+		if ( preg_match( '#\.(jpe?g|png|gif|webp)(\?|#|$)#i', $url ) ) {
+			return true;
+		}
+		return (bool) preg_match(
+			'#(rightmove|rmmedia|zoopla|onthemarket|primelocation|mouseprice|stripcdn|cloudinary|epc\.|opendatacommunities|pugh|sdl|allsop|ahnw)#i',
+			$l
 		);
 	}
 }

@@ -233,7 +233,7 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 						Only listings and other alerts in at least one area you tick will be sent to you.
 					</p>
 					<div class="lpnw-area-bulk" role="group" aria-label="<?php esc_attr_e( 'Bulk area selection', 'lpnw-alerts' ); ?>">
-						<label class="lpnw-checkbox-group__item lpnw-checkbox-group__item--primary">
+						<label class="lpnw-checkbox-group__item lpnw-checkbox-group__item--primary lpnw-area-bulk__all">
 							<input type="checkbox" id="lpnw-all-nw" class="lpnw-all-nw-toggle"
 								<?php
 								$all_area_codes = array_keys( $nw_areas );
@@ -244,11 +244,10 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 							<span><?php esc_html_e( 'All NW', 'lpnw-alerts' ); ?></span>
 						</label>
 						<p class="lpnw-select-all-label">
-							<button type="button" class="lpnw-link-action" id="lpnw-areas-select-all">
+							<button type="button" class="lpnw-btn lpnw-btn--outline lpnw-area-bulk__btn" id="lpnw-areas-select-all">
 								<?php esc_html_e( 'Select all', 'lpnw-alerts' ); ?>
 							</button>
-							<span class="lpnw-select-all-label__sep" aria-hidden="true"><?php esc_html_e( '/', 'lpnw-alerts' ); ?></span>
-							<button type="button" class="lpnw-link-action" id="lpnw-areas-deselect-all">
+							<button type="button" class="lpnw-btn lpnw-btn--outline lpnw-area-bulk__btn" id="lpnw-areas-deselect-all">
 								<?php esc_html_e( 'Deselect all', 'lpnw-alerts' ); ?>
 							</button>
 						</p>

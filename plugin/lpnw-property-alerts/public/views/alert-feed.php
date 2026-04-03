@@ -28,7 +28,14 @@ $alerts = $wpdb->get_results(
 );
 
 if ( empty( $alerts ) ) : ?>
-	<p><?php esc_html_e( 'No alerts yet. Once our data feeds find properties matching your preferences, they will appear here.', 'lpnw-alerts' ); ?></p>
+	<div class="lpnw-empty-state lpnw-empty-state--alerts" role="status">
+		<p class="lpnw-empty-state__title"><?php esc_html_e( 'No alerts in your feed yet', 'lpnw-alerts' ); ?></p>
+		<p class="lpnw-empty-state__text"><?php esc_html_e( 'When new listings match your saved criteria, they will show up here. Check that your areas and filters are not too narrow.', 'lpnw-alerts' ); ?></p>
+		<p class="lpnw-empty-state__cta">
+			<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( home_url( '/preferences/' ) ); ?>"><?php esc_html_e( 'Review alert preferences', 'lpnw-alerts' ); ?></a>
+			<a class="lpnw-btn lpnw-btn--outline" href="<?php echo esc_url( home_url( '/properties/' ) ); ?>"><?php esc_html_e( 'Browse properties', 'lpnw-alerts' ); ?></a>
+		</p>
+	</div>
 <?php else : ?>
 	<ul class="lpnw-property-list lpnw-property-list--grid">
 		<?php foreach ( $alerts as $prop ) : ?>

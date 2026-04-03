@@ -101,17 +101,18 @@ class LPNW_Dispatcher {
 			return;
 		}
 
-		$sent = false;
+		$sent       = false;
+		$mautic_tpl = null;
 
 		$prefs               = LPNW_Subscriber::get_preferences( $user_id );
 		$effective_frequency = self::get_effective_alert_frequency( $tier, $prefs );
-
 		if ( $this->mautic->is_configured() && $this->mautic->has_email_template_for_tier( $tier ) ) {
-			$sent = $this->mautic->send_alert(
+			$mautic_tpl = $this->mautic->send_alert_get_template_id(
 				$user->user_email,
 				$properties,
 				$tier
 			);
+			$sent       = null !== $mautic_tpl;
 		}
 
 		if ( ! $sent ) {
@@ -123,12 +124,21 @@ class LPNW_Dispatcher {
 
 		if ( ! empty( $ids ) ) {
 			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-			$sent_at_sql = ( 'sent' === $status ) ? 'NOW()' : 'NULL';
-			$wpdb->query( $wpdb->prepare(
-				"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$status,
-				...$ids
-			) );
+			$sent_at_sql  = ( 'sent' === $status ) ? 'NOW()' : 'NULL';
+			if ( 'sent' === $status && null !== $mautic_tpl && $mautic_tpl > 0 ) {
+				$mid_sql = $wpdb->prepare( '%s', (string) $mautic_tpl );
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql}, mautic_email_id = {$mid_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$status,
+					...$ids
+				) );
+			} else {
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$status,
+					...$ids
+				) );
+			}
 		}
 	}
 
@@ -170,7 +180,7 @@ class LPNW_Dispatcher {
 			)
 		);
 
-		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		$headers = LPNW_Email_Branding::get_alert_mail_headers();
 
 		return wp_mail( $user->user_email, $subject, $body, $headers );
 	}
@@ -416,7 +426,7 @@ class LPNW_Dispatcher {
 	/**
 	 * Resolve alert email frequency from saved preferences, capped by subscription tier.
 	 *
-	 * Free: weekly only. Pro: daily or instant. VIP: instant only.
+	 * Free: weekly only. Pro: daily or instant. VIP: instant or daily (weekly coerced to daily).
 	 *
 	 * @param string        $tier  Subscription tier.
 	 * @param object|null   $prefs Row from LPNW_Subscriber::get_preferences().
@@ -437,7 +447,13 @@ class LPNW_Dispatcher {
 		}
 
 		if ( 'vip' === $tier ) {
-			return 'instant';
+			if ( 'weekly' === $saved ) {
+				$saved = 'daily';
+			}
+			if ( 'instant' === $saved ) {
+				return 'instant';
+			}
+			return 'daily';
 		}
 
 		if ( 'pro' === $tier ) {
@@ -448,5 +464,48 @@ class LPNW_Dispatcher {
 		}
 
 		return 'daily';
+	}
+
+	/**
+	 * Mautic contact fields when creating/updating a contact (flat keys for api/contacts/new).
+	 *
+	 * @return array<string, string>
+	 */
+	public static function get_mautic_contact_fields_for_sync( \WP_User $user ): array {
+		$first = self::get_subscriber_greeting_first_name( $user );
+		$dn    = trim( (string) $user->display_name );
+		$last  = '';
+		if ( '' !== $dn && preg_match( '/\s/u', $dn ) ) {
+			$parts = preg_split( '/\s+/u', $dn, 2 );
+			$last  = isset( $parts[1] ) ? trim( (string) $parts[1] ) : '';
+		}
+		$fields = array(
+			'firstname' => ( 'there' === $first ) ? '' : $first,
+			'lastname'  => $last,
+		);
+
+		return apply_filters( 'lpnw_mautic_contact_sync_fields', $fields, $user );
+	}
+
+	/**
+	 * Body for POST api/emails/{id}/contact/{id}/send with merge tokens for the Mautic template.
+	 *
+	 * @param array<object> $properties Rows from LPNW_Property::get().
+	 * @return array<string, array<string, string>>
+	 */
+	public static function get_mautic_send_body_with_tokens( \WP_User $user, array $properties, string $tier ): array {
+		$first = self::get_subscriber_greeting_first_name( $user );
+		$html  = self::build_plain_email( $properties );
+
+		$tokens = array(
+			'{lpnw_subscriber_first_name}' => $first,
+			'{lpnw_alert_count}'           => (string) count( $properties ),
+			'{lpnw_tier}'                  => strtoupper( $tier ),
+			'{lpnw_properties_html}'       => $html,
+		);
+
+		$tokens = apply_filters( 'lpnw_mautic_alert_email_tokens', $tokens, $user, $properties, $tier );
+
+		return array( 'tokens' => $tokens );
 	}
 }

@@ -7,6 +7,12 @@ alwaysApply: true
 
 READ BRIEF.md AND STATUS.md BEFORE DOING ANYTHING. Those files are the single source of truth.
 
+## Roles
+
+- **Director:** Sets product direction and priorities (see BRIEF).
+- **Project manager:** The lead agent plans work, sequences delivery, and may spawn **sub-agents** for parallel investigation (codebase, browser, tests) as “staff” when useful.
+- Sub-agents report back; the PM integrates results and keeps **STATUS.md** / runbook honest.
+
 ## What This Is
 
 A paid subscription service that instantly alerts users when properties appear on the market in Northwest England. The USP is speed: subscribers find out first, before the general public. This gives investors and developers a competitive edge worth paying for.
