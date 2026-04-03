@@ -651,7 +651,7 @@ add_filter(
 		if ( is_front_page() ) {
 			return false;
 		}
-		if ( is_page( array( 'dashboard', 'preferences', 'saved', 'saved-properties', 'map', 'email-preview' ) ) ) {
+		if ( is_page( array( 'dashboard', 'preferences', 'saved', 'saved-properties', 'map', 'email-preview', 'pricing', 'properties', 'contact' ) ) ) {
 			return false;
 		}
 		return $show;

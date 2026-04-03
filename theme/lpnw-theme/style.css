@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.5.1
+Version: 6.5.2
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -320,8 +320,7 @@ body.lpnw-site .lpnw-share-link {
 }
 
 body.lpnw-site .lpnw-property-card__description,
-body.lpnw-site .lpnw-preferences-coverage__stat,
-body.lpnw-site .lpnw-preferences-form__reset {
+body.lpnw-site .lpnw-preferences-coverage__stat {
 	color: var(--lpnw-plugin-text-muted);
 }
 
@@ -352,13 +351,40 @@ body.lpnw-site .lpnw-contact-form textarea {
 }
 
 body.lpnw-site .lpnw-checkbox-group__item {
-	background: rgba(255, 255, 255, 0.06);
-	border-color: rgba(255, 255, 255, 0.16);
-	color: var(--lpnw-plugin-text-muted);
+	background: rgba(255, 255, 255, 0.12);
+	border-color: rgba(255, 255, 255, 0.28);
+	color: var(--lpnw-plugin-text);
 }
 
 body.lpnw-site .lpnw-checkbox-group__item span {
-	color: var(--lpnw-plugin-text);
+	color: #ffffff;
+	font-weight: 500;
+}
+
+body.lpnw-site .lpnw-checkbox-group__item--primary span {
+	color: var(--lpnw-navy, #0f1d35);
+}
+
+body.lpnw-site .lpnw-feature-tag {
+	color: rgba(255, 255, 255, 0.94);
+	background: rgba(0, 212, 170, 0.16);
+	border-color: rgba(0, 212, 170, 0.45);
+}
+
+body.lpnw-site .lpnw-preferences-form .lpnw-field__help {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-preferences-form__reset {
+	color: var(--lpnw-teal, #00d4aa);
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+body.lpnw-site .lpnw-preferences-form__reset:hover,
+body.lpnw-site .lpnw-preferences-form__reset:focus-visible {
+	color: var(--lpnw-amber-light, #f7c23a);
 }
 
 body.lpnw-site .lpnw-property-search__filters {
@@ -1480,20 +1506,22 @@ body.no-sidebar .site-main {
 	font-weight: 700;
 	letter-spacing: -0.01em;
 	line-height: 1.2;
-	background: linear-gradient(135deg, var(--lpnw-white) 0%, var(--lpnw-amber) 50%, var(--lpnw-teal) 100%);
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-	color: transparent;
+	color: var(--lpnw-white);
+	-webkit-text-fill-color: var(--lpnw-white);
+	background: none;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-@supports not (background-clip: text) {
-	.lpnw-pricing-section__title,
-	.lpnw-how-it-works__title {
-		background: none;
-		-webkit-text-fill-color: var(--lpnw-white);
-		color: var(--lpnw-white);
-	}
+.lpnw-pricing-section__title::after,
+.lpnw-how-it-works__title::after {
+	content: '';
+	display: block;
+	width: 3.5rem;
+	height: 3px;
+	margin: 14px auto 0;
+	border-radius: 2px;
+	background: linear-gradient(90deg, var(--lpnw-amber), var(--lpnw-teal));
+	opacity: 0.95;
 }
 
 /* ==========================================================================
@@ -1638,6 +1666,50 @@ body.no-sidebar .site-main {
 
 .lpnw-pricing-card .lpnw-btn--primary:hover {
 	box-shadow: 0 8px 28px var(--lpnw-glow-gold), 0 0 16px var(--lpnw-glow-teal);
+}
+
+.lpnw-pricing-card:not(.lpnw-pricing-card--featured):not(.lpnw-pricing-card--vip) .lpnw-btn--secondary {
+	min-height: 44px;
+	padding: 12px 22px;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.lpnw-pricing-card--vip {
+	border-color: rgba(0, 212, 170, 0.45);
+	box-shadow:
+		0 0 0 1px rgba(0, 212, 170, 0.2),
+		0 10px 40px rgba(0, 212, 170, 0.12),
+		var(--lpnw-glass-shadow);
+	background: linear-gradient(165deg, rgba(15, 29, 53, 0.92) 0%, rgba(10, 22, 40, 0.88) 100%);
+}
+
+.lpnw-pricing-card--vip:hover {
+	border-color: rgba(0, 212, 170, 0.65);
+	box-shadow:
+		0 0 0 1px rgba(0, 212, 170, 0.35),
+		0 14px 48px rgba(0, 212, 170, 0.18),
+		var(--lpnw-glass-shadow);
+}
+
+.lpnw-pricing-card__ribbon {
+	margin: 0 0 10px;
+	font-size: 0.65rem;
+	font-weight: 800;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--lpnw-teal);
+	text-shadow: 0 0 12px var(--lpnw-glow-teal);
+}
+
+.lpnw-pricing-trust {
+	max-width: 42rem;
+	margin: -16px auto 28px;
+	padding: 0 20px;
+	text-align: center;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	color: rgba(255, 255, 255, 0.78);
 }
 
 /* ==========================================================================
@@ -2173,9 +2245,10 @@ body.no-sidebar .site-main {
    ========================================================================== */
 
 .lpnw-pricing-table-wrap {
+	position: relative;
 	margin: 0 auto 32px;
 	width: 100%;
-	max-width: 960px;
+	max-width: min(960px, 100%);
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 	border-radius: 12px;
@@ -2183,6 +2256,25 @@ body.no-sidebar .site-main {
 	background: var(--lpnw-glass-bg);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
+}
+
+.lpnw-pricing-table-wrap::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 40px;
+	pointer-events: none;
+	background: linear-gradient(90deg, transparent, rgba(15, 29, 53, 0.55));
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+@media (max-width: 640px) {
+	.lpnw-pricing-table-wrap::after {
+		opacity: 1;
+	}
 }
 
 .lpnw-pricing-table {
@@ -2241,7 +2333,55 @@ body.no-sidebar .site-main {
 	border-bottom: none;
 }
 
+.lpnw-pricing-table tbody tr {
+	transition: background 0.15s ease;
+}
+
+.lpnw-pricing-table tbody tr:hover td,
+.lpnw-pricing-table tbody tr:hover th[scope="row"] {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.lpnw-pricing-table__cell {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2rem;
+	min-height: 1.5rem;
+}
+
+.lpnw-pricing-table__cell--yes {
+	color: var(--lpnw-teal);
+	filter: drop-shadow(0 0 6px rgba(0, 212, 170, 0.35));
+}
+
+.lpnw-pricing-table__cell--no {
+	color: rgba(255, 255, 255, 0.38);
+	font-weight: 600;
+	font-size: 1.1rem;
+}
+
+.lpnw-pricing-table__cell--text {
+	display: block;
+	text-align: center;
+	font-size: 0.8125rem;
+	line-height: 1.35;
+	color: rgba(255, 255, 255, 0.88);
+	font-weight: 500;
+}
+
+.lpnw-pricing-table__icon {
+	display: block;
+}
+
 @media (min-width: 768px) {
+	.lpnw-pricing-table thead th {
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		box-shadow: 0 2px 0 var(--lpnw-amber);
+	}
+
 	.lpnw-pricing-table {
 		font-size: 0.9375rem;
 	}

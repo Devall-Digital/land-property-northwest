@@ -316,43 +316,44 @@ HTML;
 			<tbody>
 				<tr>
 					<th scope="row">Property alerts</th>
-					<td>Weekly digest</td>
-					<td>Instant or daily</td>
-					<td>Priority (30 min ahead)</td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--text">Weekly digest</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--text">Instant or daily</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--text">Priority (30 min ahead)</span></td>
 				</tr>
 				<tr>
 					<th scope="row">Area filtering</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--no" aria-label="Not included">—</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
 				</tr>
 				<tr>
 					<th scope="row">Bedroom/price/type filters</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--no" aria-label="Not included">—</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
 				</tr>
 				<tr>
 					<th scope="row">Subscriber dashboard</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--no" aria-label="Not included">—</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
 				</tr>
 				<tr>
 					<th scope="row">Saved properties</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--no" aria-label="Not included">—</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
 				</tr>
 				<tr>
 					<th scope="row">Property map</th>
-					<td>No</td>
-					<td>Yes</td>
-					<td>Yes</td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--no" aria-label="Not included">—</span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
+					<td><span class="lpnw-pricing-table__cell lpnw-pricing-table__cell--yes" aria-label="Included"><svg class="lpnw-pricing-table__icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9.55 18 3.85 12.3l1.4-1.43 4.28 4.28 10.3-10.3 1.42 1.42L9.55 18Z"/></svg></span></td>
 				</tr>
 			</tbody>
 		</table>
 	</div>
+	<p class="lpnw-pricing-trust">Cancel anytime. Card payments are processed securely by Stripe.</p>
 	<div class="lpnw-pricing">
 		<article class="lpnw-pricing-card" aria-labelledby="lpnw-pricing-tier-free">
 			<h3 id="lpnw-pricing-tier-free" class="lpnw-pricing-card__name">Free</h3>
@@ -376,7 +377,8 @@ HTML;
 			</ul>
 			<a class="lpnw-btn lpnw-btn--primary" href="{$shop_url}">Get Pro</a>
 		</article>
-		<article class="lpnw-pricing-card" aria-labelledby="lpnw-pricing-tier-vip">
+		<article class="lpnw-pricing-card lpnw-pricing-card--vip" aria-labelledby="lpnw-pricing-tier-vip">
+			<p class="lpnw-pricing-card__ribbon" aria-hidden="true">Premium</p>
 			<h3 id="lpnw-pricing-tier-vip" class="lpnw-pricing-card__name">Investor VIP</h3>
 			<p class="lpnw-pricing-card__price">£79.99</p>
 			<p class="lpnw-pricing-card__period">per month</p>

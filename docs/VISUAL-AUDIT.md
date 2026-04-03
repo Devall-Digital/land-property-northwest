@@ -4,6 +4,8 @@
 
 **Last pass:** April 2026 — four parallel **computer-use** browser sessions on the VM (`/?nocache&lpnw_login_as=test&key=lpnw2026setup`). Some pages hit **503** or incomplete mobile tooling; findings below are merged and de-duplicated; items marked *verify* need a quick human check on a real phone.
 
+**Shipped (repo, April 2026):** Plugin **1.0.14** — `LPNW_Property::get_card_context()` **deep image discovery** in `raw_data` (Rightmove shape drift). Theme **6.5.2** — hide duplicate page title on **pricing / properties / contact**; **Compare plans** heading **white + underline bar** (no low-contrast gradient text); pricing table **SVG ticks**, **row hover**, **sticky thead** (desktop), **scroll fade** hint on narrow screens; **VIP card** styling + **Premium** ribbon; **trust line** under table; **dark-mode** checkbox + feature-tag + reset link contrast; **NEW** badge inset. Re-verify on live with `/?nocache`.
+
 **Art direction goal (owner):** The site should feel **artistically impressive** and **special**: cohesive motion, typography, tactile UI, premium colour discipline, and trust without clutter.
 
 ---
