@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.9.0
+Version: 6.10.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -3081,6 +3081,128 @@ body.no-sidebar .site-main {
 /* Smooth scroll-to for anchor links */
 html {
 	scroll-padding-top: 80px;
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLE 12 — HERO CLEANUP + REFINEMENTS
+   ========================================================================== */
+
+.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__bg {
+	display: none !important;
+}
+
+.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__content {
+	position: relative;
+	z-index: 10;
+}
+
+.lpnw-hero:has(.lpnw-hero__parallax)::before,
+.lpnw-hero:has(.lpnw-hero__parallax)::after {
+	display: none !important;
+}
+
+.lpnw-hero__parallax + .lpnw-hero__content {
+	margin-top: -2rem;
+}
+
+@media (min-width: 768px) {
+	.lpnw-hero__parallax + .lpnw-hero__content {
+		margin-top: -4rem;
+	}
+}
+
+/* Stat card shimmer on hover */
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-stat-card {
+		overflow: hidden;
+	}
+
+	.lpnw-stat-card::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 60%;
+		height: 100%;
+		background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+		transition: left 0.6s ease;
+		pointer-events: none;
+	}
+
+	.lpnw-stat-card:hover::after {
+		left: 120%;
+	}
+}
+
+/* Pricing card subtle entrance */
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-pricing-card {
+		opacity: 0;
+		transform: translateY(20px);
+		animation: lpnw-card-enter 0.5s ease forwards;
+	}
+
+	.lpnw-pricing-card:nth-child(2) {
+		animation-delay: 0.12s;
+	}
+
+	.lpnw-pricing-card:nth-child(3) {
+		animation-delay: 0.24s;
+	}
+
+	@keyframes lpnw-card-enter {
+		to { opacity: 1; transform: translateY(0); }
+	}
+}
+
+/* FAQ accordion smooth open */
+.lpnw-faq__answer {
+	transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.lpnw-faq__item:not([open]) .lpnw-faq__answer {
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+}
+
+.lpnw-faq__item[open] .lpnw-faq__answer {
+	max-height: 500px;
+	opacity: 1;
+}
+
+/* Trust bar subtle glass */
+.lpnw-trust-bar {
+	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Star twinkle for hero back layer */
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-hero__layer--back circle[fill="#fff"] {
+		animation: lpnw-twinkle var(--tw-dur, 4s) ease-in-out infinite;
+		animation-delay: var(--tw-del, 0s);
+	}
+
+	.lpnw-hero__layer--back circle[fill="#fff"]:nth-child(odd) {
+		--tw-dur: 3.5s;
+		--tw-del: 0.8s;
+	}
+
+	.lpnw-hero__layer--back circle[fill="#fff"]:nth-child(3n) {
+		--tw-dur: 5s;
+		--tw-del: 1.5s;
+	}
+
+	.lpnw-hero__layer--back circle[fill="#fff"]:nth-child(5n) {
+		--tw-dur: 4.5s;
+		--tw-del: 2.2s;
+	}
+
+	@keyframes lpnw-twinkle {
+		0%, 100% { opacity: var(--tw-base, 0.5); }
+		50% { opacity: calc(var(--tw-base, 0.5) + 0.3); }
+	}
 }
 
 /* ==========================================================================
