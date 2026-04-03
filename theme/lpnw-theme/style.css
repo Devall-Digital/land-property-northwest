@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.3.0
+Version: 6.3.1
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -359,6 +359,103 @@ body.lpnw-site .lpnw-checkbox-group__item {
 
 body.lpnw-site .lpnw-checkbox-group__item span {
 	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-property-search__filters {
+	background: var(--lpnw-plugin-surface);
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+body.lpnw-site .lpnw-property-search__label,
+body.lpnw-site .lpnw-property-search__count {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-property-search__count--empty,
+body.lpnw-site .lpnw-property-search__count-suffix {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-property-search__control {
+	background: rgba(15, 29, 53, 0.55);
+	border-color: rgba(255, 255, 255, 0.22);
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-property-search__control:focus {
+	background: rgba(15, 29, 53, 0.72);
+}
+
+body.lpnw-site .lpnw-home-feed .lpnw-property-list--grid + .lpnw-home-feed__count strong {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-dashboard-notice__title {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-dashboard-notice__text {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-dashboard-welcome,
+body.lpnw-site .lpnw-action-card,
+body.lpnw-site .lpnw-stat-card {
+	background: var(--lpnw-plugin-surface);
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+body.lpnw-site .lpnw-dashboard-welcome__title,
+body.lpnw-site .lpnw-dashboard-welcome__tier-name,
+body.lpnw-site .lpnw-dashboard-coverage__title,
+body.lpnw-site .lpnw-dashboard-coverage__value,
+body.lpnw-site .lpnw-action-card__title,
+body.lpnw-site .lpnw-stat-card__number {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-dashboard-welcome__hint,
+body.lpnw-site .lpnw-dashboard-welcome__tier-meta,
+body.lpnw-site .lpnw-dashboard-welcome__kicker,
+body.lpnw-site .lpnw-dashboard-summary,
+body.lpnw-site .lpnw-dashboard-coverage__label,
+body.lpnw-site .lpnw-action-card__desc,
+body.lpnw-site .lpnw-stat-card__label {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-progress__track {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+body.lpnw-site .lpnw-progress__pct {
+	color: var(--lpnw-plugin-text-soft);
+}
+
+body.lpnw-site .lpnw-email-preview__title,
+body.lpnw-site .lpnw-email-preview__intro,
+body.lpnw-site .lpnw-email-preview__meta {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-email-preview__chrome {
+	border-color: rgba(255, 255, 255, 0.15);
+}
+
+body.lpnw-site .lpnw-signup-form__title,
+body.lpnw-site .lpnw-signup-form__intro,
+body.lpnw-site .lpnw-signup-form__lead {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-map-canvas {
+	border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.lpnw-site .lpnw-map-legend {
+	background: var(--lpnw-plugin-surface) !important;
+	border-color: rgba(255, 255, 255, 0.18) !important;
+	color: var(--lpnw-plugin-text-muted) !important;
 }
 
 a,

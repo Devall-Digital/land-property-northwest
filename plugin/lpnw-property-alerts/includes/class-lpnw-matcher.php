@@ -267,22 +267,21 @@ class LPNW_Matcher {
 	}
 
 	private function matches_price( object $property, object $subscriber ): bool {
-		// Monthly rent shares the same price column as sale prices; do not apply sale filters to lets.
-		$application_type = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
-		if ( 'rent' === $application_type ) {
-			return true;
-		}
-
 		$price = $property->price ?? null;
-		if ( null === $price ) {
+		if ( null === $price || '' === $price ) {
 			return true;
 		}
 
-		if ( $subscriber->min_price && $price < $subscriber->min_price ) {
+		$price = (int) $price;
+		$min   = isset( $subscriber->min_price ) ? (int) $subscriber->min_price : 0;
+		$max   = isset( $subscriber->max_price ) ? (int) $subscriber->max_price : 0;
+
+		// Sale and rent both use the same price column (PCM for lets); apply min/max in both cases.
+		if ( $min > 0 && $price < $min ) {
 			return false;
 		}
 
-		if ( $subscriber->max_price && $price > $subscriber->max_price ) {
+		if ( $max > 0 && $price > $max ) {
 			return false;
 		}
 

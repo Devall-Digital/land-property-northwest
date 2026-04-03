@@ -36,7 +36,7 @@
 
 ### Tiering and subscriptions
 
-7. **`get_tier()` from last 10 orders** — Slug substring `vip` / `pro`; no refunds/cancelled handling; **expired buyers may still read as paid**. No WooCommerce Subscriptions integration despite optional future in BRIEF.
+7. **`get_tier()` from last 10 orders** — Slug substring `vip` / `pro`; **partial fix:** skips refunded, fully refunded, **cancelled**, **failed**, **trash**; **expired buyers may still read as paid**. No WooCommerce Subscriptions integration despite optional future in BRIEF.
 8. **Tier frozen at enqueue** — `lpnw_alert_queue` stores tier at match time; upgrades/downgrades before send use **stale** tier for frequency and priority.
 9. **VIP frequency vs preferences** — `get_effective_alert_frequency()` **forces instant for VIP**; preferences may allow daily/weekly for VIP → **inconsistent UX**.
 
@@ -45,7 +45,7 @@
 10. **Match on every upsert** — `LPNW_Feed_Base::run()` passes **all** successful upsert IDs to `match_and_queue()`, including updates → extra DB/WC work; dedup prevents duplicate queue rows but not the work.
 11. **No unique DB constraint** on `(subscriber_id, property_id)` for queue — race could duplicate rows under concurrency.
 12. **`mautic_email_id` column** unused in dispatcher — audit trail incomplete.
-13. **Rent vs price filters** — `matches_price()` may **skip min/max for rent** (`application_type === 'rent'`); users may get unexpected matches or noise.
+13. **Rent vs price filters** — **Fixed (1.0.7):** `matches_price()` applies **min/max to rent (PCM)** same as sale; empty price still passes.
 
 ### Feeds (reliability)
 
@@ -160,4 +160,5 @@
 | 2026-04-02 | **Shipped (Theme 6.2.0):** Cinematic hero FX canvas (aurora, stars, heat shimmer, rare lightning), 3D tilt on `.lpnw-hero__scene`, title line stagger + scroll-parallax for `.lpnw-hero__title` / subtitle. |
 | 2026-04-02 | **Shipped (Plugin 1.0.6):** `LPNW_Traffic_Cron` rate-limits `spawn_cron()` to **once per 900s** on front-end requests; optional `LPNW_CRON_SECRET` on `?lpnw_cron=tick`. `deploy-ftp.sh` mirrors **mu-plugins**. |
 | 2026-04-02 | **Shipped (Theme 6.3.0):** Removed **dual canvas RAF loops** (likely tab crashes). Hero: **CSS-only** clouds on `.lpnw-hero__scene`, gentler tilt, hide empty `#lpnw-hero-particles` when SVG hero present. **body.lpnw-site** overrides for plugin cards/forms on dark background (contrast). Owner list: `docs/OWNER-MORNING-TODO.md`. |
+| 2026-04-02 | **Shipped (Plugin 1.0.7):** Rent listings use **price min/max** in matcher; tier skips **cancelled/failed/trash** orders. **Theme 6.3.1:** broader **body.lpnw-site** contrast (search filters, dashboard, map legend). |
 | 2026-04-02 | Initial discovery synthesis from multi-agent audit; no code changes. |

@@ -136,8 +136,11 @@ class LPNW_Subscriber {
 				continue;
 			}
 
-			if ( method_exists( $order, 'get_status' ) && 'refunded' === $order->get_status() ) {
-				continue;
+			if ( method_exists( $order, 'get_status' ) ) {
+				$st = $order->get_status();
+				if ( in_array( $st, array( 'refunded', 'cancelled', 'failed', 'trash' ), true ) ) {
+					continue;
+				}
 			}
 
 			if ( method_exists( $order, 'get_total' ) && method_exists( $order, 'get_total_refunded' ) ) {
