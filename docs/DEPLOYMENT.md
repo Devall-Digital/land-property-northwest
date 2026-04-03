@@ -50,6 +50,10 @@ This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugin
 
 20i’s CDN can cache full pages and assets. After a deploy, if the site still looks old, open **`https://YOUR-DOMAIN/?nocache`** or verify while **logged into WordPress as admin** (both usually bypass or refresh reliably). Purge stack cache in the 20i panel if you use it alongside the CDN.
 
+### Pricing / About / Home HTML (stored in the database)
+
+Some marketing pages are **WordPress page post_content**, synced from `LPNW_Page_Content` via **`tools/lpnw-update-pages.php`** (upload to `mu-plugins`, visit once with `?lpnw_update=pages&key=...`, script self-deletes). After changing **`class-lpnw-page-content.php`**, run that sync or the live page will keep **old HTML** (e.g. pricing table without SVG cells).
+
 ### Cron URL secret (`LPNW_CRON_SECRET`)
 
 If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
