@@ -49,6 +49,7 @@ class LPNW_Page_Content {
 		<div class="lpnw-hero__particles"></div>
 		<div class="lpnw-hero__vignette"></div>
 	</div>
+	<div class="lpnw-hero__scene" aria-hidden="true"><svg class="lpnw-hero__illustration" viewBox="0 0 1600 500"></svg></div>
 	<div class="lpnw-hero__content">
 		<h1 id="lpnw-hero-heading" class="lpnw-hero__title">Get NW property alerts before <em>anyone else</em></h1>
 		<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
