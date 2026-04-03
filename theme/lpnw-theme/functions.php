@@ -133,32 +133,38 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 			if (hero) {
 				var shapes = hero.querySelectorAll('.lpnw-hero__cityscape .lpnw-hero__shape');
 				var clouds = hero.querySelectorAll('.lpnw-hero__cloud');
-				if (shapes.length) {
-					hero.addEventListener('mousemove', function (e) {
-						var rect = hero.getBoundingClientRect();
-						var x = (e.clientX - rect.left) / rect.width - 0.5;
-						var y = (e.clientY - rect.top) / rect.height - 0.5;
-						shapes.forEach(function (shape, i) {
-							var depth = (i + 1) * 12;
-							shape.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth * 0.35) + 'px)';
-						});
-						clouds.forEach(function (cloud, j) {
-							var cd = (j + 1) * 6;
-							cloud.style.transform = 'translate(' + (x * cd) + 'px, ' + (y * cd * 0.5) + 'px)';
-						});
-					}, { passive: true });
-				}
 				var scene = hero.querySelector('.lpnw-hero__scene');
 				var svgIll = hero.querySelector('.lpnw-hero__illustration');
-				if (scene && svgIll) {
+				var parallax = hero.querySelector('.lpnw-hero__parallax');
+				var hasLayeredSvg = !!(parallax && parallax.querySelector('.lpnw-hero__layer--back'));
+				var needsHeroMouse = shapes.length || clouds.length || (scene && (svgIll || hasLayeredSvg)) || hasLayeredSvg;
+				if (needsHeroMouse) {
 					hero.addEventListener('mousemove', function (e) {
 						var rect = hero.getBoundingClientRect();
 						var x = (e.clientX - rect.left) / rect.width - 0.5;
 						var y = (e.clientY - rect.top) / rect.height - 0.5;
-						var rx = (-y * 1.4).toFixed(2);
-						var ry = (x * 2.2).toFixed(2);
-						scene.style.setProperty('--lpnw-tilt-rx', rx + 'deg');
-						scene.style.setProperty('--lpnw-tilt-ry', ry + 'deg');
+						if (shapes.length) {
+							shapes.forEach(function (shape, i) {
+								var depth = (i + 1) * 12;
+								shape.style.transform = 'translate(' + (x * depth) + 'px, ' + (y * depth * 0.35) + 'px)';
+							});
+						}
+						if (clouds.length) {
+							clouds.forEach(function (cloud, j) {
+								var cd = (j + 1) * 6;
+								cloud.style.transform = 'translate(' + (x * cd) + 'px, ' + (y * cd * 0.5) + 'px)';
+							});
+						}
+						if (hasLayeredSvg) {
+							hero.style.setProperty('--lpnw-hero-mx', x.toFixed(4));
+							hero.style.setProperty('--lpnw-hero-my', y.toFixed(4));
+						}
+						if (scene && (svgIll || hasLayeredSvg)) {
+							var rx = (-y * 1.35).toFixed(2);
+							var ry = (x * 2.05).toFixed(2);
+							scene.style.setProperty('--lpnw-tilt-rx', rx + 'deg');
+							scene.style.setProperty('--lpnw-tilt-ry', ry + 'deg');
+						}
 					}, { passive: true });
 				}
 			}

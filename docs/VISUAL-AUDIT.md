@@ -6,6 +6,8 @@
 
 **Shipped (repo, April 2026):** Plugin **1.0.14+** — `get_card_context()` **deep image discovery**; **empty states** (alerts, saved); **preferences** area bulk as outline buttons; **browse** pagination hint; **dashboard** PRO badge + unified action-card accent + stat icons + coverage % alignment; **home hero** (page content + template) **primary + ghost** CTAs, title class for gradient. Theme **6.5.3** — pricing **Pro** border motion disabled (static gradient border); dark overrides for new plugin blocks. **`mu-plugins/lpnw-update-pages.php`** in repo: deploy then hit `?lpnw_update=pages&key=...` once to refresh **DB** HTML (self-deletes). Re-verify with `/?nocache`.
 
+**Hero focus session (April 2026):** Plugin **1.0.16** — `LPNW_Hero_Svg` **v5**: deeper afternoon sky, sun corona, distant hills, **SMIL-drifting** cloud banks, birds, glass tower accent, crosswalk; **unique SVG id prefix** per request. **Logged-in** hero CTAs via `the_content` filter + `body_class` `lpnw-hero--logged-in`. Theme **6.6.0** — hero **glass content** panel, **title shimmer** (motion-safe), stronger **layer parallax** + **mouse offset** (`--lpnw-hero-mx/my`), taller parallax stack, **primary CTA** scale; template hero matches **logged-in** buttons. Run **page sync** so DB home picks up `<em>anyone else</em>` line + CTAs.
+
 **Art direction goal (owner):** The site should feel **artistically impressive** and **special**: cohesive motion, typography, tactile UI, premium colour discipline, and trust without clutter.
 
 ---

@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.5.3
+Version: 6.6.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -118,6 +118,11 @@ Text Domain: lpnw-theme
 			0 14px 44px rgba(0, 0, 0, 0.3),
 			0 0 48px var(--lpnw-glow-teal);
 	}
+}
+
+@keyframes lpnw-hero-title-shimmer {
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
 }
 
 @keyframes lpnw-nav-active-line {
@@ -815,7 +820,9 @@ body.no-sidebar .site-main {
 	position: relative;
 	isolation: isolate;
 	overflow: hidden;
-	background: linear-gradient(165deg, #050a12 0%, #0c1828 32%, #122642 58%, #0a1422 100%);
+	background:
+		radial-gradient(ellipse 120% 90% at 50% 120%, rgba(0, 212, 170, 0.08) 0%, transparent 45%),
+		linear-gradient(165deg, #040810 0%, #0a1524 28%, #0f2138 55%, #081018 100%);
 	color: var(--lpnw-white);
 	padding: clamp(100px, 12vw, 160px) 24px clamp(100px, 10vw, 160px);
 	text-align: center;
@@ -828,6 +835,8 @@ body.no-sidebar .site-main {
 	--lpnw-tilt-rx: 0deg;
 	--lpnw-tilt-ry: 0deg;
 	--lpnw-parallax-p: 0;
+	--lpnw-hero-mx: 0;
+	--lpnw-hero-my: 0;
 }
 
 /* Three-layer procedural city (plugin replaces inline SVG). */
@@ -839,11 +848,12 @@ body.no-sidebar .site-main {
 	margin-right: calc(50% - 50vw);
 	left: 0;
 	right: 0;
-	height: min(48vh, 460px);
-	min-height: 220px;
+	height: min(52vh, 500px);
+	min-height: 240px;
 	margin-bottom: clamp(0.5rem, 2vw, 1.25rem);
 	pointer-events: none;
 	z-index: 2;
+	filter: saturate(1.05) contrast(1.03);
 }
 
 .lpnw-hero__layer {
@@ -859,25 +869,25 @@ body.no-sidebar .site-main {
 
 .lpnw-hero__layer--back {
 	z-index: 0;
-	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 52px)) translateY(calc(var(--lpnw-parallax-p, 0) * -36px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.045));
+	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 52px + var(--lpnw-hero-mx, 0) * 10px)) translateY(calc(var(--lpnw-parallax-p, 0) * -36px + var(--lpnw-hero-my, 0) * 6px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.045));
 }
 
 .lpnw-hero__layer--mid {
 	z-index: 1;
-	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 28px)) translateY(calc(var(--lpnw-parallax-p, 0) * -78px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.065));
+	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 28px + var(--lpnw-hero-mx, 0) * 22px)) translateY(calc(var(--lpnw-parallax-p, 0) * -78px + var(--lpnw-hero-my, 0) * 12px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.065));
 	opacity: 0.99;
 }
 
 .lpnw-hero__layer--front {
 	z-index: 2;
-	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 10px)) translateY(calc(var(--lpnw-parallax-p, 0) * -118px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.09));
-	filter: drop-shadow(0 14px 40px rgba(0, 0, 0, 0.5));
+	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 10px + var(--lpnw-hero-mx, 0) * 38px)) translateY(calc(var(--lpnw-parallax-p, 0) * -118px + var(--lpnw-hero-my, 0) * 18px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.09));
+	filter: drop-shadow(0 18px 48px rgba(0, 0, 0, 0.55));
 }
 
 @media (max-width: 768px) {
 	.lpnw-hero__parallax {
-		height: min(38vh, 320px);
-		min-height: 180px;
+		height: min(40vh, 340px);
+		min-height: 200px;
 	}
 }
 
@@ -1021,10 +1031,19 @@ body.no-sidebar .site-main {
 .lpnw-hero .lpnw-hero__content {
 	position: relative;
 	z-index: 6;
-	max-width: 44rem;
+	max-width: 46rem;
 	margin-left: auto;
 	margin-right: auto;
-	text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
+	padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2.25rem);
+	border-radius: 20px;
+	background: linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, rgba(15, 29, 53, 0.35) 100%);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	box-shadow:
+		0 24px 64px rgba(0, 0, 0, 0.35),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
 }
 
 .lpnw-hero .lpnw-hero__title {
@@ -1033,21 +1052,28 @@ body.no-sidebar .site-main {
 	line-height: 1.08;
 	margin: 0 0 1.25rem;
 	letter-spacing: -0.035em;
-	background: linear-gradient(142deg, var(--lpnw-amber) 0%, #fff8e8 38%, #ffffff 52%, var(--lpnw-amber-light) 100%);
-	background-size: 200% auto;
+	background: linear-gradient(110deg, #fffef8 0%, var(--lpnw-amber-light) 22%, #ffffff 40%, var(--lpnw-teal) 58%, var(--lpnw-amber) 78%, #fff8e8 100%);
+	background-size: 220% auto;
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
 	color: transparent;
-	filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.25));
+	filter: drop-shadow(0 3px 18px rgba(0, 0, 0, 0.35));
 }
 
 .lpnw-hero .lpnw-hero__title em {
 	font-style: normal;
-	background: linear-gradient(135deg, #ffffff 0%, var(--lpnw-teal) 45%, var(--lpnw-amber-light) 100%);
+	background: linear-gradient(135deg, #ffffff 0%, var(--lpnw-teal) 42%, var(--lpnw-amber-light) 100%);
+	background-size: 160% auto;
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-hero .lpnw-hero__title {
+		animation: lpnw-hero-title-shimmer 14s ease-in-out infinite;
+	}
 }
 
 .lpnw-hero .lpnw-hero__subtitle {
@@ -1064,6 +1090,21 @@ body.no-sidebar .site-main {
 	gap: 14px;
 	justify-content: center;
 	align-items: center;
+}
+
+.lpnw-hero .lpnw-hero__actions .lpnw-btn--primary {
+	min-height: 52px;
+	padding: 16px 32px;
+	font-size: 1.0625rem;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+}
+
+.lpnw-hero .lpnw-hero__actions .lpnw-btn--ghost {
+	min-height: 48px;
+	padding: 13px 24px;
+	font-size: 0.9375rem;
+	font-weight: 600;
 }
 
 .lpnw-hero .lpnw-hero__actions br {

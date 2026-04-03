@@ -1,6 +1,6 @@
 <?php
 /**
- * Front-page hero: three full-width SVG layers with scroll parallax.
+ * Front-page hero: layered procedural SVG (afternoon cityscape, motion-safe SMIL).
  *
  * @package LPNW_Property_Alerts
  */
@@ -8,13 +8,13 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Procedural layered cityscape (afternoon palette, varied silhouettes).
+ * Procedural cityscape with sky depth, slow clouds, and skyline parallax layers.
  */
 class LPNW_Hero_Svg {
 
-	public const VERSION = '4';
+	public const VERSION = '5';
 
-	private const VIEW_H = 500;
+	private const VIEW_H = 520;
 
 	/**
 	 * @var bool
@@ -23,6 +23,52 @@ class LPNW_Hero_Svg {
 
 	public static function init(): void {
 		add_action( 'wp', array( __CLASS__, 'register_front_page_content_filter' ) );
+		add_filter( 'body_class', array( __CLASS__, 'filter_body_class' ) );
+		add_filter( 'the_content', array( __CLASS__, 'filter_front_page_hero_ctas' ), 15 );
+	}
+
+	/**
+	 * @param string[] $classes Body classes.
+	 * @return string[]
+	 */
+	public static function filter_body_class( array $classes ): array {
+		if ( is_front_page() && is_user_logged_in() ) {
+			$classes[] = 'lpnw-hero--logged-in';
+		}
+
+		return $classes;
+	}
+
+	/**
+	 * Swap hero CTAs for logged-in visitors (post content only).
+	 *
+	 * @param string $content Post content.
+	 */
+	public static function filter_front_page_hero_ctas( string $content ): string {
+		if ( ! is_front_page() || is_feed() || ! is_user_logged_in() ) {
+			return $content;
+		}
+
+		if ( ! str_contains( $content, 'lpnw-hero__actions' ) ) {
+			return $content;
+		}
+
+		$dash = esc_url( home_url( '/dashboard/' ) );
+		$prefs = esc_url( home_url( '/preferences/' ) );
+
+		$block = '<div class="lpnw-hero__actions">'
+			. '<a class="lpnw-btn lpnw-btn--primary" href="' . $dash . '">' . esc_html__( 'Open dashboard', 'lpnw-alerts' ) . '</a>'
+			. '<a class="lpnw-btn lpnw-btn--ghost" href="' . $prefs . '">' . esc_html__( 'Alert preferences', 'lpnw-alerts' ) . '</a>'
+			. '</div>';
+
+		$out = preg_replace(
+			'/<div\s+class="lpnw-hero__actions"[^>]*>[\s\S]*?<\/div>/i',
+			$block,
+			$content,
+			1
+		);
+
+		return is_string( $out ) ? $out : $content;
 	}
 
 	/**
@@ -83,20 +129,20 @@ class LPNW_Hero_Svg {
 	}
 
 	/**
-	 * @param float  $gw Window width (varies per building).
-	 * @param float  $gh Window height.
+	 * @param float $gw Window width.
+	 * @param float $gh Window height.
 	 */
 	private static function windows_grid( float $bx, float $by, float $bw, float $bh, int $seed, float $lit_pct, string $filter_id, float $gw, float $gh ): string {
-		$gap     = 3.0 + ( self::hash99( $seed, 900 ) % 3 ) * 0.4;
-		$pad     = 5.0;
-		$header  = 14.0 + ( self::hash99( $seed, 901 ) % 8 );
-		$ox      = $bx + $pad;
-		$oy      = $by + $header;
+		$gap    = 3.0 + ( self::hash99( $seed, 900 ) % 3 ) * 0.4;
+		$pad    = 5.0;
+		$header = 14.0 + ( self::hash99( $seed, 901 ) % 8 );
+		$ox     = $bx + $pad;
+		$oy     = $by + $header;
 		$inner_w = $bw - 2 * $pad;
 		$inner_h = $bh - $header - $pad;
-		$cols    = max( 1, (int) floor( ( $inner_w + $gap ) / ( $gw + $gap ) ) );
-		$rows    = max( 1, (int) floor( ( $inner_h + $gap ) / ( $gh + $gap ) ) );
-		$html    = '';
+		$cols   = max( 1, (int) floor( ( $inner_w + $gap ) / ( $gw + $gap ) ) );
+		$rows   = max( 1, (int) floor( ( $inner_h + $gap ) / ( $gh + $gap ) ) );
+		$html   = '';
 
 		for ( $r = 0; $r < $rows; $r++ ) {
 			for ( $c = 0; $c < $cols; $c++ ) {
@@ -109,7 +155,7 @@ class LPNW_Hero_Svg {
 				$h2  = self::hash99( $seed, 400 + $r * 31 + $c );
 				if ( $lit ) {
 					$op = 0.38 + ( $h2 % 40 ) / 100;
-					$fl = ( $h2 % 4 === 0 ) ? '#fff8e6' : ( ( $h2 % 3 === 0 ) ? '#f7c23a' : '#f0a500' );
+					$fl = ( 0 === $h2 % 4 ) ? '#fff8e6' : ( ( 0 === $h2 % 3 ) ? '#f7c23a' : '#f0a500' );
 					$html .= sprintf(
 						'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="0.5" fill="%s" opacity="%.2f" filter="url(#%s)"/>',
 						$x,
@@ -141,15 +187,14 @@ class LPNW_Hero_Svg {
 	 * @param int $style 0–6 silhouette variants.
 	 */
 	private static function building( float $x, float $y_bottom, float $w, float $h, string $fill, int $seed, float $lit_pct, string $fid, int $style ): string {
-		$y     = $y_bottom - $h;
-		$r     = min( 3.0, $w * 0.08 );
-		$gw    = 4.2 + ( self::hash99( $seed, 800 ) % 5 ) * 0.35;
-		$gh    = 3.4 + ( self::hash99( $seed, 801 ) % 4 ) * 0.35;
-		$html  = '';
+		$y      = $y_bottom - $h;
+		$r      = min( 3.0, $w * 0.08 );
+		$gw     = 4.2 + ( self::hash99( $seed, 800 ) % 5 ) * 0.35;
+		$gh     = 3.4 + ( self::hash99( $seed, 801 ) % 4 ) * 0.35;
+		$html   = '';
 		$fill_e = esc_attr( $fill );
 
 		if ( 6 === $style ) {
-			// Rounded tower (ellipse body + flat top cap).
 			$html .= sprintf(
 				'<ellipse cx="%.2f" cy="%.2f" rx="%.2f" ry="%.2f" fill="%s"/>',
 				$x + $w / 2,
@@ -214,7 +259,6 @@ class LPNW_Hero_Svg {
 				$y - $h * 0.26
 			);
 		} elseif ( 3 === $style ) {
-			// Stepped setbacks (two smaller blocks on top).
 			$s1w = $w * 0.72;
 			$s1x = $x + ( $w - $s1w ) / 2;
 			$html .= sprintf(
@@ -236,7 +280,6 @@ class LPNW_Hero_Svg {
 				$fill_e
 			);
 		} elseif ( 4 === $style ) {
-			// Twin gable hint.
 			$pk = $h * 0.07;
 			$html .= sprintf(
 				'<polygon points="%.2f,%.2f %.2f,%.2f %.2f,%.2f" fill="%s" opacity="0.88"/>',
@@ -259,7 +302,6 @@ class LPNW_Hero_Svg {
 				$fill_e
 			);
 		} elseif ( 5 === $style ) {
-			// Ornate cornice band.
 			$html .= sprintf(
 				'<rect x="%.2f" y="%.2f" width="%.2f" height="6" fill="#f0a500" opacity="0.35"/>',
 				$x + 2,
@@ -276,17 +318,17 @@ class LPNW_Hero_Svg {
 	 */
 	private static function skyline( int $layer_seed, float $y_bottom, float $w, float $min_h, float $max_h, float $lit_pct, string $fid, array $palette ): string {
 		$html  = '';
-		$cx    = -55.0;
+		$cx    = -60.0;
 		$i     = 0;
 		$fills = array_values( $palette );
 
-		while ( $cx < $w + 80 ) {
-			$bw = 24.0 + self::hash99( $layer_seed, $i * 3 ) * 0.62 + ( $i % 4 ) * 3;
+		while ( $cx < $w + 90 ) {
+			$bw = 22.0 + self::hash99( $layer_seed, $i * 3 ) * 0.65 + ( $i % 5 ) * 2.8;
 			$bh = $min_h + ( self::hash99( $layer_seed, $i * 7 ) / 100 ) * ( $max_h - $min_h );
 			$fi = $fills[ ( $i + self::hash99( $layer_seed, $i ) ) % count( $fills ) ];
 			$st = self::hash99( $layer_seed, $i * 11 ) % 7;
 			$html .= self::building( $cx, $y_bottom, $bw, $bh, $fi, $layer_seed + $i * 17, $lit_pct, $fid, $st );
-			$gap = -14 + self::hash99( $layer_seed, $i * 5 ) * 0.55;
+			$gap = -16 + self::hash99( $layer_seed, $i * 5 ) * 0.52;
 			$cx += $bw + $gap;
 			++$i;
 		}
@@ -294,8 +336,45 @@ class LPNW_Hero_Svg {
 		return $html;
 	}
 
-	private static function layer_back( float $w ): string {
+	/**
+	 * Distant birds (SMIL drift).
+	 *
+	 * @param string $prefix ID prefix (unique per hero).
+	 */
+	private static function birds_layer( float $w, float $h, string $prefix ): string {
+		$out = '<g fill="none" stroke="rgba(30,55,90,0.35)" stroke-width="1.2" stroke-linecap="round" opacity="0.85">';
+		$birds = array(
+			array( $w * 0.18, 68, 38 ),
+			array( $w * 0.42, 52, 52 ),
+			array( $w * 0.72, 78, 44 ),
+			array( $w * 0.88, 58, 60 ),
+		);
+		$bi    = 0;
+		foreach ( $birds as $b ) {
+			$bx = $b[0];
+			$by = $b[1];
+			$dur = $b[2];
+			$id = $prefix . '-bird-' . $bi;
+			$out .= sprintf(
+				'<g id="%s"><path d="M%.1f %.1f l 5 -3 m 0 0 l 5 3"/><animateTransform attributeName="transform" type="translate" values="0 0; 28 0; 0 0" dur="%ds" repeatCount="indefinite"/></g>',
+				esc_attr( $id ),
+				$bx,
+				$by,
+				$dur
+			);
+			++$bi;
+		}
+		$out .= '</g>';
+
+		return $out;
+	}
+
+	/**
+	 * @param string $prefix Unique SVG id prefix.
+	 */
+	private static function layer_back( float $w, string $prefix ): string {
 		$h = self::VIEW_H;
+		$p = esc_attr( $prefix );
 
 		return sprintf(
 			'<svg class="lpnw-hero__layer lpnw-hero__layer--back" viewBox="0 0 %.2f %d" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
@@ -303,32 +382,62 @@ class LPNW_Hero_Svg {
 			$h
 		)
 		. '<defs>'
-		. '<linearGradient id="lpnwh4-sky" x1="0" y1="0" x2="0.3" y2="1">'
-		. '<stop offset="0%" stop-color="#7eb8ff"/><stop offset="42%" stop-color="#b8d4f5"/><stop offset="78%" stop-color="#e8c9a8"/><stop offset="100%" stop-color="#f0d9a8"/>'
+		. '<linearGradient id="' . $p . '-sky" x1="0" y1="0" x2="0.35" y2="1">'
+		. '<stop offset="0%" stop-color="#1a3d6e"/><stop offset="28%" stop-color="#4a8fd9"/><stop offset="55%" stop-color="#a8c8ef"/><stop offset="82%" stop-color="#e8c9a8"/><stop offset="100%" stop-color="#f2dfb8"/>'
 		. '</linearGradient>'
-		. '<radialGradient id="lpnwh4-sun" cx="0.5" cy="0.45" r="0.5">'
-		. '<stop offset="0%" stop-color="rgba(255,248,220,0.95)"/><stop offset="55%" stop-color="rgba(255,210,120,0.35)"/><stop offset="100%" stop-color="transparent"/>'
+		. '<radialGradient id="' . $p . '-sun" cx="0.5" cy="0.42" r="0.55">'
+		. '<stop offset="0%" stop-color="rgba(255,252,235,0.98)"/><stop offset="45%" stop-color="rgba(255,210,130,0.45)"/><stop offset="100%" stop-color="transparent"/>'
 		. '</radialGradient>'
-		. '<filter id="lpnwh4-cloudblur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="16"/></filter>'
+		. '<linearGradient id="' . $p . '-haze" x1="0" y1="0" x2="0" y2="1">'
+		. '<stop offset="0%" stop-color="transparent"/><stop offset="100%" stop-color="rgba(15,29,53,0.22)"/>'
+		. '</linearGradient>'
+		. '<filter id="' . $p . '-cloudblur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="18"/></filter>'
 		. '</defs>'
-		. sprintf( '<rect width="%.2f" height="%d" fill="url(#lpnwh4-sky)"/>', $w, $h )
-		. sprintf( '<circle cx="%.2f" cy="92" r="56" fill="url(#lpnwh4-sun)" opacity="0.75"/>', $w * 0.12 )
-		. '<g opacity="0.55" filter="url(#lpnwh4-cloudblur)">'
-		. sprintf( '<ellipse cx="%.2f" cy="108" rx="240" ry="42" fill="rgba(255,255,255,0.55)"/>', $w * 0.35 )
-		. sprintf( '<ellipse cx="%.2f" cy="88" rx="200" ry="36" fill="rgba(255,255,255,0.45)"/>', $w * 0.62 )
-		. sprintf( '<ellipse cx="%.2f" cy="125" rx="220" ry="40" fill="rgba(255,255,255,0.4)"/>', $w * 0.88 )
+		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-sky)"/>', $w, $h, $p )
+		. sprintf( '<circle cx="%.2f" cy="88" r="62" fill="url(#%s-sun)" opacity="0.82"/>', $w * 0.11, $p )
+		. sprintf( '<circle cx="%.2f" cy="88" r="88" fill="none" stroke="rgba(255,220,160,0.12)" stroke-width="2" opacity="0.9"/>', $w * 0.11 )
+		// Hills.
+		. sprintf(
+			'<path d="M0 %.1f Q %.1f %.1f %.1f %.1f T %.1f %.1f L %.1f %d L 0 %d Z" fill="rgba(45,85,130,0.28)"/>',
+			(float) $h - 120,
+			$w * 0.2,
+			(float) $h - 200,
+			$w * 0.45,
+			(float) $h - 150,
+			$w * 0.78,
+			(float) $h - 175,
+			$w,
+			$h,
+			$h
+		)
+		// Cloud banks (SMIL drift).
+		. '<g opacity="0.62" filter="url(#' . $p . '-cloudblur)">'
+		. sprintf(
+			'<g><ellipse cx="%.2f" cy="112" rx="260" ry="46" fill="rgba(255,255,255,0.58)"/><animateTransform attributeName="transform" type="translate" values="0 0; 36 0; 0 0" dur="85s" repeatCount="indefinite"/></g>',
+			$w * 0.32
+		)
+		. sprintf(
+			'<g><ellipse cx="%.2f" cy="92" rx="210" ry="38" fill="rgba(255,255,255,0.48)"/><animateTransform attributeName="transform" type="translate" values="0 0; -28 0; 0 0" dur="110s" repeatCount="indefinite"/></g>',
+			$w * 0.64
+		)
+		. sprintf(
+			'<g><ellipse cx="%.2f" cy="128" rx="230" ry="42" fill="rgba(255,255,255,0.38)"/><animateTransform attributeName="transform" type="translate" values="0 0; 22 0; 0 0" dur="95s" repeatCount="indefinite"/></g>',
+			$w * 0.9
+		)
 		. '</g>'
-		. '<g stroke="rgba(30,60,100,0.2)" stroke-width="1.2" fill="none" opacity="0.35">'
-		. sprintf( '<path d="M%.2f 42 Q %.2f 38 %.2f 44"/>', $w * 0.72, $w * 0.76, $w * 0.8 )
-		. sprintf( '<path d="M%.2f 48 Q %.2f 44 %.2f 50"/>', $w * 0.78, $w * 0.82, $w * 0.86 )
-		. '</g>'
+		. self::birds_layer( $w, (float) $h, $prefix )
+		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-haze)"/>', $w, $h, $p )
 		. '</svg>';
 	}
 
-	private static function layer_mid( float $w ): string {
+	/**
+	 * @param string $prefix Unique SVG id prefix.
+	 */
+	private static function layer_mid( float $w, string $prefix ): string {
 		$h   = self::VIEW_H;
-		$fid = 'lpnwh4-glow-mid';
+		$fid = $prefix . '-glow-mid';
 		$pal = array( '#3d5a80', '#2d4a6e', '#3a5f7a', '#2f5070', '#4a6788', '#355a72' );
+		$p   = esc_attr( $prefix );
 
 		return sprintf(
 			'<svg class="lpnw-hero__layer lpnw-hero__layer--mid" viewBox="0 0 %.2f %d" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
@@ -336,18 +445,24 @@ class LPNW_Hero_Svg {
 			$h
 		)
 		. '<defs>'
-		. sprintf( '<filter id="%s" x="-80%%" y="-80%%" width="260%%" height="260%%"><feGaussianBlur stdDeviation="1.2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
+		. sprintf( '<filter id="%s" x="-80%%" y="-80%%" width="260%%" height="260%%"><feGaussianBlur stdDeviation="1.1"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
+		. '<linearGradient id="' . $p . '-atm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.06)"/><stop offset="100%" stop-color="transparent"/></linearGradient>'
 		. '</defs>'
 		. sprintf( '<rect width="%.2f" height="%d" fill="transparent"/>', $w, $h )
-		. self::skyline( 701, (float) $h - 2, $w, 120, 270, 0.28, $fid, $pal )
+		. self::skyline( 701, (float) $h - 2, $w, 125, 275, 0.29, $fid, $pal )
+		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-atm)"/>', $w, $h, $p )
 		. '</svg>';
 	}
 
-	private static function layer_front( float $w ): string {
+	/**
+	 * @param string $prefix Unique SVG id prefix.
+	 */
+	private static function layer_front( float $w, string $prefix ): string {
 		$h    = self::VIEW_H;
-		$fid  = 'lpnwh4-glow-front';
+		$fid  = $prefix . '-glow-front';
 		$pal  = array( '#1e3355', '#243d5c', '#1a2f4d', '#2a4a68', '#162842', '#203a52' );
 		$base = (float) $h - 2;
+		$p    = esc_attr( $prefix );
 
 		$html = sprintf(
 			'<svg class="lpnw-hero__layer lpnw-hero__layer--front" viewBox="0 0 %.2f %d" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
@@ -355,17 +470,18 @@ class LPNW_Hero_Svg {
 			$h
 		)
 		. '<defs>'
-		. sprintf( '<filter id="%s" x="-100%%" y="-100%%" width="300%%" height="300%%"><feGaussianBlur stdDeviation="1.8"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
-		. '<linearGradient id="lpnwh4-street" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="100%" stop-color="rgba(15,29,53,0.35)"/></linearGradient>'
+		. sprintf( '<filter id="%s" x="-100%%" y="-100%%" width="300%%" height="300%%"><feGaussianBlur stdDeviation="1.6"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
+		. '<linearGradient id="' . $p . '-street" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="100%" stop-color="rgba(8,14,26,0.55)"/></linearGradient>'
+		. '<linearGradient id="' . $p . '-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.14)"/><stop offset="100%" stop-color="rgba(0,212,170,0.08)"/></linearGradient>'
 		. '</defs>'
 		. sprintf( '<rect width="%.2f" height="%d" fill="transparent"/>', $w, $h )
-		. self::skyline( 503, $base, $w, 185, 395, 0.42, $fid, $pal );
+		. self::skyline( 503, $base, $w, 190, 405, 0.44, $fid, $pal );
 
-		for ( $t = 0; $t < 11; $t++ ) {
-			$tx = 25 + ( $t * 149 + self::hash99( 88, $t * 3 ) ) % (int) ( $w - 100 );
-			$gh = 0.55 + ( self::hash99( 77, $t ) % 20 ) / 100;
+		for ( $t = 0; $t < 12; $t++ ) {
+			$tx = 20 + ( $t * 143 + self::hash99( 88, $t * 3 ) ) % (int) ( $w - 90 );
+			$gh = 0.52 + ( self::hash99( 77, $t ) % 22 ) / 100;
 			$html .= sprintf(
-				'<ellipse cx="%.2f" cy="%.2f" rx="14" ry="20" fill="#2d6b52" opacity="%.2f"/><rect x="%.2f" y="%.2f" width="5" height="26" fill="#1f4a38"/>',
+				'<ellipse cx="%.2f" cy="%.2f" rx="13" ry="19" fill="#2d6b52" opacity="%.2f"/><rect x="%.2f" y="%.2f" width="5" height="26" fill="#1f4a38"/>',
 				$tx + 9,
 				$base - 16,
 				$gh,
@@ -375,29 +491,55 @@ class LPNW_Hero_Svg {
 		}
 
 		$html .= sprintf(
-			'<rect x="0" y="%.2f" width="%.2f" height="10" fill="rgba(40,55,75,0.45)"/>',
-			$base - 8,
+			'<rect x="0" y="%.2f" width="%.2f" height="11" fill="rgba(35,50,72,0.5)"/>',
+			$base - 9,
 			$w
 		);
 		$html .= sprintf(
-			'<line x1="0" y1="%.2f" x2="%.2f" y2="%.2f" stroke="rgba(240,165,0,0.22)" stroke-width="2" stroke-dasharray="12 16"/>',
-			$base - 3,
+			'<line x1="0" y1="%.2f" x2="%.2f" y2="%.2f" stroke="rgba(240,165,0,0.28)" stroke-width="2" stroke-dasharray="10 14"/>',
+			$base - 4,
 			$w,
-			$base - 3
+			$base - 4
 		);
+		// Crosswalk.
+		for ( $z = 0; $z < 7; $z++ ) {
+			$html .= sprintf(
+				'<rect x="%.2f" y="%.2f" width="5" height="14" rx="1" fill="rgba(255,255,255,0.2)"/>',
+				$w * 0.46 + $z * 12,
+				$base - 22
+			);
+		}
+		// Landmark glass tower hint.
 		$html .= sprintf(
-			'<rect x="0" y="%.2f" width="%.2f" height="40" fill="url(#lpnwh4-street)"/>',
-			$base - 40,
-			$w
+			'<rect x="%.2f" y="%.2f" width="42" height="%.2f" rx="3" fill="url(#%s-glass)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>',
+			$w * 0.62,
+			$base - 310,
+			302.0,
+			$p
+		);
+		for ( $fl = 0; $fl < 8; $fl++ ) {
+			$html .= sprintf(
+				'<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>',
+				$w * 0.62 + 6,
+				$base - 295 + $fl * 36,
+				$w * 0.62 + 36,
+				$base - 295 + $fl * 36
+			);
+		}
+		$html .= sprintf(
+			'<rect x="0" y="%.2f" width="%.2f" height="48" fill="url(#%s-street)"/>',
+			$base - 44,
+			$w,
+			$p
 		);
 
-		for ( $b = 0; $b < 6; $b++ ) {
-			$bx = 80 + $b * ( $w / 6.2 ) + self::hash99( 44, $b * 2 );
+		for ( $b = 0; $b < 7; $b++ ) {
+			$bx = 70 + $b * ( $w / 6.5 ) + self::hash99( 44, $b * 2 );
 			$html .= sprintf(
-				'<circle cx="%.2f" cy="%.2f" r="2.8" fill="#00d4aa" opacity="0.5"><animate attributeName="opacity" values="0.25;0.85;0.25" dur="%ds" repeatCount="indefinite"/></circle>',
+				'<circle cx="%.2f" cy="%.2f" r="2.6" fill="#00d4aa" opacity="0.45"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="%ds" repeatCount="indefinite"/></circle>',
 				$bx,
-				$base - 220 - ( $b % 3 ) * 28,
-				4 + ( $b % 3 )
+				$base - 228 - ( $b % 3 ) * 30,
+				5 + ( $b % 3 )
 			);
 		}
 
@@ -405,13 +547,14 @@ class LPNW_Hero_Svg {
 	}
 
 	public static function get_illustration_markup(): string {
-		$w = 1800.0;
-		$v = esc_attr( self::VERSION );
+		$w       = 2000.0;
+		$v       = esc_attr( self::VERSION );
+		$prefix = 'lpnwh5' . bin2hex( random_bytes( 4 ) );
 
 		return '<div class="lpnw-hero__parallax" data-lpnw-hero-svg="' . $v . '" aria-hidden="true">'
-			. self::layer_back( $w )
-			. self::layer_mid( $w )
-			. self::layer_front( $w )
+			. self::layer_back( $w, $prefix )
+			. self::layer_mid( $w, $prefix )
+			. self::layer_front( $w, $prefix )
 			. '</div>';
 	}
 }
