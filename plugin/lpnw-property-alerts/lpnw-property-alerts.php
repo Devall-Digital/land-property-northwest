@@ -3,7 +3,7 @@
  * Plugin Name: LPNW Property Alerts
  * Plugin URI: https://land-property-northwest.co.uk
  * Description: Property intelligence and alert engine for Northwest England. Aggregates planning applications, EPC data, Land Registry transactions, and auction listings into automated subscriber alerts.
- * Version: 1.0.25
+ * Version: 1.0.26
  * Author: Land & Property Northwest
  * Author URI: https://land-property-northwest.co.uk
  * License: Proprietary
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LPNW_VERSION', '1.0.25' );
+define( 'LPNW_VERSION', '1.0.26' );
 define( 'LPNW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LPNW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LPNW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -61,8 +61,9 @@ final class LPNW_Property_Alerts {
 
 		require_once $includes . 'class-lpnw-cron.php';
 		require_once $includes . 'class-lpnw-cron-http.php';
+		require_once $includes . 'class-lpnw-cron-request.php';
 		require_once $includes . 'class-lpnw-traffic-cron.php';
-		require_once $includes . 'class-lpnw-hero-svg.php';
+		require_once $includes . 'class-lpnw-hero-media.php';
 		require_once $includes . 'class-lpnw-outcode-labels.php';
 		require_once $includes . 'class-lpnw-nw-postcodes.php';
 		require_once $includes . 'class-lpnw-property.php';
@@ -102,9 +103,10 @@ final class LPNW_Property_Alerts {
 	private function init_hooks(): void {
 		add_action( 'init', array( $this, 'on_init' ) );
 
+		LPNW_Cron_Request::init();
 		LPNW_Cron::init();
 		LPNW_Traffic_Cron::init();
-		LPNW_Hero_Svg::init();
+		LPNW_Hero_Media::init();
 		LPNW_Mautic_Sync::init();
 		LPNW_Page_Content_Sync::init();
 		LPNW_WooCommerce_Notices::init();

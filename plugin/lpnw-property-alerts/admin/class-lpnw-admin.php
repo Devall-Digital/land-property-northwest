@@ -746,6 +746,8 @@ class LPNW_Admin {
 		$alerts_queued = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'queued'" );
 		$alerts_sent_all = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'sent'" );
 
+		$lpnw_cron_ping_url = class_exists( 'LPNW_Cron_Request' ) ? LPNW_Cron_Request::get_external_ping_url() : '';
+
 		include LPNW_PLUGIN_DIR . 'admin/views/dashboard.php';
 	}
 
