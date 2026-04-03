@@ -26,7 +26,9 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 **Live site:** https://land-property-northwest.co.uk  
 **Marketing / Mautic host:** https://marketing.land-property-northwest.co.uk  
 
-**Transactional From addresses (plugin, wp_mail):** Alerts use **`alerts@<your-domain>`**; contact-form notifications to you use **`hello@<your-domain>`** as the visible sender (visitor stays on **Reply-To**). Create those mailboxes or forwarders on the host and align **SPF/DKIM** so inboxes trust them. **admin@** is still useful as **WordPress admin email** (password reset, critical notices); it is not replaced by this change. Developers can override addresses with filters `lpnw_alert_mail_from_email`, `lpnw_contact_mail_from_email`, `lpnw_mail_from_name`, or the local-part filters in `class-lpnw-email-branding.php`.
+**Transactional addresses (plugin, wp_mail):** Alerts **From** **`alerts@<your-domain>`**. Contact form: **delivered to** **`admin@<your-domain>`**, **From** **`hello@<your-domain>`** (visitor on **Reply-To**). Create those mailboxes or forwarders on the host and align **SPF/DKIM**. **WordPress admin email** can stay separate (password resets, etc.). Override with filters `lpnw_alert_mail_from_email`, `lpnw_contact_mail_from_email`, `lpnw_admin_notify_mail_to_email`, `lpnw_mail_from_name`, or local-part filters in `class-lpnw-email-branding.php`.
+
+**20i CDN / full-page cache:** Deploys and theme/CSS changes may not show until the edge cache refreshes. For a **reliable live check**, either **log in to wp-admin** (often bypasses or varies cache) or load the site with **`/?nocache`** (and add paths as needed, e.g. `https://land-property-northwest.co.uk/?nocache`). Use the same after FTP deploy when verifying hero or stylesheet updates.
 
 **Mautic alert templates:** On send, the plugin posts `tokens` including `{lpnw_subscriber_first_name}`, `{lpnw_alert_count}`, `{lpnw_tier}`, `{lpnw_properties_html}` (HTML summary). Use the same token names in Mautic email content. Filter `lpnw_mautic_alert_email_tokens` to extend.
 
@@ -38,7 +40,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **GitHub vs live:** This repo is the **source of truth** for **plugin and theme code**. Pushing to GitHub means you can redeploy or rebuild the custom product after a host failure. A full site restore also needs **WordPress database, uploads, and wp-config** (use **UpdraftPlus** or 20i backups on a schedule). FTP deploy only replaces the two custom folders.
 
-**Live deploy:** After commits are on GitHub, deploy plugin + theme with `./tools/deploy-ftp.sh` (or manual FTP per `docs/DEPLOYMENT.md`).
+**Live deploy:** After commits are on GitHub, deploy plugin + theme with `./tools/deploy-ftp.sh` (or manual FTP per `docs/DEPLOYMENT.md`). **Verify on live** with **`/?nocache`** or while **logged in as admin** so 20i CDN does not serve a stale HTML/CSS snapshot.
 
 **If portals block the server:** The product is built to use **many sources** (Rightmove, OnTheMarket, Zoopla, auctions, planning, EPC, Land Registry). If one portal blocks scraping, **others keep feeding** the index; watch **LPNW Alerts → Feed Status**. Longer term: **official feed or data licence**, **partner API**, or a **dedicated egress IP / proxy** agreed with the portal (legal and commercial, not a code flip). Keep **EPC API key** and **non-portal feeds** enabled to widen coverage.
 

@@ -46,6 +46,10 @@ With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 
 This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugins/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
 
+### 20i CDN cache (seeing your changes)
+
+20i’s CDN can cache full pages and assets. After a deploy, if the site still looks old, open **`https://YOUR-DOMAIN/?nocache`** or verify while **logged into WordPress as admin** (both usually bypass or refresh reliably). Purge stack cache in the 20i panel if you use it alongside the CDN.
+
 ### Cron URL secret (`LPNW_CRON_SECRET`)
 
 If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
