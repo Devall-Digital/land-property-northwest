@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.6.0
+Version: 6.10.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -1674,19 +1674,23 @@ body.no-sidebar .site-main {
 }
 
 .lpnw-pricing-card--vip {
-	border-color: rgba(0, 212, 170, 0.45);
+	position: relative;
+	border-color: rgba(0, 212, 170, 0.5);
+	border-width: 2px;
 	box-shadow:
-		0 0 0 1px rgba(0, 212, 170, 0.2),
-		0 10px 40px rgba(0, 212, 170, 0.12),
+		0 0 0 1px rgba(0, 212, 170, 0.25),
+		0 10px 40px rgba(0, 212, 170, 0.15),
+		0 0 60px rgba(0, 212, 170, 0.08),
 		var(--lpnw-glass-shadow);
-	background: linear-gradient(165deg, rgba(15, 29, 53, 0.92) 0%, rgba(10, 22, 40, 0.88) 100%);
+	background: linear-gradient(165deg, rgba(10, 25, 45, 0.95) 0%, rgba(8, 18, 35, 0.92) 100%);
 }
 
 .lpnw-pricing-card--vip:hover {
-	border-color: rgba(0, 212, 170, 0.65);
+	border-color: rgba(0, 212, 170, 0.7);
 	box-shadow:
-		0 0 0 1px rgba(0, 212, 170, 0.35),
-		0 14px 48px rgba(0, 212, 170, 0.18),
+		0 0 0 1px rgba(0, 212, 170, 0.4),
+		0 18px 56px rgba(0, 212, 170, 0.22),
+		0 0 80px rgba(0, 212, 170, 0.12),
 		var(--lpnw-glass-shadow);
 }
 
@@ -3077,6 +3081,235 @@ body.no-sidebar .site-main {
 /* Smooth scroll-to for anchor links */
 html {
 	scroll-padding-top: 80px;
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLE 12 — HERO CLEANUP + REFINEMENTS
+   ========================================================================== */
+
+.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__bg {
+	display: none !important;
+}
+
+.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__content {
+	position: relative;
+	z-index: 10;
+}
+
+.lpnw-hero:has(.lpnw-hero__parallax)::before,
+.lpnw-hero:has(.lpnw-hero__parallax)::after {
+	display: none !important;
+}
+
+.lpnw-hero__parallax + .lpnw-hero__content {
+	margin-top: -2rem;
+}
+
+@media (min-width: 768px) {
+	.lpnw-hero__parallax + .lpnw-hero__content {
+		margin-top: -4rem;
+	}
+}
+
+/* Stat card shimmer on hover */
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-stat-card {
+		overflow: hidden;
+	}
+
+	.lpnw-stat-card::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 60%;
+		height: 100%;
+		background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+		transition: left 0.6s ease;
+		pointer-events: none;
+	}
+
+	.lpnw-stat-card:hover::after {
+		left: 120%;
+	}
+}
+
+/* Pricing card subtle entrance */
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-pricing-card {
+		opacity: 0;
+		transform: translateY(20px);
+		animation: lpnw-card-enter 0.5s ease forwards;
+	}
+
+	.lpnw-pricing-card:nth-child(2) {
+		animation-delay: 0.12s;
+	}
+
+	.lpnw-pricing-card:nth-child(3) {
+		animation-delay: 0.24s;
+	}
+
+	@keyframes lpnw-card-enter {
+		to { opacity: 1; transform: translateY(0); }
+	}
+}
+
+/* FAQ accordion smooth open */
+.lpnw-faq__answer {
+	transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.lpnw-faq__item:not([open]) .lpnw-faq__answer {
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+}
+
+.lpnw-faq__item[open] .lpnw-faq__answer {
+	max-height: 500px;
+	opacity: 1;
+}
+
+/* Trust bar subtle glass */
+.lpnw-trust-bar {
+	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Star twinkle for hero back layer */
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-hero__layer--back circle[fill="#fff"] {
+		animation: lpnw-twinkle var(--tw-dur, 4s) ease-in-out infinite;
+		animation-delay: var(--tw-del, 0s);
+	}
+
+	.lpnw-hero__layer--back circle[fill="#fff"]:nth-child(odd) {
+		--tw-dur: 3.5s;
+		--tw-del: 0.8s;
+	}
+
+	.lpnw-hero__layer--back circle[fill="#fff"]:nth-child(3n) {
+		--tw-dur: 5s;
+		--tw-del: 1.5s;
+	}
+
+	.lpnw-hero__layer--back circle[fill="#fff"]:nth-child(5n) {
+		--tw-dur: 4.5s;
+		--tw-del: 2.2s;
+	}
+
+	@keyframes lpnw-twinkle {
+		0%, 100% { opacity: var(--tw-base, 0.5); }
+		50% { opacity: calc(var(--tw-base, 0.5) + 0.3); }
+	}
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLE 11 — MOBILE + OG + MICRO-INTERACTIONS
+   ========================================================================== */
+
+@media (max-width: 480px) {
+	.lpnw-hero__parallax {
+		height: min(35vh, 280px) !important;
+		min-height: 180px !important;
+	}
+
+	.lpnw-hero__content {
+		padding: 1rem 1.25rem 1.5rem !important;
+	}
+
+	.lpnw-hero__title {
+		font-size: clamp(1.5rem, 7vw, 2rem) !important;
+		line-height: 1.2 !important;
+	}
+
+	.lpnw-hero p {
+		font-size: 0.875rem !important;
+		line-height: 1.5 !important;
+	}
+
+	.lpnw-hero__actions {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 0.5rem !important;
+	}
+
+	.lpnw-hero__actions .lpnw-btn {
+		width: 100% !important;
+		min-height: 48px !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
+
+	.lpnw-live-pulse {
+		display: flex !important;
+		margin-bottom: 0.5rem !important;
+	}
+
+	.lpnw-stats-bar__list {
+		grid-template-columns: 1fr 1fr !important;
+	}
+
+	.lpnw-pricing {
+		padding: 0 8px !important;
+	}
+
+	.lpnw-pricing-card {
+		padding: 1.25rem 1rem !important;
+	}
+
+	.lpnw-faq__question {
+		font-size: 0.9375rem !important;
+		padding: 1rem 0.875rem !important;
+	}
+}
+
+/* ==========================================================================
+   PREMIUM MICRO-INTERACTIONS
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-btn--primary {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.lpnw-btn--primary::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			circle at var(--lpnw-shine-x, 50%) var(--lpnw-shine-y, 50%),
+			rgba(255, 255, 255, 0.25) 0%,
+			transparent 60%
+		);
+		opacity: 0;
+		transition: opacity 0.25s ease;
+		pointer-events: none;
+	}
+
+	.lpnw-btn--primary:hover::after {
+		opacity: 1;
+	}
+
+	.lpnw-step {
+		transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+	}
+
+	.lpnw-step:hover {
+		transform: translateY(-6px);
+		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2), 0 0 20px rgba(240, 165, 0, 0.08);
+	}
+
+	.lpnw-stats-bar__item {
+		transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.lpnw-stats-bar__item:hover {
+		transform: translateY(-3px);
+	}
 }
 
 /* ==========================================================================

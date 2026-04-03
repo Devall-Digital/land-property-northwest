@@ -140,6 +140,7 @@ $signup_url = add_query_arg(
 
 	<?php if ( $lpnw_search_total > 0 ) : ?>
 		<p class="lpnw-property-search__count<?php echo $lpnw_search_gated ? ' lpnw-property-search__count--gated' : ''; ?>">
+			<?php echo LPNW_Public::render_live_activity(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php
 			printf(
 				/* translators: 1: range start, 2: range end, 3: total (all formatted numbers). */

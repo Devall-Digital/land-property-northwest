@@ -35,6 +35,31 @@ $show_alert_schedule_tip = is_user_logged_in() && in_array( strtolower( (string)
 	: false;
 
 $tier_key = strtolower( (string) $tier );
+
+$lpnw_missed_today = 0;
+$lpnw_missed_week  = 0;
+if ( 'free' === $tier_key ) {
+	$since_24h_dash      = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+	$lpnw_missed_today = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue aq
+			 INNER JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
+			 WHERE sp.user_id = %d AND aq.queued_at >= %s",
+			$user_id,
+			$since_24h_dash
+		)
+	);
+	$lpnw_missed_week = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue aq
+			 INNER JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
+			 WHERE sp.user_id = %d AND aq.queued_at >= %s",
+			$user_id,
+			$week_ago
+		)
+	);
+}
+
 switch ( $tier_key ) {
 	case 'vip':
 		$tier_label       = __( 'Investor VIP', 'lpnw-alerts' );
@@ -188,14 +213,57 @@ $type_bar_label  = $types_selected > 0
 	</div>
 
 	<?php if ( 'free' === $tier_key ) : ?>
+		<?php if ( $lpnw_missed_today > 0 || $lpnw_missed_week > 0 ) : ?>
+		<div class="lpnw-missed-banner" role="alert">
+			<div class="lpnw-missed-banner__pulse" aria-hidden="true"></div>
+			<div class="lpnw-missed-banner__content">
+				<p class="lpnw-missed-banner__stat">
+					<?php if ( $lpnw_missed_today > 0 ) : ?>
+						<strong class="lpnw-missed-banner__count"><?php echo esc_html( number_format_i18n( $lpnw_missed_today ) ); ?></strong>
+						<?php
+						echo esc_html(
+							sprintf(
+								_n(
+									'property matched your filters in the last 24 hours.',
+									'properties matched your filters in the last 24 hours.',
+									$lpnw_missed_today,
+									'lpnw-alerts'
+								),
+								$lpnw_missed_today
+							)
+						);
+						?>
+					<?php else : ?>
+						<strong class="lpnw-missed-banner__count"><?php echo esc_html( number_format_i18n( $lpnw_missed_week ) ); ?></strong>
+						<?php
+						echo esc_html(
+							sprintf(
+								_n(
+									'property matched your filters this week.',
+									'properties matched your filters this week.',
+									$lpnw_missed_week,
+									'lpnw-alerts'
+								),
+								$lpnw_missed_week
+							)
+						);
+						?>
+					<?php endif; ?>
+				</p>
+				<p class="lpnw-missed-banner__message"><?php esc_html_e( 'Pro subscribers received these as instant alerts. You will see them in your weekly digest.', 'lpnw-alerts' ); ?></p>
+				<a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>" class="lpnw-btn lpnw-btn--primary lpnw-missed-banner__cta"><?php esc_html_e( 'Upgrade to instant alerts', 'lpnw-alerts' ); ?></a>
+			</div>
+		</div>
+		<?php endif; ?>
+
 		<div class="lpnw-cta-banner lpnw-cta-banner--dashboard lpnw-cta-banner--premium" role="region" aria-labelledby="lpnw-dashboard-cta-heading">
 			<div class="lpnw-cta-banner__accent" aria-hidden="true"></div>
 			<div class="lpnw-cta-banner__inner">
-				<p class="lpnw-cta-banner__eyebrow"><?php esc_html_e( 'Go beyond the weekly digest', 'lpnw-alerts' ); ?></p>
-				<h3 class="lpnw-cta-banner__title" id="lpnw-dashboard-cta-heading"><?php esc_html_e( 'Unlock instant Northwest property alerts', 'lpnw-alerts' ); ?></h3>
-				<p class="lpnw-cta-banner__text"><?php esc_html_e( 'Upgrade to Pro for daily instant alerts and full filtering, or Investor VIP for priority access and off-market opportunities.', 'lpnw-alerts' ); ?></p>
+				<p class="lpnw-cta-banner__eyebrow"><?php esc_html_e( 'You are on the free plan', 'lpnw-alerts' ); ?></p>
+				<h3 class="lpnw-cta-banner__title" id="lpnw-dashboard-cta-heading"><?php esc_html_e( 'Stop waiting a week for opportunities', 'lpnw-alerts' ); ?></h3>
+				<p class="lpnw-cta-banner__text"><?php esc_html_e( 'By the time your weekly digest arrives, the best deals are already gone. Pro gives you instant alerts the moment a property matches. VIP gives you a 30-minute head start over everyone else.', 'lpnw-alerts' ); ?></p>
 				<div class="lpnw-cta-banner__actions">
-					<a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>" class="lpnw-btn lpnw-btn--primary"><?php esc_html_e( 'View plans', 'lpnw-alerts' ); ?></a>
+					<a href="<?php echo esc_url( home_url( '/pricing/' ) ); ?>" class="lpnw-btn lpnw-btn--primary"><?php esc_html_e( 'See upgrade options', 'lpnw-alerts' ); ?></a>
 				</div>
 			</div>
 		</div>

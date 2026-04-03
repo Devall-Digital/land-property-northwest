@@ -850,6 +850,92 @@ class LPNW_Property {
 	}
 
 	/**
+	 * Human-readable recency label from a date string (created_at or first_listed_date).
+	 *
+	 * Returns granular labels: "Just now", "X minutes ago", "X hours ago", "Listed today",
+	 * "Listed yesterday", "Listed X days ago".
+	 *
+	 * @param string $date_string MySQL datetime or date string.
+	 * @return array{label: string, is_urgent: bool, is_new: bool}
+	 */
+	public static function get_listed_label( string $date_string ): array {
+		$result = array(
+			'label'     => '',
+			'is_urgent' => false,
+			'is_new'    => false,
+		);
+
+		if ( '' === trim( $date_string ) ) {
+			return $result;
+		}
+
+		$ts = strtotime( $date_string );
+		if ( false === $ts ) {
+			return $result;
+		}
+
+		$now  = time();
+		$diff = $now - $ts;
+
+		if ( $diff < 0 ) {
+			return $result;
+		}
+
+		$result['is_new'] = $diff < ( 2 * DAY_IN_SECONDS );
+
+		if ( $diff < 3600 ) {
+			$mins = max( 1, (int) floor( $diff / 60 ) );
+			if ( $mins < 5 ) {
+				$result['label']     = __( 'Just listed', 'lpnw-alerts' );
+			} else {
+				$result['label'] = sprintf(
+					/* translators: %d: number of minutes */
+					_n( '%d minute ago', '%d minutes ago', $mins, 'lpnw-alerts' ),
+					$mins
+				);
+			}
+			$result['is_urgent'] = true;
+			return $result;
+		}
+
+		if ( $diff < DAY_IN_SECONDS ) {
+			$hours = max( 1, (int) floor( $diff / 3600 ) );
+			$result['label'] = sprintf(
+				/* translators: %d: number of hours */
+				_n( '%d hour ago', '%d hours ago', $hours, 'lpnw-alerts' ),
+				$hours
+			);
+			$result['is_urgent'] = ( $hours <= 4 );
+			return $result;
+		}
+
+		$tz        = wp_timezone();
+		$listed_dt = date_create_immutable( wp_date( 'Y-m-d', $ts ), $tz );
+		$today_dt  = date_create_immutable( current_time( 'Y-m-d' ), $tz );
+
+		if ( ! $listed_dt || ! $today_dt || $listed_dt > $today_dt ) {
+			return $result;
+		}
+
+		$cal_days = (int) $listed_dt->diff( $today_dt )->days;
+
+		if ( 0 === $cal_days ) {
+			$result['label']     = __( 'Listed today', 'lpnw-alerts' );
+			$result['is_urgent'] = true;
+		} elseif ( 1 === $cal_days ) {
+			$result['label'] = __( 'Listed yesterday', 'lpnw-alerts' );
+		} elseif ( $cal_days > 1 ) {
+			$result['label'] = sprintf(
+				/* translators: %d: number of days */
+				_n( 'Listed %d day ago', 'Listed %d days ago', $cal_days, 'lpnw-alerts' ),
+				$cal_days
+			);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Fallback when known keys are empty (e.g. Rightmove __NEXT_DATA__ shape drift).
 	 *
 	 * @param array<string, mixed> $raw Decoded raw_data.
