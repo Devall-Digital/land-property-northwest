@@ -9,6 +9,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once get_stylesheet_directory() . '/inc/class-lpnw-open-graph.php';
+LPNW_Open_Graph::bootstrap();
+
 /**
  * Load a template part from `template-parts/{name}.php` with extracted variables.
  *
@@ -1391,44 +1394,6 @@ function lpnw_output_json_ld_schema(): void {
 	}
 }
 add_action( 'wp_head', 'lpnw_output_json_ld_schema', 5 );
-
-/**
- * Open Graph meta tags for social media sharing.
- * Rank Math may add its own OG tags; this acts as a fallback when they're absent.
- */
-function lpnw_theme_open_graph_meta(): void {
-
-	$site_name   = get_bloginfo( 'name' );
-	$description = 'NW property alerts before anyone else. Instant notifications from Rightmove and more, straight to your inbox.';
-	$og_image    = get_stylesheet_directory_uri() . '/assets/img/logo-full.svg';
-
-	if ( is_front_page() ) {
-		$title = 'Get NW Property Alerts Before Anyone Else | ' . $site_name;
-	} elseif ( is_page( 'pricing' ) ) {
-		$title       = 'Pricing | ' . $site_name;
-		$description = 'Free weekly digest or instant Pro alerts from £19.99/month. Priority access for Investor VIP.';
-	} elseif ( is_page( 'properties' ) ) {
-		$title       = 'Browse Northwest Properties | ' . $site_name;
-		$description = 'Search thousands of live property listings across Greater Manchester, Merseyside, Lancashire, Cheshire, and Cumbria.';
-	} elseif ( is_singular() ) {
-		$title       = get_the_title() . ' | ' . $site_name;
-		$excerpt     = get_the_excerpt();
-		$description = ! empty( $excerpt ) ? wp_strip_all_tags( $excerpt ) : $description;
-	} else {
-		$title = $site_name . ' | NW Property Intelligence';
-	}
-
-	echo '<meta property="og:type" content="website"/>' . "\n";
-	echo '<meta property="og:site_name" content="' . esc_attr( $site_name ) . '"/>' . "\n";
-	echo '<meta property="og:title" content="' . esc_attr( $title ) . '"/>' . "\n";
-	echo '<meta property="og:description" content="' . esc_attr( $description ) . '"/>' . "\n";
-	echo '<meta property="og:url" content="' . esc_url( is_front_page() ? home_url( '/' ) : get_permalink() ) . '"/>' . "\n";
-	echo '<meta property="og:image" content="' . esc_url( $og_image ) . '"/>' . "\n";
-	echo '<meta name="twitter:card" content="summary_large_image"/>' . "\n";
-	echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '"/>' . "\n";
-	echo '<meta name="twitter:description" content="' . esc_attr( $description ) . '"/>' . "\n";
-}
-add_action( 'wp_head', 'lpnw_theme_open_graph_meta', 1 );
 
 /**
  * Subscriber-only pages where sitewide signup prompts should not appear.
