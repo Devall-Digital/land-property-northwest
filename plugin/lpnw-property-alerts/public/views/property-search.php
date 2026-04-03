@@ -74,8 +74,25 @@ $signup_url = add_query_arg(
 						<?php
 						$label = isset( $lpnw_area_labels[ $code ] ) ? $lpnw_area_labels[ $code ] : $code;
 						?>
-						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $f['area'], $code ); ?>><?php echo esc_html( $label ); ?></option>
+						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $f['area'], $code ); ?>><?php echo esc_html( sprintf( '%s — all %s', $label, $code ) ); ?></option>
 					<?php endforeach; ?>
+					<?php if ( class_exists( 'LPNW_NW_Postcodes' ) ) : ?>
+						<?php foreach ( LPNW_NW_Postcodes::get_districts_by_area() as $bucket => $districts ) : ?>
+							<?php
+							$grp = isset( $lpnw_area_labels[ $bucket ] ) ? $lpnw_area_labels[ $bucket ] : $bucket;
+							?>
+							<optgroup label="<?php echo esc_attr( sprintf( '%s (%s)', $grp, $bucket ) ); ?>">
+								<?php foreach ( $districts as $dist ) : ?>
+									<?php
+									$lpnw_dist_lbl = class_exists( 'LPNW_NW_Postcodes' )
+										? LPNW_NW_Postcodes::get_area_or_district_label( $dist )
+										: $dist;
+									?>
+									<option value="<?php echo esc_attr( $dist ); ?>" <?php selected( $f['area'], $dist ); ?>><?php echo esc_html( $dist . ( '' !== $lpnw_dist_lbl ? ' — ' . $lpnw_dist_lbl : '' ) ); ?></option>
+								<?php endforeach; ?>
+							</optgroup>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</select>
 			</div>
 			<div class="lpnw-property-search__field">

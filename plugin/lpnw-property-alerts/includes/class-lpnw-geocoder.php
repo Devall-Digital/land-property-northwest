@@ -20,10 +20,30 @@ class LPNW_Geocoder {
 	private const REVERSE_GEOCODE_TTL = 30 * DAY_IN_SECONDS;
 
 	/**
+	 * Clean parish label from postcodes.io (drops ", unparished area" suffix).
+	 */
+	private static function clean_parish_name( ?string $parish ): string {
+		if ( null === $parish || '' === trim( $parish ) ) {
+			return '';
+		}
+		$p = trim( $parish );
+		$p = preg_replace( '/,\s*unparished area$/i', '', $p );
+		return is_string( $p ) ? trim( $p ) : '';
+	}
+
+	/**
 	 * Geocode a single UK postcode.
 	 *
 	 * @param string $postcode UK postcode.
-	 * @return array{latitude: float, longitude: float}|null
+	 * @return array{
+	 *   latitude: float,
+	 *   longitude: float,
+	 *   admin_district?: string,
+	 *   admin_ward?: string,
+	 *   parish?: string,
+	 *   nuts?: string,
+	 *   outcode?: string
+	 * }|null
 	 */
 	public static function geocode( string $postcode ): ?array {
 		$postcode = strtoupper( trim( $postcode ) );
@@ -51,10 +71,31 @@ class LPNW_Geocoder {
 			return null;
 		}
 
-		$result = array(
-			'latitude'  => (float) $body['result']['latitude'],
-			'longitude' => (float) $body['result']['longitude'],
+		$r        = $body['result'];
+		$result   = array(
+			'latitude'  => (float) $r['latitude'],
+			'longitude' => (float) $r['longitude'],
 		);
+		$district = isset( $r['admin_district'] ) ? sanitize_text_field( (string) $r['admin_district'] ) : '';
+		if ( '' !== $district ) {
+			$result['admin_district'] = $district;
+		}
+		$ward = isset( $r['admin_ward'] ) ? sanitize_text_field( (string) $r['admin_ward'] ) : '';
+		if ( '' !== $ward ) {
+			$result['admin_ward'] = $ward;
+		}
+		$parish = isset( $r['parish'] ) ? self::clean_parish_name( (string) $r['parish'] ) : '';
+		if ( '' !== $parish ) {
+			$result['parish'] = $parish;
+		}
+		$nuts = isset( $r['nuts'] ) ? sanitize_text_field( (string) $r['nuts'] ) : '';
+		if ( '' !== $nuts ) {
+			$result['nuts'] = $nuts;
+		}
+		$outcode = isset( $r['outcode'] ) ? strtoupper( trim( (string) $r['outcode'] ) ) : '';
+		if ( '' !== $outcode ) {
+			$result['outcode'] = $outcode;
+		}
 
 		set_transient( $cache_key, $result, WEEK_IN_SECONDS );
 
@@ -177,10 +218,31 @@ class LPNW_Geocoder {
 				}
 
 				$pc     = strtoupper( $item['query'] );
+				$ir     = $item['result'];
 				$coords = array(
-					'latitude'  => (float) $item['result']['latitude'],
-					'longitude' => (float) $item['result']['longitude'],
+					'latitude'  => (float) $ir['latitude'],
+					'longitude' => (float) $ir['longitude'],
 				);
+				$district = isset( $ir['admin_district'] ) ? sanitize_text_field( (string) $ir['admin_district'] ) : '';
+				if ( '' !== $district ) {
+					$coords['admin_district'] = $district;
+				}
+				$ward = isset( $ir['admin_ward'] ) ? sanitize_text_field( (string) $ir['admin_ward'] ) : '';
+				if ( '' !== $ward ) {
+					$coords['admin_ward'] = $ward;
+				}
+				$parish = isset( $ir['parish'] ) ? self::clean_parish_name( (string) $ir['parish'] ) : '';
+				if ( '' !== $parish ) {
+					$coords['parish'] = $parish;
+				}
+				$nuts = isset( $ir['nuts'] ) ? sanitize_text_field( (string) $ir['nuts'] ) : '';
+				if ( '' !== $nuts ) {
+					$coords['nuts'] = $nuts;
+				}
+				$outcode = isset( $ir['outcode'] ) ? strtoupper( trim( (string) $ir['outcode'] ) ) : '';
+				if ( '' !== $outcode ) {
+					$coords['outcode'] = $outcode;
+				}
 
 				$results[ $pc ] = $coords;
 				set_transient( 'lpnw_geo_' . md5( $pc ), $coords, WEEK_IN_SECONDS );

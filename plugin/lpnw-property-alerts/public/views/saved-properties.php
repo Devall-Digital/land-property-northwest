@@ -201,7 +201,8 @@ if ( empty( $saved ) ) : ?>
 					<header class="lpnw-property-card__header">
 						<h3 class="lpnw-property-card__title" id="<?php echo esc_attr( $title_id ); ?>"><?php echo esc_html( $item->address ); ?></h3>
 						<?php if ( ! empty( $item->postcode ) ) : ?>
-							<p class="lpnw-property-card__postcode"><?php echo esc_html( $item->postcode ); ?></p>
+							<?php $lpnw_pc_cap = class_exists( 'LPNW_Property' ) ? LPNW_Property::format_postcode_caption( $item ) : ''; ?>
+							<p class="lpnw-property-card__postcode"><?php echo esc_html( $item->postcode ); ?><?php echo '' !== $lpnw_pc_cap ? ' — ' . esc_html( $lpnw_pc_cap ) : ''; ?></p>
 						<?php endif; ?>
 					</header>
 

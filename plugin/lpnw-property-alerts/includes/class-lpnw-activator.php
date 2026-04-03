@@ -220,6 +220,7 @@ class LPNW_Activator {
 			'mautic_api_user'      => '',
 			'mautic_api_password'  => '',
 			'retention_days'       => 180,
+			'free_tier_weekly_instant_alerts' => 5,
 		);
 
 		if ( false === get_option( 'lpnw_settings' ) ) {

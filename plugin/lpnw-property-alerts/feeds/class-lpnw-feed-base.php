@@ -51,11 +51,29 @@ abstract class LPNW_Feed_Base {
 						$parsed['source'] = $this->get_source_name();
 					}
 
-					if ( ! empty( $parsed['postcode'] ) && empty( $parsed['latitude'] ) ) {
-						$coords = LPNW_Geocoder::geocode( $parsed['postcode'] );
-						if ( $coords ) {
-							$parsed['latitude']  = $coords['latitude'];
-							$parsed['longitude'] = $coords['longitude'];
+					if ( ! empty( $parsed['postcode'] ) ) {
+						$raw_geo = array();
+						if ( ! empty( $parsed['raw_data'] ) ) {
+							if ( is_array( $parsed['raw_data'] ) ) {
+								$raw_geo = $parsed['raw_data'];
+							} else {
+								$raw_geo = json_decode( (string) $parsed['raw_data'], true );
+								$raw_geo = is_array( $raw_geo ) ? $raw_geo : array();
+							}
+						}
+						$need_geo = empty( $raw_geo['lpnw_geography'] ) || ! is_array( $raw_geo['lpnw_geography'] );
+						$need_lat = empty( $parsed['latitude'] );
+						if ( $need_geo || $need_lat ) {
+							$coords = LPNW_Geocoder::geocode( (string) $parsed['postcode'] );
+							if ( $coords ) {
+								if ( $need_lat ) {
+									$parsed['latitude']  = $coords['latitude'];
+									$parsed['longitude'] = $coords['longitude'];
+								}
+								if ( $need_geo ) {
+									$parsed['raw_data'] = LPNW_Property::merge_geography_into_raw_data( $raw_geo, $coords );
+								}
+							}
 						}
 					}
 

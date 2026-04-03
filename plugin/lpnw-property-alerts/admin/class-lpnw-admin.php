@@ -569,6 +569,13 @@ class LPNW_Admin {
 			'lpnw-settings'
 		);
 
+		add_settings_section(
+			'lpnw_alerts_section',
+			__( 'Alert delivery', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_alerts_section_intro' ),
+			'lpnw-settings'
+		);
+
 		$feed_fields = array(
 			'portals_enabled'      => 'Enable portal feeds (Rightmove, Zoopla, OnTheMarket)',
 			'planning_enabled'     => 'Enable Planning Portal feed',
@@ -616,6 +623,27 @@ class LPNW_Admin {
 				array( 'key' => $key, 'type' => $type )
 			);
 		}
+
+		add_settings_field(
+			'free_tier_weekly_instant_alerts',
+			__( 'Free tier: instant sample emails per week', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_alerts_section',
+			array( 'key' => 'free_tier_weekly_instant_alerts', 'type' => 'number' )
+		);
+	}
+
+	/**
+	 * Intro text for alert delivery settings.
+	 */
+	public static function render_alerts_section_intro(): void {
+		echo '<p class="description">';
+		esc_html_e(
+			'Free accounts still get the weekly digest. They can also receive up to this many one-property emails per GMT week (same template as Pro instant alerts) so they can try the product. Set to 0 to disable instant samples for free users.',
+			'lpnw-alerts'
+		);
+		echo '</p>';
 	}
 
 	/**
@@ -624,7 +652,7 @@ class LPNW_Admin {
 	public static function render_mautic_section_intro(): void {
 		echo '<p class="description">';
 		esc_html_e(
-			'When sending via Mautic, your email templates can use these tokens on send: {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html} (listing summary). Add matching tokens in Mautic or use the HTML block token for the full list.',
+			'When sending via Mautic, your email templates can use these tokens on send: {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html} (listing summary), {lpnw_postcode_areas} (postcode plus area names, one line per property when known). Add matching tokens in Mautic or use the HTML block token for the full list.',
 			'lpnw-alerts'
 		);
 		echo '</p>';
@@ -663,6 +691,12 @@ class LPNW_Admin {
 			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
 		}
 
+		$ft_instant = isset( $input['free_tier_weekly_instant_alerts'] ) ? absint( $input['free_tier_weekly_instant_alerts'] ) : 0;
+		if ( $ft_instant > 100 ) {
+			$ft_instant = 100;
+		}
+		$sanitized['free_tier_weekly_instant_alerts'] = $ft_instant;
+
 		return array_merge( $prev, $sanitized );
 	}
 
@@ -684,6 +718,13 @@ class LPNW_Admin {
 				esc_attr( $key ),
 				checked( $value, true, false )
 			);
+		} elseif ( 'number' === $type ) {
+			$num = '' !== $value ? absint( $value ) : 0;
+			printf(
+				'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="100" step="1" />',
+				esc_attr( $key ),
+				$num
+			);
 		} else {
 			printf(
 				'<input type="%s" name="lpnw_settings[%s]" value="%s" class="regular-text" />',
@@ -704,6 +745,8 @@ class LPNW_Admin {
 		global $wpdb;
 		$alerts_queued = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'queued'" );
 		$alerts_sent_all = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'sent'" );
+
+		$lpnw_cron_ping_url = class_exists( 'LPNW_Cron_Request' ) ? LPNW_Cron_Request::get_external_ping_url() : '';
 
 		include LPNW_PLUGIN_DIR . 'admin/views/dashboard.php';
 	}
