@@ -4,6 +4,8 @@ Last updated: 2 April 2026
 
 **Running task list and live-check notes:** see `docs/PROJECT-RUNBOOK.md` (updated as work proceeds). This file stays the high-level snapshot of the platform; the runbook holds prioritised open items and verification history.
 
+**Roles:** You are the **director** (goals and priorities). The lead agent is **project manager** for delivery; **sub-agents** are used for parallel deep work when useful. Same wording is in **BRIEF.md** and `.cursor/rules/project.mdc`.
+
 ## Platform State: Live, Multi-Source
 
 The property alerts platform ingests listings from several active feeds, surfaces them in browse, map, and dashboard experiences, and runs the full subscriber preference and alert pipeline. **Live dashboard (wp-admin, 2 Apr 2026): ~3,465 properties tracked**, **1,696 added in the last 24 hours**, feeds running on schedule with **zero failed runs** on the Feed Status table. Rightmove and OnTheMarket drive bulk volume; auction feeds add specialist lots. **Zoopla** runs complete but **0 new properties** ingested (consistent with upstream blocking). **Allsop** auction feed shows **0** new properties so far.

@@ -1,9 +1,9 @@
 <?php
 /**
- * One-shot: sync Home, About, Pricing, Contact post_content from LPNW_Page_Content.
+ * Legacy one-shot: sync Home, About, Pricing, Contact post_content from LPNW_Page_Content.
  *
- * Visit: https://YOURSITE/?lpnw_update=pages&key=SECRET (match lpnw-login-as key).
- * File removes itself after success. Redeploy from repo to run again.
+ * Prefer the built-in handler in the plugin (LPNW 1.0.17+): same URL, does not self-delete.
+ * This file removes itself after success if you still upload it.
  *
  * @package LPNW_MU
  */

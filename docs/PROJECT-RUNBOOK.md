@@ -2,6 +2,8 @@
 
 This is the **working checklist** for day-to-day delivery: what is done, what is next, and facts we must not forget. It complements **BRIEF.md** (product rules) and **STATUS.md** (canonical platform snapshot). When they disagree, **BRIEF wins on intent** and **STATUS wins on live numbers** until someone updates STATUS after a verified change.
 
+**Roles:** The **director** owns business goals. The **project manager** is the lead agent (planning, execution, quality). **Sub-agents** are delegated parallel work (code audit, browser sessions, debugging) when that is faster or deeper than a single thread.
+
 **How to use:** After meaningful work or a live check, update the **Last live verification** block and adjust **Recently completed** / **Open work** so the director and agents share one picture.
 
 ---

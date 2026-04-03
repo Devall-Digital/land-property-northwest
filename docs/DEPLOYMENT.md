@@ -52,7 +52,15 @@ This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugin
 
 ### Pricing / About / Home HTML (stored in the database)
 
-Some marketing pages are **WordPress page post_content**, synced from `LPNW_Page_Content` via **`tools/lpnw-update-pages.php`** (upload to `mu-plugins`, visit once with `?lpnw_update=pages&key=...`, script self-deletes). After changing **`class-lpnw-page-content.php`**, run that sync or the live page will keep **old HTML** (e.g. pricing table without SVG cells).
+Some marketing pages are **WordPress page post_content**, not read directly from PHP on every request. After changing **`class-lpnw-page-content.php`**, refresh the database:
+
+1. **Recommended (plugin 1.0.17+):** while logged in as **administrator**, visit  
+   `https://YOUR-DOMAIN/?nocache=1&lpnw_update=pages`  
+   (no `key` needed). Or use the same URL with **`&key=...`** if you are not logged in: define **`LPNW_PAGE_SYNC_SECRET`** in `wp-config.php` and pass that value, or use the same value as **`LPNW_CRON_SECRET`**, or the legacy default **`lpnw2026setup`** if neither constant is set.  
+   **20i CDN note:** the **home URL** can be edge-cached as full HTML, so the sync may appear to “do nothing” (you still see the normal page). If that happens, run the same query string on another path, e.g. **`https://YOUR-DOMAIN/pricing/?nocache=1&lpnw_update=pages&key=...`** — the handler runs on any front request.
+2. **Legacy:** upload **`tools/lpnw-update-pages.php`** or **`mu-plugins/lpnw-update-pages.php`** and hit the URL once (that copy **self-deletes**).
+
+If you skip the sync, live pages keep **old HTML** (e.g. pricing table without recent markup).
 
 ### Cron URL secret (`LPNW_CRON_SECRET`)
 
