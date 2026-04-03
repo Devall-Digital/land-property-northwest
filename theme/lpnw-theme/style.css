@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.6.0
+Version: 6.7.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -1674,19 +1674,23 @@ body.no-sidebar .site-main {
 }
 
 .lpnw-pricing-card--vip {
-	border-color: rgba(0, 212, 170, 0.45);
+	position: relative;
+	border-color: rgba(0, 212, 170, 0.5);
+	border-width: 2px;
 	box-shadow:
-		0 0 0 1px rgba(0, 212, 170, 0.2),
-		0 10px 40px rgba(0, 212, 170, 0.12),
+		0 0 0 1px rgba(0, 212, 170, 0.25),
+		0 10px 40px rgba(0, 212, 170, 0.15),
+		0 0 60px rgba(0, 212, 170, 0.08),
 		var(--lpnw-glass-shadow);
-	background: linear-gradient(165deg, rgba(15, 29, 53, 0.92) 0%, rgba(10, 22, 40, 0.88) 100%);
+	background: linear-gradient(165deg, rgba(10, 25, 45, 0.95) 0%, rgba(8, 18, 35, 0.92) 100%);
 }
 
 .lpnw-pricing-card--vip:hover {
-	border-color: rgba(0, 212, 170, 0.65);
+	border-color: rgba(0, 212, 170, 0.7);
 	box-shadow:
-		0 0 0 1px rgba(0, 212, 170, 0.35),
-		0 14px 48px rgba(0, 212, 170, 0.18),
+		0 0 0 1px rgba(0, 212, 170, 0.4),
+		0 18px 56px rgba(0, 212, 170, 0.22),
+		0 0 80px rgba(0, 212, 170, 0.12),
 		var(--lpnw-glass-shadow);
 }
 

@@ -479,11 +479,11 @@
 	pointer-events: none;
 	background: linear-gradient(
 		180deg,
-		rgba(15, 29, 53, 0.05) 0%,
-		rgba(15, 29, 53, 0.02) 40%,
-		rgba(15, 29, 53, 0.35) 100%
+		rgba(0, 0, 0, 0.02) 0%,
+		rgba(0, 0, 0, 0) 50%,
+		rgba(0, 0, 0, 0.25) 100%
 	);
-	opacity: 0.95;
+	opacity: 1;
 	transition: opacity 0.2s ease;
 }
 
@@ -491,9 +491,9 @@
 	opacity: 1;
 	background: linear-gradient(
 		180deg,
-		rgba(15, 29, 53, 0.08) 0%,
-		rgba(15, 29, 53, 0.04) 45%,
-		rgba(15, 29, 53, 0.4) 100%
+		rgba(0, 0, 0, 0.04) 0%,
+		rgba(0, 0, 0, 0) 55%,
+		rgba(0, 0, 0, 0.3) 100%
 	);
 }
 
@@ -868,12 +868,12 @@
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	line-height: 1.25;
-	color: #7f1d1d;
-	background: linear-gradient(180deg, rgba(220, 38, 38, 0.15) 0%, rgba(220, 38, 38, 0.25) 100%);
+	color: #fca5a5;
+	background: linear-gradient(180deg, rgba(220, 38, 38, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
-	border: 1px solid rgba(220, 38, 38, 0.3);
-	box-shadow: 0 1px 4px rgba(220, 38, 38, 0.12);
+	border: 1px solid rgba(220, 38, 38, 0.35);
+	box-shadow: 0 1px 4px rgba(220, 38, 38, 0.15);
 }
 
 .lpnw-auction-date {
@@ -881,11 +881,11 @@
 	font-size: 0.8125rem;
 	font-weight: 700;
 	line-height: 1.4;
-	color: #92400e;
-	background: rgba(251, 191, 36, 0.2);
+	color: var(--lpnw-amber-light, #F7C23A);
+	background: rgba(240, 165, 0, 0.15);
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
-	border: 1px solid rgba(217, 119, 6, 0.25);
+	border: 1px solid rgba(240, 165, 0, 0.3);
 	border-radius: 8px;
 	padding: 0.3rem 0.55rem;
 	display: inline-block;
@@ -922,7 +922,7 @@
 .lpnw-guide-price .lpnw-property-card__price-currency {
 	font-size: 1.25rem;
 	font-weight: 700;
-	color: #b45309;
+	color: var(--lpnw-amber, #F0A500);
 	letter-spacing: -0.02em;
 }
 
@@ -964,9 +964,9 @@
 	font-size: 0.625rem;
 	font-weight: 600;
 	line-height: 1.35;
-	color: rgba(15, 29, 53, 0.92);
-	border: 1px solid rgba(0, 212, 170, 0.35);
-	background: rgba(255, 255, 255, 0.82);
+	color: rgba(255, 255, 255, 0.92);
+	border: 1px solid rgba(0, 212, 170, 0.4);
+	background: rgba(0, 212, 170, 0.15);
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
 }
@@ -2495,6 +2495,10 @@
 
 .lpnw-checkbox-group__item--primary:hover {
 	border-color: var(--lpnw-navy, #0F1D35);
+}
+
+.lpnw-checkbox-group__item span {
+	color: rgba(255, 255, 255, 0.88);
 }
 
 .lpnw-checkbox-group__item input:checked + span {
