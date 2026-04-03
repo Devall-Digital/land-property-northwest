@@ -78,7 +78,7 @@ switch ( $tier_key ) {
 		break;
 }
 
-$nw_total        = count( LPNW_NW_POSTCODES );
+$nw_total        = class_exists( 'LPNW_NW_Postcodes' ) ? count( LPNW_NW_Postcodes::get_all_selectable_codes() ) : count( LPNW_NW_POSTCODES );
 $areas_selected  = ( $prefs && is_array( $prefs->areas ) ) ? count( $prefs->areas ) : 0;
 $types_selected  = ( $prefs && is_array( $prefs->property_types ) ) ? count( $prefs->property_types ) : 0;
 $type_slots      = 6;

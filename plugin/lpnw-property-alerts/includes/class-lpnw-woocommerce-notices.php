@@ -19,6 +19,7 @@ class LPNW_WooCommerce_Notices {
 	 */
 	public static function init(): void {
 		add_action( 'woocommerce_thankyou', array( __CLASS__, 'flag_new_paid_subscriber' ), 20, 1 );
+		add_action( 'woocommerce_thankyou', array( __CLASS__, 'clear_free_instant_quota_on_upgrade' ), 25, 1 );
 	}
 
 	/**
@@ -46,6 +47,33 @@ class LPNW_WooCommerce_Notices {
 		}
 
 		update_user_meta( $user_id, self::USER_META_ALERT_SCHEDULE_TIP, '1' );
+	}
+
+	/**
+	 * Remove free-tier instant sample counters after a paid purchase.
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public static function clear_free_instant_quota_on_upgrade( int $order_id ): void {
+		if ( $order_id <= 0 || ! function_exists( 'wc_get_order' ) || ! class_exists( 'LPNW_Free_Tier_Instant' ) ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order || ! is_object( $order ) ) {
+			return;
+		}
+
+		$user_id = (int) $order->get_user_id();
+		if ( $user_id <= 0 ) {
+			return;
+		}
+
+		if ( ! self::order_has_paid_tier_product( $order ) ) {
+			return;
+		}
+
+		LPNW_Free_Tier_Instant::reset_for_user( $user_id );
 	}
 
 	/**

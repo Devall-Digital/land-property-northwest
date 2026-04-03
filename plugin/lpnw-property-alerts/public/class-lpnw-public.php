@@ -263,7 +263,9 @@ class LPNW_Public {
 		}
 		if ( ! empty( $atts['postcode_prefix'] ) ) {
 			$pp = strtoupper( trim( sanitize_text_field( $atts['postcode_prefix'] ) ) );
-			if ( in_array( $pp, LPNW_NW_POSTCODES, true ) ) {
+			if ( class_exists( 'LPNW_NW_Postcodes' ) && LPNW_NW_Postcodes::is_valid_area_or_district( $pp ) ) {
+				$filters['postcode_prefix'] = $pp;
+			} elseif ( in_array( $pp, LPNW_NW_POSTCODES, true ) ) {
 				$filters['postcode_prefix'] = $pp;
 			}
 		}
@@ -319,8 +321,13 @@ class LPNW_Public {
 	 */
 	private static function get_property_search_state( int $per_page ): array {
 		$area = isset( $_GET['area'] ) ? strtoupper( trim( sanitize_text_field( wp_unslash( $_GET['area'] ) ) ) ) : '';
-		if ( '' !== $area && ! in_array( $area, LPNW_NW_POSTCODES, true ) ) {
-			$area = '';
+		if ( '' !== $area ) {
+			$area_ok = class_exists( 'LPNW_NW_Postcodes' )
+				? LPNW_NW_Postcodes::is_valid_area_or_district( $area )
+				: in_array( $area, LPNW_NW_POSTCODES, true );
+			if ( ! $area_ok ) {
+				$area = '';
+			}
 		}
 
 		$type_allowed = array( 'Detached', 'Semi-detached', 'Terraced', 'Flat', 'Other' );
@@ -514,13 +521,16 @@ class LPNW_Public {
 		if ( ! is_array( $areas_raw ) ) {
 			$areas_raw = array();
 		}
+		$areas_sanitized = class_exists( 'LPNW_NW_Postcodes' )
+			? LPNW_NW_Postcodes::sanitize_areas_array( $areas_raw )
+			: array_values( array_intersect( array_map( 'sanitize_text_field', $areas_raw ), LPNW_NW_POSTCODES ) );
 		$ptypes_raw = isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array();
 		if ( ! is_array( $ptypes_raw ) ) {
 			$ptypes_raw = array();
 		}
 
 		$prefs = array(
-			'areas'                => array_map( 'sanitize_text_field', $areas_raw ),
+			'areas'                => $areas_sanitized,
 			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
 			'max_price'            => absint( $_POST['max_price'] ?? 0 ),
 			'property_types'       => array_map( 'sanitize_text_field', $ptypes_raw ),

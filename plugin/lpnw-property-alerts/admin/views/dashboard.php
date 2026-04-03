@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
 /** @var bool $wp_cron_off */
 /** @var int $alerts_queued */
 /** @var int $alerts_sent_all */
+/** @var string $lpnw_cron_ping_url */
 
 $ob  = $feed_log['orderby'];
 $ord = $feed_log['order'];
@@ -136,6 +137,26 @@ if ( $total_pages > 1 ) {
 								<?php else : ?>
 									<span class="dashicons dashicons-warning" style="color:#dba617;" aria-hidden="true"></span>
 									<?php esc_html_e( 'Not set or false (WordPress will trigger cron on page loads).', 'lpnw-alerts' ); ?>
+								<?php endif; ?>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" style="width:220px;vertical-align:top;"><?php esc_html_e( 'Automated cron URL', 'lpnw-alerts' ); ?></th>
+							<td>
+								<?php if ( '' !== $lpnw_cron_ping_url ) : ?>
+									<p style="margin:0 0 8px;">
+										<code style="word-break:break-all;display:block;max-width:100%;"><?php echo esc_html( $lpnw_cron_ping_url ); ?></code>
+									</p>
+									<p class="description" style="margin:0;">
+										<?php
+										esc_html_e(
+											'Point EasyCron or your host cron at this URL every 5 to 15 minutes. It runs WordPress cron (portals, alert dispatch, and other LPNW jobs) without using wp-cron.php, which some hosts block. Traffic-driven cron also uses this path when visitors trigger spawn_cron().',
+											'lpnw-alerts'
+										);
+										?>
+									</p>
+								<?php else : ?>
+									<?php esc_html_e( 'Unavailable.', 'lpnw-alerts' ); ?>
 								<?php endif; ?>
 							</td>
 						</tr>

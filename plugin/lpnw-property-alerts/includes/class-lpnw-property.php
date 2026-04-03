@@ -748,14 +748,14 @@ class LPNW_Property {
 	}
 
 	/**
-	 * Restrict a WHERE clause to an NW outward code (M/L use regex so LA does not match L).
+	 * Restrict a WHERE clause to a broad NW bucket (M/L use regex so LA does not match L).
 	 *
 	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
-	 * @param string              $prefix        Outward code: M, L, PR, BB, etc.
+	 * @param string              $prefix        Bucket: M, L, PR, BB, etc.
 	 * @param array<int, string>  $where         WHERE fragments (modified).
 	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
 	 */
-	public static function append_postcode_prefix_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
+	public static function append_broad_nw_bucket_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
 		$p = strtoupper( trim( sanitize_text_field( $prefix ) ) );
 		if ( '' === $p || ! in_array( $p, LPNW_NW_POSTCODES, true ) ) {
 			return;
@@ -770,6 +770,22 @@ class LPNW_Property {
 		}
 		$where[] = "{$postcode_expr} LIKE %s";
 		$args[]  = $p . '%';
+	}
+
+	/**
+	 * Restrict a WHERE clause to an NW bucket or a specific outward district (e.g. OL2, CH41).
+	 *
+	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
+	 * @param string              $prefix        Broad bucket or district outward code.
+	 * @param array<int, string>  $where         WHERE fragments (modified).
+	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
+	 */
+	public static function append_postcode_prefix_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
+		if ( class_exists( 'LPNW_NW_Postcodes' ) ) {
+			LPNW_NW_Postcodes::append_area_filter_sql( $postcode_expr, $prefix, $where, $args );
+			return;
+		}
+		self::append_broad_nw_bucket_sql( $postcode_expr, $prefix, $where, $args );
 	}
 
 	private static function clean_postcode( string $postcode ): string {
@@ -1001,5 +1017,75 @@ class LPNW_Property {
 			'#(rightmove|rmmedia|zoopla|onthemarket|primelocation|mouseprice|stripcdn|cloudinary|epc\.|opendatacommunities|pugh|sdl|allsop|ahnw)#i',
 			$l
 		);
+	}
+
+	/**
+	 * One-line caption after postcode: area names from bundled outcode data or geocoder metadata.
+	 *
+	 * @param object $prop Property row (postcode, raw_data).
+	 */
+	public static function format_postcode_caption( object $prop ): string {
+		$pc = trim( (string) ( $prop->postcode ?? '' ) );
+		if ( '' === $pc ) {
+			return '';
+		}
+		$raw = json_decode( (string) ( $prop->raw_data ?? '' ), true );
+		$raw = is_array( $raw ) ? $raw : array();
+		$geo = isset( $raw['lpnw_geography'] ) && is_array( $raw['lpnw_geography'] ) ? $raw['lpnw_geography'] : array();
+
+		$parts = array();
+		if ( ! empty( $geo['parish'] ) && is_string( $geo['parish'] ) ) {
+			$parts[] = trim( $geo['parish'] );
+		}
+		if ( ! empty( $geo['admin_ward'] ) && is_string( $geo['admin_ward'] ) ) {
+			$w = trim( $geo['admin_ward'] );
+			if ( '' !== $w && ! in_array( $w, $parts, true ) ) {
+				$parts[] = $w;
+			}
+		}
+		if ( ! empty( $geo['admin_district'] ) && is_string( $geo['admin_district'] ) ) {
+			$d = trim( $geo['admin_district'] );
+			if ( '' !== $d && ! in_array( $d, $parts, true ) ) {
+				$parts[] = $d;
+			}
+		}
+
+		if ( empty( $parts ) && class_exists( 'LPNW_Outcode_Labels' ) ) {
+			$lbl = LPNW_Outcode_Labels::get_label_for_postcode( $pc );
+			if ( '' !== $lbl ) {
+				$parts[] = $lbl;
+			}
+		}
+
+		if ( empty( $parts ) ) {
+			return '';
+		}
+
+		return implode( ', ', array_slice( $parts, 0, 3 ) );
+	}
+
+	/**
+	 * Merge LPNW geography (from geocoder) into raw_data before upsert.
+	 *
+	 * @param array<string, mixed> $raw_data Decoded or empty.
+	 * @param array<string, mixed> $geo      Keys: admin_district, admin_ward, parish, nuts, outcode (optional).
+	 * @return array<string, mixed>
+	 */
+	public static function merge_geography_into_raw_data( array $raw_data, array $geo ): array {
+		$keep = array();
+		foreach ( array( 'admin_district', 'admin_ward', 'parish', 'nuts', 'outcode' ) as $k ) {
+			if ( empty( $geo[ $k ] ) || ! is_string( $geo[ $k ] ) ) {
+				continue;
+			}
+			$v = trim( $geo[ $k ] );
+			if ( '' !== $v ) {
+				$keep[ $k ] = sanitize_text_field( $v );
+			}
+		}
+		if ( empty( $keep ) ) {
+			return $raw_data;
+		}
+		$raw_data['lpnw_geography'] = $keep;
+		return $raw_data;
 	}
 }

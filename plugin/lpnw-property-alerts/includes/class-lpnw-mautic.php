@@ -225,10 +225,13 @@ class LPNW_Mautic {
 			return null;
 		}
 
-		$send_body = array();
-		if ( $user instanceof \WP_User && ! empty( $properties ) ) {
-			$send_body = LPNW_Dispatcher::get_mautic_send_body_with_tokens( $user, $properties, $tier );
-		}
+		$send_body = ! empty( $properties )
+			? LPNW_Dispatcher::get_mautic_send_body_with_tokens(
+				$user instanceof \WP_User ? $user : null,
+				$properties,
+				$tier
+			)
+			: array();
 
 		$response = $this->request(
 			'POST',

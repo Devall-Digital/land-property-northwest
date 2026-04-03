@@ -103,6 +103,14 @@
 						</h3>
 						<p style="margin:0 0 10px;font-size:14px;line-height:1.5;color:#6B7280;">
 							<?php echo esc_html( $prop->postcode ); ?>
+							<?php
+							if ( class_exists( 'LPNW_Property' ) ) {
+								$lpnw_cap = LPNW_Property::format_postcode_caption( $prop );
+								if ( '' !== $lpnw_cap ) {
+									echo ' — ' . esc_html( $lpnw_cap );
+								}
+							}
+							?>
 							<?php if ( $prop->price ) : ?>
 								&bull; &pound;<?php echo esc_html( number_format( (int) $prop->price ) ); ?>
 							<?php endif; ?>

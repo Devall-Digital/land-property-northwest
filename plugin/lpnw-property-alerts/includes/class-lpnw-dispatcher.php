@@ -25,6 +25,7 @@ class LPNW_Dispatcher {
 	public function process_queue(): void {
 		$this->process_tier( 'vip' );
 		$this->process_tier( 'pro' );
+		$this->process_free_instant_batch();
 	}
 
 	/**
@@ -33,6 +34,75 @@ class LPNW_Dispatcher {
 	 */
 	public function send_free_digest(): void {
 		$this->process_tier( 'free' );
+	}
+
+	/**
+	 * Send up to the weekly cap of one-property instant emails per free user.
+	 *
+	 * Remaining queued rows for that user stay for the weekly digest.
+	 */
+	private function process_free_instant_batch(): void {
+		if ( LPNW_Free_Tier_Instant::get_weekly_limit() < 1 ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_alert_queue';
+
+		$candidates = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT aq.*, sp.user_id
+				 FROM {$table} aq
+				 INNER JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
+				 WHERE aq.tier = 'free' AND aq.status = 'queued'
+				 ORDER BY aq.queued_at ASC
+				 LIMIT %d",
+				200
+			)
+		);
+
+		if ( empty( $candidates ) ) {
+			return;
+		}
+
+		$by_user    = array();
+		$tier_cache = array();
+		foreach ( $candidates as $row ) {
+			$uid = (int) $row->user_id;
+			if ( $uid < 1 ) {
+				continue;
+			}
+			if ( ! isset( $tier_cache[ $uid ] ) ) {
+				$tier_cache[ $uid ] = LPNW_Subscriber::get_tier( $uid );
+			}
+			if ( 'free' !== $tier_cache[ $uid ] ) {
+				continue;
+			}
+			if ( ! isset( $by_user[ $uid ] ) ) {
+				$by_user[ $uid ] = array();
+			}
+			$by_user[ $uid ][] = $row;
+		}
+
+		foreach ( $by_user as $user_id => $rows ) {
+			$remaining = LPNW_Free_Tier_Instant::get_remaining( $user_id );
+			if ( $remaining < 1 ) {
+				continue;
+			}
+
+			$taken = 0;
+			foreach ( $rows as $one ) {
+				if ( $taken >= $remaining ) {
+					break;
+				}
+				$sent = $this->send_alert_email( $user_id, array( $one ), 'free', 'instant' );
+				if ( $sent ) {
+					LPNW_Free_Tier_Instant::increment_sent( $user_id );
+					++$taken;
+				}
+			}
+		}
 	}
 
 	private function process_tier( string $tier ): void {
@@ -61,7 +131,7 @@ class LPNW_Dispatcher {
 		}
 
 		foreach ( $grouped as $user_id => $alerts ) {
-			$this->send_alert_email( (int) $user_id, $alerts, $tier );
+			$this->send_alert_email( (int) $user_id, $alerts, $tier, null );
 		}
 	}
 
@@ -69,13 +139,15 @@ class LPNW_Dispatcher {
 	 * @param int          $user_id WordPress user ID.
 	 * @param array<object> $alerts  Alert queue rows.
 	 * @param string       $tier    Subscription tier.
+	 * @param string|null  $force_frequency If set, overrides tier-based frequency (instant, daily, weekly).
+	 * @return bool True if the message was sent successfully.
 	 */
-	private function send_alert_email( int $user_id, array $alerts, string $tier ): void {
+	private function send_alert_email( int $user_id, array $alerts, string $tier, ?string $force_frequency = null ): bool {
 		global $wpdb;
 
 		$user = get_userdata( $user_id );
 		if ( ! $user ) {
-			return;
+			return false;
 		}
 
 		$properties = array();
@@ -98,14 +170,19 @@ class LPNW_Dispatcher {
 					...$ids
 				) );
 			}
-			return;
+			return false;
 		}
 
 		$sent       = false;
 		$mautic_tpl = null;
 
-		$prefs               = LPNW_Subscriber::get_preferences( $user_id );
-		$effective_frequency = self::get_effective_alert_frequency( $tier, $prefs );
+		$prefs = LPNW_Subscriber::get_preferences( $user_id );
+		$freq_allow = array( 'instant', 'daily', 'weekly' );
+		if ( is_string( $force_frequency ) && in_array( $force_frequency, $freq_allow, true ) ) {
+			$effective_frequency = $force_frequency;
+		} else {
+			$effective_frequency = self::get_effective_alert_frequency( $tier, $prefs );
+		}
 		if ( $this->mautic->is_configured() && $this->mautic->has_email_template_for_tier( $tier ) ) {
 			$mautic_tpl = $this->mautic->send_alert_get_template_id(
 				$user->user_email,
@@ -140,6 +217,8 @@ class LPNW_Dispatcher {
 				) );
 			}
 		}
+
+		return $sent;
 	}
 
 	/**
@@ -236,6 +315,13 @@ class LPNW_Dispatcher {
 		$lines = array( '<h2>Your NW Property Alerts</h2>' );
 
 		foreach ( $properties as $prop ) {
+			$postcode_html = esc_html( $prop->postcode );
+			if ( class_exists( 'LPNW_Property' ) && is_object( $prop ) ) {
+				$cap = LPNW_Property::format_postcode_caption( $prop );
+				if ( '' !== $cap ) {
+					$postcode_html .= ' — ' . esc_html( $cap );
+				}
+			}
 			$lines[] = sprintf(
 				'<div style="margin-bottom:16px;padding:12px;border:1px solid #e5e7eb;border-radius:4px;">
 					<strong>%s</strong><br>
@@ -244,7 +330,7 @@ class LPNW_Dispatcher {
 					<a href="%s">View details</a>
 				</div>',
 				esc_html( $prop->address ),
-				esc_html( $prop->postcode ),
+				$postcode_html,
 				$prop->price ? '&pound;' . number_format( (int) $prop->price ) . '<br>' : '',
 				esc_html( ucfirst( $prop->source ) ) . ' | ' . esc_html( $prop->property_type ) . '<br>',
 				esc_url( $prop->source_url )
@@ -426,7 +512,8 @@ class LPNW_Dispatcher {
 	/**
 	 * Resolve alert email frequency from saved preferences, capped by subscription tier.
 	 *
-	 * Free: weekly only. Pro: daily or instant. VIP: instant or daily (weekly coerced to daily).
+	 * Free: weekly for scheduled digest; the dispatcher may force instant for a capped weekly sample.
+	 * Pro: daily or instant. VIP: instant or daily (weekly coerced to daily).
 	 *
 	 * @param string        $tier  Subscription tier.
 	 * @param object|null   $prefs Row from LPNW_Subscriber::get_preferences().
@@ -490,18 +577,40 @@ class LPNW_Dispatcher {
 	/**
 	 * Body for POST api/emails/{id}/contact/{id}/send with merge tokens for the Mautic template.
 	 *
+	 * @param \WP_User|null $user       Subscriber user when known; null if no WP account for the email.
 	 * @param array<object> $properties Rows from LPNW_Property::get().
 	 * @return array<string, array<string, string>>
 	 */
-	public static function get_mautic_send_body_with_tokens( \WP_User $user, array $properties, string $tier ): array {
-		$first = self::get_subscriber_greeting_first_name( $user );
-		$html  = self::build_plain_email( $properties );
+	public static function get_mautic_send_body_with_tokens( ?\WP_User $user, array $properties, string $tier ): array {
+		$first = 'there';
+		if ( $user instanceof \WP_User ) {
+			$first = self::get_subscriber_greeting_first_name( $user );
+		}
+		$html = self::build_plain_email( $properties );
+
+		$postcode_area_lines = array();
+		foreach ( $properties as $p ) {
+			if ( is_object( $p ) && class_exists( 'LPNW_Property' ) ) {
+				$cap = LPNW_Property::format_postcode_caption( $p );
+				if ( '' !== $cap ) {
+					$postcode_area_lines[] = trim( (string) ( $p->postcode ?? '' ) ) . ' — ' . $cap;
+				}
+			}
+		}
+		$postcode_area_block = '';
+		if ( ! empty( $postcode_area_lines ) ) {
+			$postcode_area_block = implode(
+				"\n",
+				array_map( 'sanitize_text_field', $postcode_area_lines )
+			);
+		}
 
 		$tokens = array(
 			'{lpnw_subscriber_first_name}' => $first,
 			'{lpnw_alert_count}'           => (string) count( $properties ),
 			'{lpnw_tier}'                  => strtoupper( $tier ),
 			'{lpnw_properties_html}'       => $html,
+			'{lpnw_postcode_areas}'        => $postcode_area_block,
 		);
 
 		$tokens = apply_filters( 'lpnw_mautic_alert_email_tokens', $tokens, $user, $properties, $tier );

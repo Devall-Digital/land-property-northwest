@@ -33,7 +33,9 @@ $areas          = $prefs ? $prefs->areas : array();
 $areas          = is_array( $areas ) ? $areas : array();
 if ( isset( $_GET['lpnw_area'] ) ) {
 	$hint = strtoupper( sanitize_text_field( wp_unslash( $_GET['lpnw_area'] ) ) );
-	if ( in_array( $hint, LPNW_NW_POSTCODES, true ) && ! in_array( $hint, $areas, true ) ) {
+	if ( class_exists( 'LPNW_NW_Postcodes' ) && LPNW_NW_Postcodes::is_valid_area_or_district( $hint ) && ! in_array( $hint, $areas, true ) ) {
+		$areas[] = $hint;
+	} elseif ( in_array( $hint, LPNW_NW_POSTCODES, true ) && ! in_array( $hint, $areas, true ) ) {
 		$areas[] = $hint;
 	}
 }
@@ -133,39 +135,8 @@ $feature_options = array(
 	'chain_free' => __( 'Chain Free', 'lpnw-alerts' ),
 );
 
-$nw_areas = array(
-	'M'  => 'Manchester (M)',
-	'BL' => 'Bolton (BL)',
-	'OL' => 'Oldham (OL)',
-	'SK' => 'Stockport (SK)',
-	'WA' => 'Warrington (WA)',
-	'WN' => 'Wigan (WN)',
-	'L'  => 'Liverpool (L)',
-	'CH' => 'Chester (CH)',
-	'CW' => 'Crewe (CW)',
-	'PR' => 'Preston (PR)',
-	'BB' => 'Blackburn (BB)',
-	'FY' => 'Blackpool (FY)',
-	'LA' => 'Lancaster (LA)',
-	'CA' => 'Carlisle (CA)',
-);
-
-$nw_districts = array(
-	'M'  => array( 'M1','M2','M3','M4','M5','M6','M7','M8','M9','M11','M12','M13','M14','M15','M16','M17','M18','M19','M20','M21','M22','M23','M24','M25','M26','M27','M28','M29','M30','M31','M32','M33','M34','M35','M38','M40','M41','M43','M44','M45','M46','M50','M60','M90' ),
-	'BL' => array( 'BL0','BL1','BL2','BL3','BL4','BL5','BL6','BL7','BL8','BL9','BL11' ),
-	'OL' => array( 'OL1','OL2','OL3','OL4','OL5','OL6','OL7','OL8','OL9','OL10','OL11','OL12','OL13','OL14','OL15','OL16' ),
-	'SK' => array( 'SK1','SK2','SK3','SK4','SK5','SK6','SK7','SK8','SK9','SK10','SK11','SK12','SK13','SK14','SK15','SK16','SK17','SK22','SK23' ),
-	'WA' => array( 'WA1','WA2','WA3','WA4','WA5','WA6','WA7','WA8','WA9','WA10','WA11','WA12','WA13','WA14','WA15','WA16' ),
-	'WN' => array( 'WN1','WN2','WN3','WN4','WN5','WN6','WN7','WN8' ),
-	'L'  => array( 'L1','L2','L3','L4','L5','L6','L7','L8','L9','L10','L11','L12','L13','L14','L15','L16','L17','L18','L19','L20','L21','L22','L23','L24','L25','L26','L27','L28','L29','L30','L31','L32','L33','L34','L35','L36','L37','L38','L39','L40','L67','L68','L69','L70','L71','L72','L73','L74','L75' ),
-	'CH' => array( 'CH1','CH2','CH3','CH4','CH5','CH6','CH7','CH41','CH42','CH43','CH44','CH45','CH46','CH47','CH48','CH49','CH60','CH61','CH62','CH63','CH64','CH65','CH66' ),
-	'CW' => array( 'CW1','CW2','CW3','CW4','CW5','CW6','CW7','CW8','CW9','CW10','CW11','CW12' ),
-	'PR' => array( 'PR0','PR1','PR2','PR3','PR4','PR5','PR6','PR7','PR8','PR9','PR25','PR26' ),
-	'BB' => array( 'BB0','BB1','BB2','BB3','BB4','BB5','BB6','BB7','BB8','BB9','BB10','BB11','BB12','BB18' ),
-	'FY' => array( 'FY0','FY1','FY2','FY3','FY4','FY5','FY6','FY7','FY8' ),
-	'LA' => array( 'LA1','LA2','LA3','LA4','LA5','LA6','LA7','LA8','LA9','LA10','LA11','LA12','LA13','LA14','LA15','LA16','LA17','LA18','LA19','LA20','LA21','LA22','LA23' ),
-	'CA' => array( 'CA1','CA2','CA3','CA4','CA5','CA6','CA7','CA8','CA9','CA10','CA11','CA12','CA13','CA14','CA15','CA16','CA17','CA18','CA19','CA20','CA22','CA25','CA26','CA27','CA28' ),
-);
+$lpnw_nw_area_labels = LPNW_Property::get_nw_area_labels();
+$lpnw_districts_by_bucket = class_exists( 'LPNW_NW_Postcodes' ) ? LPNW_NW_Postcodes::get_districts_by_area() : array();
 
 $available_types = array(
 	'Detached'         => 'Detached',
@@ -229,19 +200,18 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 				<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-areas">
 					<legend class="lpnw-sr-only"><?php esc_html_e( 'Areas', 'lpnw-alerts' ); ?></legend>
 					<p class="lpnw-field__help" id="lpnw-help-areas">
-						We use the outward part of the postcode (for example M or CH) to decide whether a property is in your patch.
-						Only listings and other alerts in at least one area you tick will be sent to you.
+						<?php esc_html_e( 'Tick a whole postcode area (for example OL) or open it and pick individual districts (for example OL2 for Shaw and Royton, OL9 for Chadderton). The same rules apply to every feed: we match the property postcode against what you select.', 'lpnw-alerts' ); ?>
 					</p>
 					<div class="lpnw-area-bulk" role="group" aria-label="<?php esc_attr_e( 'Bulk area selection', 'lpnw-alerts' ); ?>">
 						<label class="lpnw-checkbox-group__item lpnw-checkbox-group__item--primary lpnw-area-bulk__all">
 							<input type="checkbox" id="lpnw-all-nw" class="lpnw-all-nw-toggle"
 								<?php
-								$all_area_codes = array_keys( $nw_areas );
-								$all_selected   = ! empty( $areas ) && empty( array_diff( $all_area_codes, $areas ) );
+								$lpnw_all_bucket_codes = LPNW_NW_POSTCODES;
+								$all_selected            = ! empty( $areas ) && empty( array_diff( $lpnw_all_bucket_codes, $areas ) );
 								checked( $all_selected );
 								?>
 							>
-							<span><?php esc_html_e( 'All NW', 'lpnw-alerts' ); ?></span>
+							<span><?php esc_html_e( 'All NW (whole areas only)', 'lpnw-alerts' ); ?></span>
 						</label>
 						<p class="lpnw-select-all-label">
 							<button type="button" class="lpnw-btn lpnw-btn--outline lpnw-area-bulk__btn" id="lpnw-areas-select-all">
@@ -252,13 +222,39 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 							</button>
 						</p>
 					</div>
-					<div class="lpnw-checkbox-group" id="lpnw-areas-checkboxes">
-						<?php foreach ( $nw_areas as $code => $name ) : ?>
-							<label class="lpnw-checkbox-group__item">
-								<input type="checkbox" name="areas[]" value="<?php echo esc_attr( $code ); ?>"
-									<?php checked( in_array( $code, $areas, true ) ); ?>>
-								<span><?php echo esc_html( $name ); ?></span>
-							</label>
+					<div class="lpnw-area-buckets" id="lpnw-areas-root">
+						<?php foreach ( LPNW_NW_POSTCODES as $bucket_code ) : ?>
+							<?php
+							$bucket_label = isset( $lpnw_nw_area_labels[ $bucket_code ] ) ? $lpnw_nw_area_labels[ $bucket_code ] : $bucket_code;
+							$districts    = isset( $lpnw_districts_by_bucket[ $bucket_code ] ) ? $lpnw_districts_by_bucket[ $bucket_code ] : array();
+							?>
+							<details class="lpnw-area-bucket" <?php echo ! empty( $districts ) ? 'open' : ''; ?>>
+								<summary class="lpnw-area-bucket__summary">
+									<label class="lpnw-area-bucket__whole">
+										<input type="checkbox" name="areas[]" class="lpnw-area-bucket-cb" value="<?php echo esc_attr( $bucket_code ); ?>"
+											data-lpnw-bucket="<?php echo esc_attr( $bucket_code ); ?>"
+											<?php checked( in_array( $bucket_code, $areas, true ) ); ?>>
+										<span><?php echo esc_html( sprintf( '%s (%s)', $bucket_label, $bucket_code ) ); ?></span>
+									</label>
+								</summary>
+								<?php if ( ! empty( $districts ) ) : ?>
+									<div class="lpnw-checkbox-group lpnw-area-bucket__districts" data-lpnw-bucket-districts="<?php echo esc_attr( $bucket_code ); ?>">
+										<?php foreach ( $districts as $dist ) : ?>
+											<?php
+											$lpnw_dist_label = class_exists( 'LPNW_NW_Postcodes' )
+												? LPNW_NW_Postcodes::get_area_or_district_label( $dist )
+												: $dist;
+											?>
+											<label class="lpnw-checkbox-group__item">
+												<input type="checkbox" name="areas[]" class="lpnw-area-district-cb" value="<?php echo esc_attr( $dist ); ?>"
+													data-lpnw-parent-bucket="<?php echo esc_attr( $bucket_code ); ?>"
+													<?php checked( in_array( $dist, $areas, true ) ); ?>>
+												<span><?php echo esc_html( $dist . ( '' !== $lpnw_dist_label ? ' — ' . $lpnw_dist_label : '' ) ); ?></span>
+											</label>
+										<?php endforeach; ?>
+									</div>
+								<?php endif; ?>
+							</details>
 						<?php endforeach; ?>
 					</div>
 				</fieldset>
@@ -441,35 +437,74 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 (function () {
 	'use strict';
 	var master = document.getElementById('lpnw-all-nw');
-	var group = document.getElementById('lpnw-areas-checkboxes');
+	var root = document.getElementById('lpnw-areas-root');
 	var btnAll = document.getElementById('lpnw-areas-select-all');
 	var btnNone = document.getElementById('lpnw-areas-deselect-all');
-	if (!master || !group) {
+	if (!master || !root) {
 		return;
 	}
-	var boxes = function () {
-		return group.querySelectorAll('input[name="areas[]"]');
-	};
-	function setAll(checked) {
-		boxes().forEach(function (el) {
-			el.checked = checked;
+	function allAreaInputs() {
+		return root.querySelectorAll('input[name="areas[]"]');
+	}
+	function bucketCodes() {
+		return Array.prototype.map.call(root.querySelectorAll('.lpnw-area-bucket-cb'), function (el) {
+			return el.getAttribute('data-lpnw-bucket') || '';
+		}).filter(Boolean);
+	}
+	function syncBucketFromDistricts(bucket) {
+		var b = root.querySelector('.lpnw-area-bucket-cb[data-lpnw-bucket="' + bucket + '"]');
+		if (!b) {
+			return;
+		}
+		var kids = root.querySelectorAll('.lpnw-area-district-cb[data-lpnw-parent-bucket="' + bucket + '"]');
+		if (!kids.length) {
+			return;
+		}
+		var total = kids.length;
+		var on = 0;
+		kids.forEach(function (k) {
+			if (k.checked) {
+				on++;
+			}
 		});
-		syncMaster();
+		b.checked = on === total;
+		b.indeterminate = on > 0 && on < total;
+	}
+	function setDistrictsForBucket(bucket, checked) {
+		root.querySelectorAll('.lpnw-area-district-cb[data-lpnw-parent-bucket="' + bucket + '"]').forEach(function (k) {
+			k.checked = checked;
+		});
 	}
 	function syncMaster() {
-		var list = boxes();
-		var n = list.length;
+		var codes = bucketCodes();
+		var n = codes.length;
 		var c = 0;
-		list.forEach(function (el) {
-			if (el.checked) {
+		codes.forEach(function (code) {
+			var b = root.querySelector('.lpnw-area-bucket-cb[data-lpnw-bucket="' + code + '"]');
+			if (b && b.checked && !b.indeterminate) {
 				c++;
 			}
 		});
 		master.checked = n > 0 && c === n;
 		master.indeterminate = c > 0 && c < n;
 	}
+	function setAll(checked) {
+		allAreaInputs().forEach(function (el) {
+			el.checked = checked;
+			el.indeterminate = false;
+		});
+		syncMaster();
+	}
 	master.addEventListener('change', function () {
-		setAll(master.checked);
+		bucketCodes().forEach(function (code) {
+			var b = root.querySelector('.lpnw-area-bucket-cb[data-lpnw-bucket="' + code + '"]');
+			if (b) {
+				b.checked = master.checked;
+				b.indeterminate = false;
+			}
+			setDistrictsForBucket(code, master.checked);
+		});
+		syncMaster();
 	});
 	if (btnAll) {
 		btnAll.addEventListener('click', function () {
@@ -481,9 +516,26 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 			setAll(false);
 		});
 	}
-	boxes().forEach(function (el) {
-		el.addEventListener('change', syncMaster);
+	root.querySelectorAll('.lpnw-area-bucket-cb').forEach(function (b) {
+		b.addEventListener('change', function () {
+			var bucket = b.getAttribute('data-lpnw-bucket');
+			if (bucket) {
+				b.indeterminate = false;
+				setDistrictsForBucket(bucket, b.checked);
+			}
+			syncMaster();
+		});
 	});
+	root.querySelectorAll('.lpnw-area-district-cb').forEach(function (k) {
+		k.addEventListener('change', function () {
+			var bucket = k.getAttribute('data-lpnw-parent-bucket');
+			if (bucket) {
+				syncBucketFromDistricts(bucket);
+			}
+			syncMaster();
+		});
+	});
+	bucketCodes().forEach(syncBucketFromDistricts);
 	syncMaster();
 })();
 </script>
