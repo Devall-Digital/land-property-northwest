@@ -21,6 +21,7 @@ class LPNW_Public {
 		add_shortcode( 'lpnw_area_stats', array( __CLASS__, 'render_area_stats' ) );
 		add_shortcode( 'lpnw_total_sources', array( __CLASS__, 'render_total_sources' ) );
 		add_shortcode( 'lpnw_property_search', array( __CLASS__, 'render_property_search' ) );
+		add_shortcode( 'lpnw_live_activity', array( __CLASS__, 'render_live_activity' ) );
 
 		add_action( 'wp_ajax_lpnw_save_preferences', array( __CLASS__, 'ajax_save_preferences' ) );
 		add_action( 'wp_ajax_lpnw_contact_form', array( __CLASS__, 'ajax_contact_form' ) );
@@ -175,6 +176,50 @@ class LPNW_Public {
 		);
 
 		return '<p class="lpnw-total-sources">' . esc_html( $text ) . '</p>';
+	}
+
+	/**
+	 * [lpnw_live_activity] - Pulsing live badge with recent ingest count.
+	 *
+	 * @param array<string, string>|string $atts Shortcode attributes.
+	 */
+	public static function render_live_activity( $atts = array() ): string {
+		global $wpdb;
+		$since = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties WHERE created_at >= %s",
+				$since
+			)
+		);
+
+		if ( $count < 1 ) {
+			$since_day = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+			$count     = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties WHERE created_at >= %s",
+					$since_day
+				)
+			);
+			if ( $count < 1 ) {
+				return '';
+			}
+			$label = sprintf(
+				/* translators: %s: formatted count */
+				__( '%s new today', 'lpnw-alerts' ),
+				number_format_i18n( $count )
+			);
+		} else {
+			$label = sprintf(
+				/* translators: %s: formatted count */
+				__( '%s new in the last hour', 'lpnw-alerts' ),
+				number_format_i18n( $count )
+			);
+		}
+
+		return '<span class="lpnw-live-pulse"><span class="lpnw-live-pulse__dot" aria-hidden="true"></span>' .
+			esc_html__( 'Live', 'lpnw-alerts' ) . ' &middot; ' .
+			esc_html( $label ) . '</span>';
 	}
 
 	/**

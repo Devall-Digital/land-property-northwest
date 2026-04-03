@@ -3647,6 +3647,121 @@ body.page-saved-properties .entry-content > p:first-child a {
 }
 
 /* ==========================================================================
+   MISSED ALERTS BANNER (free-tier FOMO conversion)
+   ========================================================================== */
+
+.lpnw-missed-banner {
+	position: relative;
+	margin: 0 0 1.5rem;
+	padding: 1.25rem 1.5rem 1.375rem;
+	border-radius: 16px;
+	border: 1px solid rgba(220, 38, 38, 0.3);
+	background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(240, 165, 0, 0.06) 100%);
+	backdrop-filter: blur(var(--lpnw-glass-blur));
+	-webkit-backdrop-filter: blur(var(--lpnw-glass-blur));
+	box-shadow: 0 8px 32px rgba(220, 38, 38, 0.08), var(--lpnw-glass-shadow);
+	overflow: hidden;
+}
+
+.lpnw-missed-banner__pulse {
+	position: absolute;
+	top: 50%;
+	left: -30px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: #ef4444;
+	transform: translateY(-50%);
+	box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-missed-banner__pulse {
+		left: 1.25rem;
+		animation: lpnw-pulse-ring 2s ease-in-out infinite;
+	}
+
+	@keyframes lpnw-pulse-ring {
+		0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+		70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+		100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+	}
+}
+
+.lpnw-missed-banner__content {
+	padding-left: 1.75rem;
+}
+
+.lpnw-missed-banner__stat {
+	margin: 0 0 0.5rem;
+	font-size: 1rem;
+	line-height: 1.45;
+	color: rgba(255, 255, 255, 0.88);
+}
+
+.lpnw-missed-banner__count {
+	font-size: 1.75rem;
+	font-weight: 800;
+	color: #ef4444;
+	display: inline-block;
+	margin-right: 0.35rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	vertical-align: baseline;
+}
+
+.lpnw-missed-banner__message {
+	margin: 0 0 1rem;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	color: rgba(255, 255, 255, 0.65);
+}
+
+.lpnw-missed-banner__cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* ==========================================================================
+   LIVE ACTIVITY PULSE (homepage engagement)
+   ========================================================================== */
+
+.lpnw-live-pulse {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.35rem 0.75rem;
+	border-radius: 999px;
+	background: rgba(239, 68, 68, 0.12);
+	border: 1px solid rgba(239, 68, 68, 0.25);
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #fca5a5;
+}
+
+.lpnw-live-pulse__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #ef4444;
+	flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-live-pulse__dot {
+		animation: lpnw-live-blink 1.5s ease-in-out infinite;
+	}
+
+	@keyframes lpnw-live-blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.3; }
+	}
+}
+
+/* ==========================================================================
    VISUAL POLISH CYCLES 4-7
    ========================================================================== */
 

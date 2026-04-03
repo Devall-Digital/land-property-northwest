@@ -60,7 +60,7 @@ class LPNW_Page_Content {
 </section>
 
 <section class="lpnw-trust-bar" aria-label="How often listings are refreshed">
-	<p class="lpnw-trust-bar__text">Pulling the latest property listings from across the Northwest every 15 minutes.</p>
+	<p class="lpnw-trust-bar__text">[lpnw_live_activity] Pulling the latest property listings from across the Northwest every 15 minutes.</p>
 </section>
 
 <section class="lpnw-stats-bar" aria-labelledby="lpnw-stats-bar-title">
@@ -154,7 +154,7 @@ class LPNW_Page_Content {
 
 <section class="lpnw-home-feed" aria-labelledby="lpnw-home-feed-title">
 	<h2 id="lpnw-home-feed-title" class="lpnw-pricing-section__title">Latest activity</h2>
-	<p>A live sample of six recent records from our normalised Northwest database.</p>
+	<p>[lpnw_live_activity] Fresh listings from across the Northwest. Pro subscribers get these as instant alerts.</p>
 	<div class="lpnw-home-feed__properties">
 		[lpnw_latest_properties limit="6"]
 	</div>
