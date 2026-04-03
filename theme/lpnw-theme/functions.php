@@ -1397,9 +1397,6 @@ add_action( 'wp_head', 'lpnw_output_json_ld_schema', 5 );
  * Rank Math may add its own OG tags; this acts as a fallback when they're absent.
  */
 function lpnw_theme_open_graph_meta(): void {
-	if ( class_exists( 'RankMath' ) || class_exists( 'WPSEO_Options' ) ) {
-		return;
-	}
 
 	$site_name   = get_bloginfo( 'name' );
 	$description = 'NW property alerts before anyone else. Instant notifications from Rightmove and more, straight to your inbox.';
