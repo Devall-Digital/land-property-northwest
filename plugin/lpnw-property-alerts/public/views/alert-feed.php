@@ -76,7 +76,11 @@ if ( empty( $alerts ) ) : ?>
 
 			$agent_line = trim( (string) ( $prop->agent_name ?? '' ) );
 
-			$lpnw_listed_info = LPNW_Property::get_listed_label( (string) ( $prop->first_listed_date ?? '' ) );
+			$lpnw_date_for_label = (string) ( $prop->first_listed_date ?? '' );
+			if ( '' === trim( $lpnw_date_for_label ) && ! empty( $prop->created_at ) ) {
+				$lpnw_date_for_label = (string) $prop->created_at;
+			}
+			$lpnw_listed_info = LPNW_Property::get_listed_label( $lpnw_date_for_label );
 			$listed_label   = $lpnw_listed_info['label'];
 			$is_new_listing = $lpnw_listed_info['is_new'];
 			$is_urgent      = $lpnw_listed_info['is_urgent'];

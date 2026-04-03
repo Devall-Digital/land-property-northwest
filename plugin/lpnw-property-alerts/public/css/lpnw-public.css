@@ -627,19 +627,32 @@
 	position: relative;
 	z-index: 2;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 0.5rem;
 	width: 100%;
 	height: 100%;
 	min-height: 0;
 	box-sizing: border-box;
 	padding: 1rem;
-	background: var(--lpnw-navy, #0F1D35);
-	color: #FFFFFF;
-	font-size: 0.875rem;
+	background: linear-gradient(135deg, #0f1d35 0%, #1a2d4f 100%);
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 0.8125rem;
 	font-weight: 600;
 	text-align: center;
 	line-height: 1.35;
+}
+
+.lpnw-property-card__image-placeholder::before {
+	content: '';
+	display: block;
+	width: 2.5rem;
+	height: 2.5rem;
+	opacity: 0.3;
+	background: currentColor;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 .lpnw-property-card__header {
