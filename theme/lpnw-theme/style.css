@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.7.0
+Version: 6.8.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -3081,6 +3081,52 @@ body.no-sidebar .site-main {
 /* Smooth scroll-to for anchor links */
 html {
 	scroll-padding-top: 80px;
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLE 11 — PREMIUM MICRO-INTERACTIONS
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-btn--primary {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.lpnw-btn--primary::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			circle at var(--lpnw-shine-x, 50%) var(--lpnw-shine-y, 50%),
+			rgba(255, 255, 255, 0.25) 0%,
+			transparent 60%
+		);
+		opacity: 0;
+		transition: opacity 0.25s ease;
+		pointer-events: none;
+	}
+
+	.lpnw-btn--primary:hover::after {
+		opacity: 1;
+	}
+
+	.lpnw-step {
+		transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+	}
+
+	.lpnw-step:hover {
+		transform: translateY(-6px);
+		box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2), 0 0 20px rgba(240, 165, 0, 0.08);
+	}
+
+	.lpnw-stats-bar__item {
+		transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.lpnw-stats-bar__item:hover {
+		transform: translateY(-3px);
+	}
 }
 
 /* ==========================================================================
