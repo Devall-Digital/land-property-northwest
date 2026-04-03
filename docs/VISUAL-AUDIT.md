@@ -2,7 +2,9 @@
 
 **Purpose:** Single place for **live UI/UX and artistic direction** findings from browser-based review (logged-in test user). Complements `docs/DISCOVERY-BACKLOG.md` (code and product correctness). Update this file after each visual pass.
 
-**Last pass:** April 2026 — four parallel **computer-use** browser sessions on the VM (`/?nocache&lpnw_login_as=test&key=lpnw2026setup`). Some pages hit **503** or incomplete mobile tooling; findings below are merged and de-duplicated; items marked *verify* need a quick human check on a real phone.
+**Last pass:** 2 April 2026 — **three** parallel **computer-use** VM browser audits (test user `/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`) plus **HTTP smoke** on all major paths (all **200** at time of check: `/about/`, `/contact/`, `/pricing/`, `/properties/`, `/map/`, `/shop/`, `/cart/`, `/checkout/`, `/my-account/`, `/saved/`). A fourth commerce-focused VM run **failed** (host image/document cap); treat WooCommerce as **not re-verified** this round. Intermittent **503** still possible on 20i; one agent saw it recover.
+
+**Note on nav while logged in:** With a **subscriber** cookie, “About” may route to **subscriber home** (`/dashboard/`) by design; for marketing pages audit **open `/about/?nocache=1` in the address bar** or use a **logged-out** window.
 
 **Shipped (repo, April 2026):** Plugin **1.0.14+** — `get_card_context()` **deep image discovery**; **empty states** (alerts, saved); **preferences** area bulk as outline buttons; **browse** pagination hint; **dashboard** PRO badge + unified action-card accent + stat icons + coverage % alignment; **home hero** (page content + template) **primary + ghost** CTAs, title class for gradient. Theme **6.5.3** — pricing **Pro** border motion disabled (static gradient border); dark overrides for new plugin blocks. **Marketing DB sync:** Plugin **1.0.17+** includes `LPNW_Page_Content_Sync` — visit `/?nocache=1&lpnw_update=pages` while **logged in as admin**, or add `&key=...` (see `docs/DEPLOYMENT.md`). Legacy **`mu-plugins/lpnw-update-pages.php`** still self-deletes after one run if used.
 
@@ -25,11 +27,51 @@
 
 ---
 
+## Full-site VM pass (2 April 2026)
+
+Merged from parallel VM sessions. *Verify* items need a second look (agent misread or plugin-specific UI).
+
+### Homepage and hero (guest + logged-in)
+
+- **Sticky bottom bar** (`.lpnw-sticky-cta-bar`) plus **multiple “Start free” CTAs** on the home funnel can feel **repetitive**; consider **not showing** the sticky bar when another prominent conversion block is in view, or delay it (*verify* overlap with any **guest** overlay).
+- One agent reported a **full-screen modal** blocking the hero; our theme code shows **hero + sticky bar + in-content CTAs**, not a dedicated modal. ***Verify on a logged-out session*:** if a **third-party** or **Jetpack** overlay appears, document and remove or make dismissible.
+- **Hero art:** confirm **sun / clouds / parallax** read clearly **behind** the glass content panel at 1280px; agent saw strong **city silhouette** but questioned **sky depth** (*subjective*).
+- **Mobile (~390px):** *Predicted* — sticky bar + **cookie notice** may **stack** and eat vertical space; **modal** claim would be *critical* on mobile if real — **verify on device**.
+- **Latest activity / property strip:** **badge inconsistency** (NEW vs type vs source); **“Latest activity”** subheading **contrast**; **small** WhatsApp/Email links; **grid gap** uniformity.
+
+### Marketing (`/about/`, `/contact/`, `/pricing/`)
+
+- **`/pricing/`:** **Duplicate “Pricing”** (theme entry title + hero) — still **High**.
+- **“Compare plans”** gold-on-navy — **contrast** risk — still **High**.
+- **Pricing table on narrow viewports:** horizontal scroll behaviour needs **real 390px check** (agent could not complete).
+- **`/about/` and `/contact/`:** **HTTP 200** from this environment; if VM session **redirected to dashboard**, retest **logged out** or **direct URL**.
+
+### Subscriber (`/dashboard/`, `/map/`, *preferences/saved*)
+
+- **Dashboard property cards:** strong report of **blue tint / overlay on photos** making images look **washed** — treat as **High** (CSS: gradient overlay on `.lpnw-property-card` image or similar). *May coexist* with older “placeholder only” bug; **check both**.
+- **NEW** badge on tinted image — **contrast**.
+- **Agent / WhatsApp / Email** links and **timestamps** — **low contrast** on dark cards.
+- **Feature tags** — small text, weak contrast (matches prior audit).
+- **Alert coverage** widget — **%** alignment / row spacing (matches P2).
+- **Map (`/map/`):** legend **dot** size; **cluster** visibility on light tiles; **source** filter styling vs dashboard; attribution **font size**.
+
+### Commerce (`/shop/`, `/cart/`, `/checkout/`, `/my-account/`)
+
+- **Not completed** this pass (VM sub-agent hit **image/document limit**). **Next:** one session with **screenshot budget** or plain **checklist** without captures.
+
+### Infrastructure
+
+- **503 Service Unavailable** observed mid-session (**PHP worker** message) — **ops priority**; blocks trust and audits.
+
+---
+
 ## Executive summary
 
 | Theme | Severity | Notes |
 |-------|----------|--------|
 | **Dashboard alert preview vs /properties/** | Critical | Cards in “preview alerts” often show **image placeholders** while browse shows **photos** for similar listings — investigate `raw_data` / `LPNW_Property::get_card_context()` and historical queue rows. |
+| **Dashboard card image overlay** | High (VM) | Live VM pass: **heavy blue tint** over property photos on dashboard cards — inspect image-area **linear-gradient overlay** / blend; may be separate from missing-URL placeholders. |
+| **503 / PHP worker** | High | VM + prior passes: intermittent **503** — hosting / PHP pool stability. |
 | **Preferences area labels** | High | Reviewers reported **missing or invisible postcode labels** in the areas grid — likely **contrast/CSS on `body.lpnw-site`** (labels exist in PHP as `<span>` after checkbox). **Verify** and fix token colours. |
 | **Contrast (feature chips, gold headings, help text)** | High | Feature tags on cards, “Compare plans” gold on navy, light grey help copy — **WCAG AA** risk. |
 | **Pricing page structure** | High | **Duplicate “Pricing”** (GeneratePress title + hero); comparison table **UX** (sticky header, mobile scroll, SVG checkmarks); **VIP** lacks premium visual differentiation. |
@@ -107,12 +149,14 @@ These are **intentional** targets, not one-off bugs:
 
 ## Coverage gaps (next visual pass)
 
-- [ ] WooCommerce **shop → cart → checkout → thank you** (test mode or small purchase).  
+- [ ] WooCommerce **shop → cart → checkout → thank you** (test mode or small purchase) — **blocked Apr 2026** by VM capture limits; retry with **no/minimal** screenshots.  
 - [ ] **My account** orders / subscriptions UI.  
 - [ ] **Two area landing pages** + **one blog post** template.  
 - [ ] **Property map** on phone (Leaflet touch, cookie bar).  
 - [ ] **Contact form** success/error states.  
-- [ ] **404** and **search** if enabled.
+- [ ] **404** and **search** if enabled.  
+- [ ] **Logged-out** homepage: confirm whether any **modal** is real (third-party) or misidentified UI.  
+- [ ] **`/preferences/`** and **`/saved/`** dedicated VM pass (this round: partial / navigation drift).
 
 ---
 
