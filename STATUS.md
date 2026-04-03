@@ -30,7 +30,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 - **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live child theme header **version 6.0.0**; may differ from repo until next theme deploy); **LPNW Property Alerts plugin 1.0.0** (matches repo header until next bump)
 - **WP-Cron:** `DISABLE_WP_CRON` not set; **next scheduled jobs visible** in LPNW dashboard (portals, dispatch, planning, EPC, auctions, digest). **External** cron URLs may still be blocked by the WAF for third-party ping services (see Owner actions); traffic-driven cron is clearly firing.
 - **Must-use plugins on live:** includes `lpnw-cron-endpoint.php`, operational helpers (`lpnw-backfill-otm.php`, `lpnw-postcode-stats.php`, `lpnw-tier-test.php`), **`lpnw-login-as.php`** (review security: should not rely on a static URL key long term), host `wp-stack-cache.php`
-- **Mautic** base URL configured; **API check: connected (HTTP 200)**. **Repo plugin 1.0.12+** can **auto-fill VIP/Pro/Free email IDs** from Mautic template names; live needs deploy and one visit to **LPNW Alerts > Settings** (or wait for daily sync).
+- **Mautic** base URL configured; **API check: connected (HTTP 200)**. **Repo plugin 1.0.13+** can **auto-fill VIP/Pro/Free email IDs** from Mautic template names; live needs deploy and one visit to **LPNW Alerts > Settings** (or wait for daily sync).
 - **WooCommerce** with **Stripe** gateway; **three published products** in catalog; admin bar shows **Store coming soon** (confirm before public launch)
 - **Tier detection** from WooCommerce orders (completed/processing) is **working** (alert log shows PRO tier)
 - **Search indexing:** Rank Math admin notice reports **No Index** (WordPress Reading or Rank Math). **Reconcile** with intended launch state; do not assume the site is visible in Google until this is cleared
@@ -43,7 +43,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 - **Leaflet map:** interactive view with **clustered markers**
 - **Property cards:** images, prices, beds/baths, tenure, features, agent, listed date
 - **Auction presentation:** guide prices, auction dates where applicable
-- **Email alerts:** pipeline active (large **queued** volume observed); after **1.0.12** deploy, Mautic sends when templates exist and IDs sync; otherwise **wp_mail** fallback
+- **Email alerts:** pipeline active (large **queued** volume observed); after **1.0.13** deploy, Mautic sends when templates exist and IDs sync; otherwise **wp_mail** fallback
 - **Contact form:** native AJAX (no third-party form plugin required)
 - **14 Northwest area landing pages**
 - **10 SEO blog posts**
