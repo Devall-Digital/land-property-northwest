@@ -240,11 +240,16 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 								<?php if ( ! empty( $districts ) ) : ?>
 									<div class="lpnw-checkbox-group lpnw-area-bucket__districts" data-lpnw-bucket-districts="<?php echo esc_attr( $bucket_code ); ?>">
 										<?php foreach ( $districts as $dist ) : ?>
+											<?php
+											$lpnw_dist_label = class_exists( 'LPNW_NW_Postcodes' )
+												? LPNW_NW_Postcodes::get_area_or_district_label( $dist )
+												: $dist;
+											?>
 											<label class="lpnw-checkbox-group__item">
 												<input type="checkbox" name="areas[]" class="lpnw-area-district-cb" value="<?php echo esc_attr( $dist ); ?>"
 													data-lpnw-parent-bucket="<?php echo esc_attr( $bucket_code ); ?>"
 													<?php checked( in_array( $dist, $areas, true ) ); ?>>
-												<span><?php echo esc_html( $dist ); ?></span>
+												<span><?php echo esc_html( $dist . ( '' !== $lpnw_dist_label ? ' — ' . $lpnw_dist_label : '' ) ); ?></span>
 											</label>
 										<?php endforeach; ?>
 									</div>

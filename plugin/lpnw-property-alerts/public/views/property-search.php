@@ -83,7 +83,12 @@ $signup_url = add_query_arg(
 							?>
 							<optgroup label="<?php echo esc_attr( sprintf( '%s (%s)', $grp, $bucket ) ); ?>">
 								<?php foreach ( $districts as $dist ) : ?>
-									<option value="<?php echo esc_attr( $dist ); ?>" <?php selected( $f['area'], $dist ); ?>><?php echo esc_html( $dist ); ?></option>
+									<?php
+									$lpnw_dist_lbl = class_exists( 'LPNW_NW_Postcodes' )
+										? LPNW_NW_Postcodes::get_area_or_district_label( $dist )
+										: $dist;
+									?>
+									<option value="<?php echo esc_attr( $dist ); ?>" <?php selected( $f['area'], $dist ); ?>><?php echo esc_html( $dist . ( '' !== $lpnw_dist_lbl ? ' — ' . $lpnw_dist_lbl : '' ) ); ?></option>
 								<?php endforeach; ?>
 							</optgroup>
 						<?php endforeach; ?>

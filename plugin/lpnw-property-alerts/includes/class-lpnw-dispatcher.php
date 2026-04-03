@@ -577,11 +577,23 @@ class LPNW_Dispatcher {
 		$first = self::get_subscriber_greeting_first_name( $user );
 		$html  = self::build_plain_email( $properties );
 
+		$postcode_area_lines = array();
+		foreach ( $properties as $p ) {
+			if ( is_object( $p ) && class_exists( 'LPNW_Property' ) ) {
+				$cap = LPNW_Property::format_postcode_caption( $p );
+				if ( '' !== $cap ) {
+					$postcode_area_lines[] = trim( (string) ( $p->postcode ?? '' ) ) . ' — ' . $cap;
+				}
+			}
+		}
+		$postcode_area_block = ! empty( $postcode_area_lines ) ? implode( "\n", $postcode_area_lines ) : '';
+
 		$tokens = array(
 			'{lpnw_subscriber_first_name}' => $first,
 			'{lpnw_alert_count}'           => (string) count( $properties ),
 			'{lpnw_tier}'                  => strtoupper( $tier ),
 			'{lpnw_properties_html}'       => $html,
+			'{lpnw_postcode_areas}'        => esc_html( $postcode_area_block ),
 		);
 
 		$tokens = apply_filters( 'lpnw_mautic_alert_email_tokens', $tokens, $user, $properties, $tier );

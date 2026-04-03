@@ -652,7 +652,7 @@ class LPNW_Admin {
 	public static function render_mautic_section_intro(): void {
 		echo '<p class="description">';
 		esc_html_e(
-			'When sending via Mautic, your email templates can use these tokens on send: {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html} (listing summary). Add matching tokens in Mautic or use the HTML block token for the full list.',
+			'When sending via Mautic, your email templates can use these tokens on send: {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html} (listing summary), {lpnw_postcode_areas} (postcode plus area names, one line per property when known). Add matching tokens in Mautic or use the HTML block token for the full list.',
 			'lpnw-alerts'
 		);
 		echo '</p>';

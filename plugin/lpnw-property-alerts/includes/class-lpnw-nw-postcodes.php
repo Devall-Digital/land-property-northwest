@@ -64,6 +64,27 @@ class LPNW_NW_Postcodes {
 	/**
 	 * Whether this string is a broad NW bucket or a known district outward code.
 	 */
+	/**
+	 * Display label for a saved preference code (broad bucket or district).
+	 */
+	public static function get_area_or_district_label( string $code ): string {
+		$c = strtoupper( trim( $code ) );
+		if ( '' === $c ) {
+			return '';
+		}
+		if ( in_array( $c, LPNW_NW_POSTCODES, true ) ) {
+			$labels = LPNW_Property::get_nw_area_labels();
+			return isset( $labels[ $c ] ) ? (string) $labels[ $c ] : $c;
+		}
+		if ( class_exists( 'LPNW_Outcode_Labels' ) ) {
+			$place = LPNW_Outcode_Labels::get_label_for_outcode( $c );
+			if ( '' !== $place ) {
+				return $place;
+			}
+		}
+		return $c;
+	}
+
 	public static function is_valid_area_or_district( string $code ): bool {
 		$c = strtoupper( trim( $code ) );
 		if ( '' === $c ) {

@@ -1018,4 +1018,74 @@ class LPNW_Property {
 			$l
 		);
 	}
+
+	/**
+	 * One-line caption after postcode: area names from bundled outcode data or geocoder metadata.
+	 *
+	 * @param object $prop Property row (postcode, raw_data).
+	 */
+	public static function format_postcode_caption( object $prop ): string {
+		$pc = trim( (string) ( $prop->postcode ?? '' ) );
+		if ( '' === $pc ) {
+			return '';
+		}
+		$raw = json_decode( (string) ( $prop->raw_data ?? '' ), true );
+		$raw = is_array( $raw ) ? $raw : array();
+		$geo = isset( $raw['lpnw_geography'] ) && is_array( $raw['lpnw_geography'] ) ? $raw['lpnw_geography'] : array();
+
+		$parts = array();
+		if ( ! empty( $geo['parish'] ) && is_string( $geo['parish'] ) ) {
+			$parts[] = trim( $geo['parish'] );
+		}
+		if ( ! empty( $geo['admin_ward'] ) && is_string( $geo['admin_ward'] ) ) {
+			$w = trim( $geo['admin_ward'] );
+			if ( '' !== $w && ! in_array( $w, $parts, true ) ) {
+				$parts[] = $w;
+			}
+		}
+		if ( ! empty( $geo['admin_district'] ) && is_string( $geo['admin_district'] ) ) {
+			$d = trim( $geo['admin_district'] );
+			if ( '' !== $d && ! in_array( $d, $parts, true ) ) {
+				$parts[] = $d;
+			}
+		}
+
+		if ( empty( $parts ) && class_exists( 'LPNW_Outcode_Labels' ) ) {
+			$lbl = LPNW_Outcode_Labels::get_label_for_postcode( $pc );
+			if ( '' !== $lbl ) {
+				$parts[] = $lbl;
+			}
+		}
+
+		if ( empty( $parts ) ) {
+			return '';
+		}
+
+		return implode( ', ', array_slice( $parts, 0, 3 ) );
+	}
+
+	/**
+	 * Merge LPNW geography (from geocoder) into raw_data before upsert.
+	 *
+	 * @param array<string, mixed> $raw_data Decoded or empty.
+	 * @param array<string, mixed> $geo      Keys: admin_district, admin_ward, parish, nuts, outcode (optional).
+	 * @return array<string, mixed>
+	 */
+	public static function merge_geography_into_raw_data( array $raw_data, array $geo ): array {
+		$keep = array();
+		foreach ( array( 'admin_district', 'admin_ward', 'parish', 'nuts', 'outcode' ) as $k ) {
+			if ( empty( $geo[ $k ] ) || ! is_string( $geo[ $k ] ) ) {
+				continue;
+			}
+			$v = trim( $geo[ $k ] );
+			if ( '' !== $v ) {
+				$keep[ $k ] = sanitize_text_field( $v );
+			}
+		}
+		if ( empty( $keep ) ) {
+			return $raw_data;
+		}
+		$raw_data['lpnw_geography'] = $keep;
+		return $raw_data;
+	}
 }
