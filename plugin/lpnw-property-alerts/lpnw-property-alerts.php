@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LPNW_VERSION', '1.0.19' );
+define( 'LPNW_VERSION', '1.0.20' );
 define( 'LPNW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LPNW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LPNW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );

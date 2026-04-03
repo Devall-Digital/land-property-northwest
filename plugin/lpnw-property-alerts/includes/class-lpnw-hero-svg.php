@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class LPNW_Hero_Svg {
 
-	public const VERSION = '5';
+	public const VERSION = '6';
 
 	private const VIEW_H = 520;
 
@@ -118,443 +118,189 @@ class LPNW_Hero_Svg {
 		return is_string( $unwrapped ) ? $unwrapped : $out;
 	}
 
-	private static function hash99( int $seed, int $i ): int {
-		return (int) ( ( $seed * 7919 + $i * 104729 ) % 100 );
-	}
-
-	private static function window_lit( int $seed, int $r, int $c, float $lit_pct ): bool {
-		$h = self::hash99( $seed, $r * 997 + $c * 37 );
-
-		return $h < ( $lit_pct * 100 );
-	}
-
 	/**
-	 * @param float $gw Window width.
-	 * @param float $gh Window height.
+	 * Stable per-request ID prefix for SVG defs.
 	 */
-	private static function windows_grid( float $bx, float $by, float $bw, float $bh, int $seed, float $lit_pct, string $filter_id, float $gw, float $gh ): string {
-		$gap    = 3.0 + ( self::hash99( $seed, 900 ) % 3 ) * 0.4;
-		$pad    = 5.0;
-		$header = 14.0 + ( self::hash99( $seed, 901 ) % 8 );
-		$ox     = $bx + $pad;
-		$oy     = $by + $header;
-		$inner_w = $bw - 2 * $pad;
-		$inner_h = $bh - $header - $pad;
-		$cols   = max( 1, (int) floor( ( $inner_w + $gap ) / ( $gw + $gap ) ) );
-		$rows   = max( 1, (int) floor( ( $inner_h + $gap ) / ( $gh + $gap ) ) );
-		$html   = '';
-
-		for ( $r = 0; $r < $rows; $r++ ) {
-			for ( $c = 0; $c < $cols; $c++ ) {
-				$x = $ox + $c * ( $gw + $gap );
-				$y = $oy + $r * ( $gh + $gap );
-				if ( $x + $gw > $bx + $bw - $pad || $y + $gh > $by + $bh - $pad ) {
-					continue;
-				}
-				$lit = self::window_lit( $seed, $r, $c, $lit_pct );
-				$h2  = self::hash99( $seed, 400 + $r * 31 + $c );
-				if ( $lit ) {
-					$op = 0.38 + ( $h2 % 40 ) / 100;
-					$fl = ( 0 === $h2 % 4 ) ? '#fff8e6' : ( ( 0 === $h2 % 3 ) ? '#f7c23a' : '#f0a500' );
-					$html .= sprintf(
-						'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="0.5" fill="%s" opacity="%.2f" filter="url(#%s)"/>',
-						$x,
-						$y,
-						$gw,
-						$gh,
-						esc_attr( $fl ),
-						$op,
-						esc_attr( $filter_id )
-					);
-				} else {
-					$op = 0.12 + ( $h2 % 12 ) / 120;
-					$html .= sprintf(
-						'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="0.5" fill="#1a3a5c" opacity="%.2f"/>',
-						$x,
-						$y,
-						$gw,
-						$gh,
-						$op
-					);
-				}
-			}
+	private static function id_prefix(): string {
+		static $p = null;
+		if ( null === $p ) {
+			$p = 'lpnwh6' . bin2hex( random_bytes( 4 ) );
 		}
-
-		return $html;
+		return $p;
 	}
 
-	/**
-	 * @param int $style 0–6 silhouette variants.
-	 */
-	private static function building( float $x, float $y_bottom, float $w, float $h, string $fill, int $seed, float $lit_pct, string $fid, int $style ): string {
-		$y      = $y_bottom - $h;
-		$r      = min( 3.0, $w * 0.08 );
-		$gw     = 4.2 + ( self::hash99( $seed, 800 ) % 5 ) * 0.35;
-		$gh     = 3.4 + ( self::hash99( $seed, 801 ) % 4 ) * 0.35;
-		$html   = '';
-		$fill_e = esc_attr( $fill );
+	// --- V6: Hand-crafted 3-layer SVG cityscape ---
 
-		if ( 6 === $style ) {
-			$html .= sprintf(
-				'<ellipse cx="%.2f" cy="%.2f" rx="%.2f" ry="%.2f" fill="%s"/>',
-				$x + $w / 2,
-				$y + $h * 0.52,
-				$w / 2,
-				$h * 0.48,
-				$fill_e
-			);
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="%.2f" fill="%s"/>',
-				$x + $w * 0.08,
-				$y,
-				$w * 0.84,
-				$h * 0.55,
-				$r,
-				$fill_e
-			);
-		} else {
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="%.2f" fill="%s"/>',
-				$x,
-				$y,
-				$w,
-				$h,
-				$r,
-				$fill_e
-			);
-		}
-
-		if ( 6 !== $style ) {
-			$html .= self::windows_grid( $x, $y, $w, $h, $seed, $lit_pct, $fid, $gw, $gh );
-		} else {
-			$html .= self::windows_grid( $x + $w * 0.12, $y + $h * 0.08, $w * 0.76, $h * 0.42, $seed + 3, $lit_pct * 0.85, $fid, $gw * 0.9, $gh );
-		}
-
-		if ( 1 === $style ) {
-			$step = $w * 0.22;
-			$html .= sprintf(
-				'<polygon points="%.2f,%.2f %.2f,%.2f %.2f,%.2f" fill="%s" opacity="0.95"/>',
-				$x + $step,
-				$y,
-				$x + $w - $step,
-				$y,
-				$x + $w / 2,
-				$y - $h * 0.1,
-				$fill_e
-			);
-		} elseif ( 2 === $style ) {
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" opacity="0.9"/>',
-				$x + $w * 0.42,
-				$y - $h * 0.14,
-				$w * 0.16,
-				$h * 0.14,
-				$fill_e
-			);
-			$html .= sprintf(
-				'<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="#5a7aaa" stroke-width="1.2" opacity="0.55"/>',
-				$x + $w / 2,
-				$y - $h * 0.14,
-				$x + $w / 2,
-				$y - $h * 0.26
-			);
-		} elseif ( 3 === $style ) {
-			$s1w = $w * 0.72;
-			$s1x = $x + ( $w - $s1w ) / 2;
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="2" fill="%s" opacity="0.92"/>',
-				$s1x,
-				$y - $h * 0.12,
-				$s1w,
-				$h * 0.12,
-				$fill_e
-			);
-			$s2w = $w * 0.48;
-			$s2x = $x + ( $w - $s2w ) / 2;
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="2" fill="%s" opacity="0.9"/>',
-				$s2x,
-				$y - $h * 0.22,
-				$s2w,
-				$h * 0.1,
-				$fill_e
-			);
-		} elseif ( 4 === $style ) {
-			$pk = $h * 0.07;
-			$html .= sprintf(
-				'<polygon points="%.2f,%.2f %.2f,%.2f %.2f,%.2f" fill="%s" opacity="0.88"/>',
-				$x + $w * 0.25,
-				$y,
-				$x + $w * 0.5,
-				$y - $pk,
-				$x + $w * 0.5,
-				$y,
-				$fill_e
-			);
-			$html .= sprintf(
-				'<polygon points="%.2f,%.2f %.2f,%.2f %.2f,%.2f" fill="%s" opacity="0.88"/>',
-				$x + $w * 0.5,
-				$y,
-				$x + $w * 0.75,
-				$y - $pk,
-				$x + $w * 0.75,
-				$y,
-				$fill_e
-			);
-		} elseif ( 5 === $style ) {
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="%.2f" height="6" fill="#f0a500" opacity="0.35"/>',
-				$x + 2,
-				$y + 18,
-				$w - 4
-			);
-		}
-
-		return $html;
-	}
-
-	/**
-	 * @param array<int, string> $palette Facade colours.
-	 */
-	private static function skyline( int $layer_seed, float $y_bottom, float $w, float $min_h, float $max_h, float $lit_pct, string $fid, array $palette ): string {
-		$html  = '';
-		$cx    = -60.0;
-		$i     = 0;
-		$fills = array_values( $palette );
-
-		while ( $cx < $w + 90 ) {
-			$bw = 22.0 + self::hash99( $layer_seed, $i * 3 ) * 0.65 + ( $i % 5 ) * 2.8;
-			$bh = $min_h + ( self::hash99( $layer_seed, $i * 7 ) / 100 ) * ( $max_h - $min_h );
-			$fi = $fills[ ( $i + self::hash99( $layer_seed, $i ) ) % count( $fills ) ];
-			$st = self::hash99( $layer_seed, $i * 11 ) % 7;
-			$html .= self::building( $cx, $y_bottom, $bw, $bh, $fi, $layer_seed + $i * 17, $lit_pct, $fid, $st );
-			$gap = -16 + self::hash99( $layer_seed, $i * 5 ) * 0.52;
-			$cx += $bw + $gap;
-			++$i;
-		}
-
-		return $html;
-	}
-
-	/**
-	 * Distant birds (SMIL drift).
-	 *
-	 * @param string $prefix ID prefix (unique per hero).
-	 */
-	private static function birds_layer( float $w, float $h, string $prefix ): string {
-		$out = '<g fill="none" stroke="rgba(30,55,90,0.35)" stroke-width="1.2" stroke-linecap="round" opacity="0.85">';
-		$birds = array(
-			array( $w * 0.18, 68, 38 ),
-			array( $w * 0.42, 52, 52 ),
-			array( $w * 0.72, 78, 44 ),
-			array( $w * 0.88, 58, 60 ),
-		);
-		$bi    = 0;
-		foreach ( $birds as $b ) {
-			$bx = $b[0];
-			$by = $b[1];
-			$dur = $b[2];
-			$id = $prefix . '-bird-' . $bi;
-			$out .= sprintf(
-				'<g id="%s"><path d="M%.1f %.1f l 5 -3 m 0 0 l 5 3"/><animateTransform attributeName="transform" type="translate" values="0 0; 28 0; 0 0" dur="%ds" repeatCount="indefinite"/></g>',
-				esc_attr( $id ),
-				$bx,
-				$by,
-				$dur
-			);
-			++$bi;
-		}
-		$out .= '</g>';
-
-		return $out;
-	}
-
-	/**
-	 * @param string $prefix Unique SVG id prefix.
-	 */
-	private static function layer_back( float $w, string $prefix ): string {
-		$h = self::VIEW_H;
-		$p = esc_attr( $prefix );
-
-		return sprintf(
-			'<svg class="lpnw-hero__layer lpnw-hero__layer--back" viewBox="0 0 %.2f %d" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-			$w,
-			$h
-		)
+	private static function layer_back_v6( string $p ): string {
+		return '<svg class="lpnw-hero__layer lpnw-hero__layer--back" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">'
 		. '<defs>'
-		. '<linearGradient id="' . $p . '-sky" x1="0" y1="0" x2="0.35" y2="1">'
-		. '<stop offset="0%" stop-color="#1a3d6e"/><stop offset="28%" stop-color="#4a8fd9"/><stop offset="55%" stop-color="#a8c8ef"/><stop offset="82%" stop-color="#e8c9a8"/><stop offset="100%" stop-color="#f2dfb8"/>'
+		. '<linearGradient id="' . $p . '-sky" x1="0" y1="0" x2="0.2" y2="1">'
+		. '<stop offset="0%" stop-color="#0a0e1a"/><stop offset="30%" stop-color="#0f1d35"/><stop offset="65%" stop-color="#1a3355"/><stop offset="85%" stop-color="#2d3848"/><stop offset="100%" stop-color="#3d2a1e"/>'
 		. '</linearGradient>'
-		. '<radialGradient id="' . $p . '-sun" cx="0.5" cy="0.42" r="0.55">'
-		. '<stop offset="0%" stop-color="rgba(255,252,235,0.98)"/><stop offset="45%" stop-color="rgba(255,210,130,0.45)"/><stop offset="100%" stop-color="transparent"/>'
+		. '<radialGradient id="' . $p . '-moon" cx="0.85" cy="0.18" r="0.12">'
+		. '<stop offset="0%" stop-color="rgba(220,230,255,0.95)"/><stop offset="50%" stop-color="rgba(180,200,240,0.3)"/><stop offset="100%" stop-color="transparent"/>'
 		. '</radialGradient>'
+		. '<filter id="' . $p . '-glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+		. '<filter id="' . $p . '-cblur"><feGaussianBlur stdDeviation="16"/></filter>'
 		. '<linearGradient id="' . $p . '-haze" x1="0" y1="0" x2="0" y2="1">'
-		. '<stop offset="0%" stop-color="transparent"/><stop offset="100%" stop-color="rgba(15,29,53,0.22)"/>'
+		. '<stop offset="0%" stop-color="transparent"/><stop offset="100%" stop-color="rgba(15,29,53,0.35)"/>'
 		. '</linearGradient>'
-		. '<filter id="' . $p . '-cloudblur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="18"/></filter>'
 		. '</defs>'
-		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-sky)"/>', $w, $h, $p )
-		. sprintf( '<circle cx="%.2f" cy="88" r="62" fill="url(#%s-sun)" opacity="0.82"/>', $w * 0.11, $p )
-		. sprintf( '<circle cx="%.2f" cy="88" r="88" fill="none" stroke="rgba(255,220,160,0.12)" stroke-width="2" opacity="0.9"/>', $w * 0.11 )
-		// Hills.
-		. sprintf(
-			'<path d="M0 %.1f Q %.1f %.1f %.1f %.1f T %.1f %.1f L %.1f %d L 0 %d Z" fill="rgba(45,85,130,0.28)"/>',
-			(float) $h - 120,
-			$w * 0.2,
-			(float) $h - 200,
-			$w * 0.45,
-			(float) $h - 150,
-			$w * 0.78,
-			(float) $h - 175,
-			$w,
-			$h,
-			$h
-		)
-		// Cloud banks (SMIL drift).
-		. '<g opacity="0.62" filter="url(#' . $p . '-cloudblur)">'
-		. sprintf(
-			'<g><ellipse cx="%.2f" cy="112" rx="260" ry="46" fill="rgba(255,255,255,0.58)"/><animateTransform attributeName="transform" type="translate" values="0 0; 36 0; 0 0" dur="85s" repeatCount="indefinite"/></g>',
-			$w * 0.32
-		)
-		. sprintf(
-			'<g><ellipse cx="%.2f" cy="92" rx="210" ry="38" fill="rgba(255,255,255,0.48)"/><animateTransform attributeName="transform" type="translate" values="0 0; -28 0; 0 0" dur="110s" repeatCount="indefinite"/></g>',
-			$w * 0.64
-		)
-		. sprintf(
-			'<g><ellipse cx="%.2f" cy="128" rx="230" ry="42" fill="rgba(255,255,255,0.38)"/><animateTransform attributeName="transform" type="translate" values="0 0; 22 0; 0 0" dur="95s" repeatCount="indefinite"/></g>',
-			$w * 0.9
-		)
+		. '<rect width="1600" height="500" fill="url(#' . $p . '-sky)"/>'
+		. '<circle cx="1360" cy="90" r="32" fill="url(#' . $p . '-moon)" filter="url(#' . $p . '-glow)"/>'
+		. '<circle cx="1360" cy="90" r="56" fill="none" stroke="rgba(200,215,245,0.06)" stroke-width="1.5"/>'
+		// Stars.
+		. '<circle cx="120" cy="42" r="1.2" fill="#fff" opacity="0.7"/>'
+		. '<circle cx="340" cy="28" r="0.8" fill="#fff" opacity="0.5"/>'
+		. '<circle cx="520" cy="55" r="1" fill="#fff" opacity="0.6"/>'
+		. '<circle cx="680" cy="18" r="1.3" fill="#fff" opacity="0.4"/>'
+		. '<circle cx="860" cy="65" r="0.9" fill="#fff" opacity="0.55"/>'
+		. '<circle cx="1020" cy="35" r="1.1" fill="#fff" opacity="0.65"/>'
+		. '<circle cx="1180" cy="48" r="0.7" fill="#fff" opacity="0.45"/>'
+		. '<circle cx="1480" cy="30" r="1" fill="#fff" opacity="0.6"/>'
+		. '<circle cx="200" cy="80" r="0.8" fill="#fff" opacity="0.35"/>'
+		. '<circle cx="450" cy="72" r="1.2" fill="#fff" opacity="0.5"/>'
+		. '<circle cx="750" cy="40" r="0.9" fill="#fff" opacity="0.55"/>'
+		. '<circle cx="1100" cy="22" r="1.1" fill="#fff" opacity="0.4"/>'
+		. '<circle cx="1300" cy="58" r="0.7" fill="#fff" opacity="0.5"/>'
+		. '<circle cx="1550" cy="70" r="1" fill="#fff" opacity="0.45"/>'
+		. '<circle cx="60" cy="110" r="0.6" fill="#fff" opacity="0.3"/>'
+		. '<circle cx="950" cy="85" r="1.3" fill="#fff" opacity="0.35"/>'
+		// Distant hills.
+		. '<path d="M0 420 Q200 340 400 380 Q600 350 800 370 Q1000 330 1200 360 Q1400 340 1600 375 L1600 500 L0 500Z" fill="rgba(25,45,75,0.4)"/>'
+		// Clouds with SMIL drift.
+		. '<g opacity="0.5" filter="url(#' . $p . '-cblur)">'
+		. '<g><ellipse cx="350" cy="120" rx="200" ry="35" fill="rgba(255,255,255,0.06)"/><animateTransform attributeName="transform" type="translate" values="0 0;40 0;0 0" dur="90s" repeatCount="indefinite"/></g>'
+		. '<g><ellipse cx="900" cy="95" rx="170" ry="28" fill="rgba(255,255,255,0.04)"/><animateTransform attributeName="transform" type="translate" values="0 0;-30 0;0 0" dur="110s" repeatCount="indefinite"/></g>'
+		. '<g><ellipse cx="1400" cy="140" rx="190" ry="32" fill="rgba(255,255,255,0.05)"/><animateTransform attributeName="transform" type="translate" values="0 0;25 0;0 0" dur="100s" repeatCount="indefinite"/></g>'
 		. '</g>'
-		. self::birds_layer( $w, (float) $h, $prefix )
-		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-haze)"/>', $w, $h, $p )
+		// Warm horizon glow.
+		. '<rect x="0" y="400" width="1600" height="100" fill="url(#' . $p . '-haze)"/>'
 		. '</svg>';
 	}
 
-	/**
-	 * @param string $prefix Unique SVG id prefix.
-	 */
-	private static function layer_mid( float $w, string $prefix ): string {
-		$h   = self::VIEW_H;
-		$fid = $prefix . '-glow-mid';
-		$pal = array( '#3d5a80', '#2d4a6e', '#3a5f7a', '#2f5070', '#4a6788', '#355a72' );
-		$p   = esc_attr( $prefix );
-
-		return sprintf(
-			'<svg class="lpnw-hero__layer lpnw-hero__layer--mid" viewBox="0 0 %.2f %d" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-			$w,
-			$h
-		)
+	private static function layer_mid_v6( string $p ): string {
+		return '<svg class="lpnw-hero__layer lpnw-hero__layer--mid" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">'
 		. '<defs>'
-		. sprintf( '<filter id="%s" x="-80%%" y="-80%%" width="260%%" height="260%%"><feGaussianBlur stdDeviation="1.1"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
-		. '<linearGradient id="' . $p . '-atm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.06)"/><stop offset="100%" stop-color="transparent"/></linearGradient>'
+		. '<filter id="' . $p . '-wg"><feGaussianBlur stdDeviation="1.2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
 		. '</defs>'
-		. sprintf( '<rect width="%.2f" height="%d" fill="transparent"/>', $w, $h )
-		. self::skyline( 701, (float) $h - 2, $w, 125, 275, 0.29, $fid, $pal )
-		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-atm)"/>', $w, $h, $p )
+		// Manchester-inspired skyline silhouette — hand-composed path.
+		. '<path d="'
+		// Left section: terraced houses + chimney
+		. 'M0 500 L0 380 L30 380 L30 360 L32 355 L34 360 L60 360 L60 370 L90 370 L90 350 L120 350 L120 370 L150 370 L150 340 L155 340 L155 330 L160 330 L160 340 L165 340 L165 370 L200 370'
+		// Industrial building with sawtooth roof
+		. ' L200 350 L215 330 L230 350 L245 330 L260 350 L275 330 L290 350 L290 370 L320 370'
+		// Office block
+		. ' L320 310 L340 310 L340 300 L345 295 L350 300 L380 300 L380 310 L400 310 L400 370'
+		// Beetham Tower (tall thin)
+		. ' L420 370 L420 180 L425 170 L430 165 L435 170 L440 180 L440 370'
+		// Gap + cathedral spire
+		. ' L480 370 L480 320 L510 320 L510 280 L530 280 L545 220 L560 280 L580 280 L580 320 L610 320 L610 370'
+		// Mid section office blocks
+		. ' L640 370 L640 290 L680 290 L680 270 L720 270 L720 290 L760 290 L760 370'
+		// Curved modern tower
+		. ' L800 370 L800 340 Q810 240 830 200 Q850 240 860 340 L860 370'
+		// More buildings
+		. ' L900 370 L900 310 L940 310 L940 280 L960 280 L960 310 L1000 310 L1000 370'
+		// Wide industrial
+		. ' L1040 370 L1040 320 L1060 310 L1080 320 L1140 320 L1160 310 L1180 320 L1180 370'
+		// Residential cluster
+		. ' L1220 370 L1220 340 L1260 340 L1260 350 L1300 350 L1300 330 L1340 330 L1340 350 L1380 350 L1380 370'
+		// Right edge buildings
+		. ' L1420 370 L1420 300 L1460 300 L1460 320 L1500 320 L1500 290 L1505 280 L1510 290 L1540 290 L1540 320 L1600 320 L1600 500 Z'
+		. '" fill="#2a4060"/>'
+		// Lit windows (warm amber glow scattered across buildings).
+		. '<g filter="url(#' . $p . '-wg)">'
+		// Beetham Tower windows
+		. '<rect x="427" y="195" width="4" height="3.5" rx="0.5" fill="#f7c23a" opacity="0.7"/>'
+		. '<rect x="427" y="215" width="4" height="3.5" rx="0.5" fill="#f0a500" opacity="0.55"/>'
+		. '<rect x="427" y="240" width="4" height="3.5" rx="0.5" fill="#fff8e6" opacity="0.6"/>'
+		. '<rect x="433" y="260" width="4" height="3.5" rx="0.5" fill="#f7c23a" opacity="0.5"/>'
+		. '<rect x="427" y="290" width="4" height="3.5" rx="0.5" fill="#f0a500" opacity="0.65"/>'
+		. '<rect x="433" y="320" width="4" height="3.5" rx="0.5" fill="#fff8e6" opacity="0.5"/>'
+		// Cathedral area
+		. '<rect x="520" y="295" width="4" height="3.5" rx="0.5" fill="#f7c23a" opacity="0.55"/>'
+		. '<rect x="540" y="300" width="4" height="3.5" rx="0.5" fill="#f0a500" opacity="0.45"/>'
+		// Office blocks
+		. '<rect x="660" y="300" width="5" height="4" rx="0.5" fill="#f7c23a" opacity="0.6"/>'
+		. '<rect x="670" y="285" width="5" height="4" rx="0.5" fill="#f0a500" opacity="0.5"/>'
+		. '<rect x="690" y="295" width="5" height="4" rx="0.5" fill="#fff8e6" opacity="0.55"/>'
+		. '<rect x="730" y="280" width="5" height="4" rx="0.5" fill="#f7c23a" opacity="0.45"/>'
+		// Modern tower
+		. '<rect x="825" y="250" width="4" height="4" rx="0.5" fill="#00d4aa" opacity="0.4"/>'
+		. '<rect x="835" y="280" width="4" height="4" rx="0.5" fill="#f7c23a" opacity="0.5"/>'
+		// Industrial
+		. '<rect x="1070" y="332" width="5" height="4" rx="0.5" fill="#f0a500" opacity="0.55"/>'
+		. '<rect x="1120" y="335" width="5" height="4" rx="0.5" fill="#f7c23a" opacity="0.45"/>'
+		// Right section
+		. '<rect x="1440" y="310" width="5" height="4" rx="0.5" fill="#fff8e6" opacity="0.5"/>'
+		. '<rect x="1510" y="300" width="5" height="4" rx="0.5" fill="#f0a500" opacity="0.6"/>'
+		. '<rect x="1520" y="310" width="5" height="4" rx="0.5" fill="#00d4aa" opacity="0.35"/>'
+		// Left residential
+		. '<rect x="100" y="358" width="4" height="3" rx="0.5" fill="#f7c23a" opacity="0.5"/>'
+		. '<rect x="140" y="352" width="4" height="3" rx="0.5" fill="#f0a500" opacity="0.45"/>'
+		. '<rect x="340" y="305" width="4" height="3.5" rx="0.5" fill="#fff8e6" opacity="0.55"/>'
+		. '</g>'
+		// Water reflection line at bottom.
+		. '<rect x="0" y="480" width="1600" height="20" fill="rgba(15,25,45,0.3)"/>'
+		. '<line x1="0" y1="482" x2="1600" y2="482" stroke="rgba(200,215,240,0.08)" stroke-width="1"/>'
 		. '</svg>';
 	}
 
-	/**
-	 * @param string $prefix Unique SVG id prefix.
-	 */
-	private static function layer_front( float $w, string $prefix ): string {
-		$h    = self::VIEW_H;
-		$fid  = $prefix . '-glow-front';
-		$pal  = array( '#1e3355', '#243d5c', '#1a2f4d', '#2a4a68', '#162842', '#203a52' );
-		$base = (float) $h - 2;
-		$p    = esc_attr( $prefix );
-
-		$html = sprintf(
-			'<svg class="lpnw-hero__layer lpnw-hero__layer--front" viewBox="0 0 %.2f %d" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-			$w,
-			$h
-		)
+	private static function layer_front_v6( string $p ): string {
+		return '<svg class="lpnw-hero__layer lpnw-hero__layer--front" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">'
 		. '<defs>'
-		. sprintf( '<filter id="%s" x="-100%%" y="-100%%" width="300%%" height="300%%"><feGaussianBlur stdDeviation="1.6"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
-		. '<linearGradient id="' . $p . '-street" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="100%" stop-color="rgba(8,14,26,0.55)"/></linearGradient>'
-		. '<linearGradient id="' . $p . '-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.14)"/><stop offset="100%" stop-color="rgba(0,212,170,0.08)"/></linearGradient>'
+		. '<filter id="' . $p . '-lg"><feGaussianBlur stdDeviation="4"/></filter>'
+		. '<linearGradient id="' . $p . '-st" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="transparent"/><stop offset="100%" stop-color="rgba(5,10,20,0.6)"/></linearGradient>'
 		. '</defs>'
-		. sprintf( '<rect width="%.2f" height="%d" fill="transparent"/>', $w, $h )
-		. self::skyline( 503, $base, $w, 190, 405, 0.44, $fid, $pal );
-
-		for ( $t = 0; $t < 12; $t++ ) {
-			$tx = 20 + ( $t * 143 + self::hash99( 88, $t * 3 ) ) % (int) ( $w - 90 );
-			$gh = 0.52 + ( self::hash99( 77, $t ) % 22 ) / 100;
-			$html .= sprintf(
-				'<ellipse cx="%.2f" cy="%.2f" rx="13" ry="19" fill="#2d6b52" opacity="%.2f"/><rect x="%.2f" y="%.2f" width="5" height="26" fill="#1f4a38"/>',
-				$tx + 9,
-				$base - 16,
-				$gh,
-				$tx + 6.5,
-				$base - 8
-			);
-		}
-
-		$html .= sprintf(
-			'<rect x="0" y="%.2f" width="%.2f" height="11" fill="rgba(35,50,72,0.5)"/>',
-			$base - 9,
-			$w
-		);
-		$html .= sprintf(
-			'<line x1="0" y1="%.2f" x2="%.2f" y2="%.2f" stroke="rgba(240,165,0,0.28)" stroke-width="2" stroke-dasharray="10 14"/>',
-			$base - 4,
-			$w,
-			$base - 4
-		);
-		// Crosswalk.
-		for ( $z = 0; $z < 7; $z++ ) {
-			$html .= sprintf(
-				'<rect x="%.2f" y="%.2f" width="5" height="14" rx="1" fill="rgba(255,255,255,0.2)"/>',
-				$w * 0.46 + $z * 12,
-				$base - 22
-			);
-		}
-		// Landmark glass tower hint.
-		$html .= sprintf(
-			'<rect x="%.2f" y="%.2f" width="42" height="%.2f" rx="3" fill="url(#%s-glass)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>',
-			$w * 0.62,
-			$base - 310,
-			302.0,
-			$p
-		);
-		for ( $fl = 0; $fl < 8; $fl++ ) {
-			$html .= sprintf(
-				'<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>',
-				$w * 0.62 + 6,
-				$base - 295 + $fl * 36,
-				$w * 0.62 + 36,
-				$base - 295 + $fl * 36
-			);
-		}
-		$html .= sprintf(
-			'<rect x="0" y="%.2f" width="%.2f" height="48" fill="url(#%s-street)"/>',
-			$base - 44,
-			$w,
-			$p
-		);
-
-		for ( $b = 0; $b < 7; $b++ ) {
-			$bx = 70 + $b * ( $w / 6.5 ) + self::hash99( 44, $b * 2 );
-			$html .= sprintf(
-				'<circle cx="%.2f" cy="%.2f" r="2.6" fill="#00d4aa" opacity="0.45"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="%ds" repeatCount="indefinite"/></circle>',
-				$bx,
-				$base - 228 - ( $b % 3 ) * 30,
-				5 + ( $b % 3 )
-			);
-		}
-
-		return $html . '</svg>';
+		// Foreground buildings — terraced houses and smaller structures.
+		. '<path d="'
+		. 'M0 500 L0 410 L40 410 L40 400 L80 400 L80 410 L120 410 L120 395 L160 395 L160 410 L200 410 L200 500'
+		. ' M280 500 L280 420 L320 420 L320 405 L360 405 L360 420 L400 420 L400 500'
+		. ' M1200 500 L1200 415 L1240 415 L1240 400 L1280 400 L1280 415 L1320 415 L1320 405 L1360 405 L1360 420 L1400 420 L1400 500'
+		. ' M1480 500 L1480 410 L1520 410 L1520 395 L1560 395 L1560 410 L1600 410 L1600 500'
+		. '" fill="#142238"/>'
+		// Trees.
+		. '<g>'
+		. '<rect x="218" y="435" width="4" height="22" fill="#1a3828"/><ellipse cx="220" cy="425" rx="14" ry="18" fill="#0f2818" opacity="0.85"/>'
+		. '<rect x="448" y="438" width="4" height="20" fill="#1a3828"/><ellipse cx="450" cy="428" rx="12" ry="16" fill="#122a1c" opacity="0.8"/>'
+		. '<rect x="618" y="432" width="5" height="24" fill="#1a3828"/><ellipse cx="620" cy="420" rx="16" ry="20" fill="#0f2818" opacity="0.85"/>'
+		. '<rect x="878" y="435" width="4" height="22" fill="#1a3828"/><ellipse cx="880" cy="424" rx="13" ry="17" fill="#122a1c" opacity="0.82"/>'
+		. '<rect x="1078" y="430" width="5" height="26" fill="#1a3828"/><ellipse cx="1080" cy="418" rx="15" ry="19" fill="#0f2818" opacity="0.85"/>'
+		. '<rect x="1158" y="436" width="4" height="21" fill="#1a3828"/><ellipse cx="1160" cy="426" rx="12" ry="16" fill="#122a1c" opacity="0.8"/>'
+		. '</g>'
+		// Lamp posts with warm glow.
+		. '<g>'
+		. '<rect x="508" y="430" width="2" height="28" fill="#2a3a52"/><circle cx="509" cy="428" r="3" fill="#f0a500" opacity="0.2" filter="url(#' . $p . '-lg)"/><circle cx="509" cy="428" r="1.5" fill="#f7c23a" opacity="0.7"/>'
+		. '<rect x="748" y="432" width="2" height="26" fill="#2a3a52"/><circle cx="749" cy="430" r="3" fill="#f0a500" opacity="0.2" filter="url(#' . $p . '-lg)"/><circle cx="749" cy="430" r="1.5" fill="#f7c23a" opacity="0.7"/>'
+		. '<rect x="968" y="428" width="2" height="30" fill="#2a3a52"/><circle cx="969" cy="426" r="3" fill="#f0a500" opacity="0.2" filter="url(#' . $p . '-lg)"/><circle cx="969" cy="426" r="1.5" fill="#f7c23a" opacity="0.7"/>'
+		. '</g>'
+		// Road and pavement.
+		. '<rect x="0" y="458" width="1600" height="42" fill="#15202f"/>'
+		. '<line x1="0" y1="478" x2="1600" y2="478" stroke="rgba(240,165,0,0.2)" stroke-width="1.5" stroke-dasharray="12 16"/>'
+		// FOR SALE sign.
+		. '<g transform="translate(680,430)">'
+		. '<rect x="0" y="0" width="2" height="28" fill="#3a4a5f"/>'
+		. '<rect x="-6" y="0" width="16" height="10" rx="1" fill="#1e3050" stroke="rgba(240,165,0,0.4)" stroke-width="0.8"/>'
+		. '<rect x="-4" y="2.5" width="12" height="5" rx="0.5" fill="rgba(240,165,0,0.15)"/>'
+		. '</g>'
+		// Teal beacon lights on mid-ground buildings (visible through gaps).
+		. '<circle cx="430" cy="390" r="2.5" fill="#00d4aa" opacity="0.5"><animate attributeName="opacity" values="0.2;0.8;0.2" dur="4s" repeatCount="indefinite"/></circle>'
+		. '<circle cx="830" cy="380" r="2.5" fill="#00d4aa" opacity="0.4"><animate attributeName="opacity" values="0.3;0.9;0.3" dur="5s" repeatCount="indefinite"/></circle>'
+		. '<circle cx="1300" cy="395" r="2" fill="#00d4aa" opacity="0.45"><animate attributeName="opacity" values="0.2;0.7;0.2" dur="6s" repeatCount="indefinite"/></circle>'
+		// Street gradient overlay.
+		. '<rect x="0" y="440" width="1600" height="60" fill="url(#' . $p . '-st)"/>'
+		. '</svg>';
 	}
 
 	public static function get_illustration_markup(): string {
-		$w       = 2000.0;
-		$v       = esc_attr( self::VERSION );
-		$prefix = 'lpnwh5' . bin2hex( random_bytes( 4 ) );
+		$p = self::id_prefix();
+		$v = esc_attr( self::VERSION );
 
 		return '<div class="lpnw-hero__parallax" data-lpnw-hero-svg="' . $v . '" aria-hidden="true">'
-			. self::layer_back( $w, $prefix )
-			. self::layer_mid( $w, $prefix )
-			. self::layer_front( $w, $prefix )
+			. self::layer_back_v6( $p )
+			. self::layer_mid_v6( $p )
+			. self::layer_front_v6( $p )
 			. '</div>';
 	}
 }
