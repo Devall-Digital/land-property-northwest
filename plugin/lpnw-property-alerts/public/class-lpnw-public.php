@@ -465,17 +465,26 @@ class LPNW_Public {
 		}
 		$alert_types_sanitized = array_values( array_intersect( $allowed_alert_types, array_map( 'sanitize_text_field', $alert_raw ) ) );
 
+		$areas_raw = isset( $_POST['areas'] ) ? wp_unslash( $_POST['areas'] ) : array();
+		if ( ! is_array( $areas_raw ) ) {
+			$areas_raw = array();
+		}
+		$ptypes_raw = isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array();
+		if ( ! is_array( $ptypes_raw ) ) {
+			$ptypes_raw = array();
+		}
+
 		$prefs = array(
-			'areas'                => array_map( 'sanitize_text_field', $_POST['areas'] ?? array() ),
+			'areas'                => array_map( 'sanitize_text_field', $areas_raw ),
 			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
 			'max_price'            => absint( $_POST['max_price'] ?? 0 ),
-			'property_types'       => array_map( 'sanitize_text_field', $_POST['property_types'] ?? array() ),
+			'property_types'       => array_map( 'sanitize_text_field', $ptypes_raw ),
 			'alert_types'          => $alert_types_sanitized,
 			'listing_channels'     => $listing_channels,
 			'tenure_preferences'   => $tenure_preferences,
 			'required_features'    => $required_features,
 			'frequency'            => self::clamp_frequency_for_tier(
-				sanitize_text_field( $_POST['frequency'] ?? 'weekly' ),
+				sanitize_text_field( wp_unslash( $_POST['frequency'] ?? 'weekly' ) ),
 				$tier
 			),
 		);
@@ -509,13 +518,13 @@ class LPNW_Public {
 		global $wpdb;
 
 		$property_id = absint( $_POST['property_id'] ?? 0 );
-		$notes       = sanitize_textarea_field( $_POST['notes'] ?? '' );
+		$notes       = sanitize_textarea_field( wp_unslash( $_POST['notes'] ?? '' ) );
 
 		if ( ! $property_id ) {
 			wp_send_json_error( 'Invalid property.' );
 		}
 
-		$wpdb->replace(
+		$result = $wpdb->replace(
 			$wpdb->prefix . 'lpnw_saved_properties',
 			array(
 				'user_id'     => get_current_user_id(),
@@ -523,6 +532,10 @@ class LPNW_Public {
 				'notes'       => $notes,
 			)
 		);
+
+		if ( false === $result ) {
+			wp_send_json_error( 'Could not save property.' );
+		}
 
 		wp_send_json_success( 'Property saved.' );
 	}
@@ -640,11 +653,11 @@ class LPNW_Public {
 		}
 
 		$filters = array(
-			'source'          => sanitize_text_field( $_POST['source'] ?? '' ),
-			'postcode_prefix' => sanitize_text_field( $_POST['postcode_prefix'] ?? '' ),
+			'source'          => sanitize_text_field( wp_unslash( $_POST['source'] ?? '' ) ),
+			'postcode_prefix' => sanitize_text_field( wp_unslash( $_POST['postcode_prefix'] ?? '' ) ),
 			'min_price'       => absint( $_POST['min_price'] ?? 0 ),
 			'max_price'       => absint( $_POST['max_price'] ?? 0 ),
-			'property_type'   => sanitize_text_field( $_POST['property_type'] ?? '' ),
+			'property_type'   => sanitize_text_field( wp_unslash( $_POST['property_type'] ?? '' ) ),
 		);
 
 		$filters = array_filter( $filters );

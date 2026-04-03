@@ -58,7 +58,7 @@ add_action( 'wp_enqueue_scripts', function () {
 
 	wp_enqueue_style(
 		'lpnw-fonts',
-		'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
+		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
 		array(),
 		null
 	);
@@ -105,7 +105,7 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 			}
 		}, { passive: true });
 
-		var revealEls = document.querySelectorAll('.lpnw-reveal');
+		var revealEls = document.querySelectorAll('.lpnw-reveal, .lpnw-trust-bar, .lpnw-stats-bar, .lpnw-how-it-works, .lpnw-home-feed, .lpnw-pricing-section, .lpnw-cta-banner:not(.lpnw-cta-banner--dashboard)');
 		if (reduceMotion) {
 			revealEls.forEach(function (el) {
 				el.classList.add('lpnw-visible');
@@ -694,6 +694,14 @@ function lpnw_theme_get_browse_properties_url(): string {
 		}
 	}
 
+	$page = get_page_by_path( 'browse-properties' );
+	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
+		$permalink = get_permalink( $page );
+		if ( is_string( $permalink ) && '' !== $permalink ) {
+			return $permalink;
+		}
+	}
+
 	return home_url( '/properties/' );
 }
 
@@ -744,14 +752,14 @@ function lpnw_theme_nav_item_is_browse_properties( $item ): bool {
 	if ( isset( $item->object_id, $item->type, $item->object )
 		&& 'post_type' === $item->type && 'page' === $item->object ) {
 		$page = get_post( (int) $item->object_id );
-		if ( $page instanceof WP_Post && 'properties' === $page->post_name ) {
+		if ( $page instanceof WP_Post && in_array( $page->post_name, array( 'properties', 'browse-properties' ), true ) ) {
 			return true;
 		}
 	}
 
 	if ( ! empty( $item->url ) && is_string( $item->url ) ) {
 		$path = wp_parse_url( $item->url, PHP_URL_PATH );
-		if ( is_string( $path ) && preg_match( '#(^|/)properties/?$#', $path ) ) {
+		if ( is_string( $path ) && preg_match( '#(^|/)(properties|browse-properties)/?$#', $path ) ) {
 			return true;
 		}
 	}

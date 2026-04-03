@@ -68,8 +68,8 @@ class LPNW_Property {
 		);
 
 		if ( $existing ) {
-			$wpdb->update( $table, $row, array( 'id' => $existing ) );
-			return (int) $existing;
+			$updated = $wpdb->update( $table, $row, array( 'id' => $existing ) );
+			return false === $updated ? false : (int) $existing;
 		}
 
 		$wpdb->insert( $table, $row );
@@ -508,13 +508,14 @@ class LPNW_Property {
 	 * @param string $since MySQL datetime string.
 	 * @return array<int>
 	 */
-	public static function get_new_since( string $since ): array {
+	public static function get_new_since( string $since, int $limit = 5000 ): array {
 		global $wpdb;
 		$table = $wpdb->prefix . 'lpnw_properties';
 
 		$results = $wpdb->get_col( $wpdb->prepare(
-			"SELECT id FROM {$table} WHERE created_at >= %s ORDER BY created_at ASC",
-			$since
+			"SELECT id FROM {$table} WHERE created_at >= %s ORDER BY created_at ASC LIMIT %d",
+			$since,
+			max( 1, $limit )
 		) );
 
 		return array_map( 'intval', $results );
@@ -773,8 +774,8 @@ class LPNW_Property {
 
 	private static function clean_postcode( string $postcode ): string {
 		$postcode = strtoupper( trim( $postcode ) );
-		$postcode = preg_replace( '/[^A-Z0-9 ]/', '', $postcode );
-		return $postcode;
+		$clean    = preg_replace( '/[^A-Z0-9 ]/', '', $postcode );
+		return is_string( $clean ) ? $clean : $postcode;
 	}
 
 	/**

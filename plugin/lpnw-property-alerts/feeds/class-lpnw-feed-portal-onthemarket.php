@@ -731,6 +731,7 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @return int 0 if unknown.
 	 */
 	private function otm_parse_listing_price( array $raw_item ): int {
+		$numeric_price = 0;
 		foreach ( array( 'price-value', 'priceValue', 'numericPrice', 'displayPriceValue' ) as $k ) {
 			if ( ! isset( $raw_item[ $k ] ) ) {
 				continue;
@@ -739,9 +740,14 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			if ( is_numeric( $v ) ) {
 				$n = (int) round( floatval( $v ) );
 				if ( $n > 0 ) {
-					return $n;
+					$numeric_price = $n;
+					break;
 				}
 			}
+		}
+
+		if ( $numeric_price > 5000 ) {
+			return $numeric_price;
 		}
 
 		$str_candidates = array();
@@ -760,6 +766,10 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			if ( $n > 0 ) {
 				return $n;
 			}
+		}
+
+		if ( $numeric_price > 0 ) {
+			return $numeric_price;
 		}
 
 		return 0;
@@ -785,12 +795,36 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 			}
 		}
 
-		if ( preg_match( '/(?:£|GBP\s*)([0-9][0-9,]*(?:\.[0-9]+)?)/iu', $s, $m ) ) {
-			return absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+		if ( preg_match( '/(?:£|GBP\s*)([0-9][0-9,]*(?:\.[0-9]+)?)\s*([kKmM])?/iu', $s, $m ) ) {
+			$n = floatval( preg_replace( '/[^0-9.]/', '', $m[1] ) );
+			if ( ! empty( $m[2] ) ) {
+				$suffix = strtolower( $m[2] );
+				if ( 'k' === $suffix ) {
+					$n *= 1000;
+				} elseif ( 'm' === $suffix ) {
+					$n *= 1000000;
+				}
+			}
+			$result = absint( round( $n ) );
+			if ( $result > 0 ) {
+				return $result;
+			}
 		}
 
-		if ( preg_match( '/^([0-9][0-9,]*(?:\.[0-9]+)?)/', $s, $m ) ) {
-			return absint( preg_replace( '/[^0-9]/', '', $m[1] ) );
+		if ( preg_match( '/^([0-9][0-9,]*(?:\.[0-9]+)?)\s*([kKmM])?/', $s, $m ) ) {
+			$n = floatval( preg_replace( '/[^0-9.]/', '', $m[1] ) );
+			if ( ! empty( $m[2] ) ) {
+				$suffix = strtolower( $m[2] );
+				if ( 'k' === $suffix ) {
+					$n *= 1000;
+				} elseif ( 'm' === $suffix ) {
+					$n *= 1000000;
+				}
+			}
+			$result = absint( round( $n ) );
+			if ( $result > 0 ) {
+				return $result;
+			}
 		}
 
 		if ( preg_match( '/([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{2,})/', $s, $m ) ) {

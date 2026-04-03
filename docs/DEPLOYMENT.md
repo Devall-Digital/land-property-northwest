@@ -36,7 +36,7 @@ Get these from 20i panel > Manage Hosting > FTP Users:
 3. Upload the entire `lpnw-theme/` folder (overwrite existing)
 4. No further action needed; changes take effect immediately
 
-## Automated mirror (from repo root)
+## Automated mirror (from repo root, Linux / macOS / CI)
 
 With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 
@@ -45,6 +45,16 @@ With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 ```
 
 This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugins/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
+
+## PowerShell deploy (Windows)
+
+From the repo root, with `.env` filled in (copy from `.env.example`):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\deploy-ftp.ps1
+```
+
+This uploads `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and any `mu-plugins/*.php` to `public_html/wp-content/`. Never commit `.env`.
 
 ### 20i CDN cache (seeing your changes)
 
@@ -66,7 +76,7 @@ If you skip the sync, live pages keep **old HTML** (e.g. pricing table without r
 
 If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
 
-## Quick Deploy Script
+## Quick Deploy Script (lftp)
 
 If you have `lftp` or `ncftp` installed, you can script the deployment:
 

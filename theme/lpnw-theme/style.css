@@ -32,10 +32,10 @@ Text Domain: lpnw-theme
 	--lpnw-danger: #DC2626;
 
 	--lpnw-font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-	--lpnw-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--lpnw-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
 	--lpnw-glass-bg: rgba(255, 255, 255, 0.08);
-	--lpnw-glass-bg-light: rgba(255, 255, 255, 0.65);
+	--lpnw-glass-bg-light: rgba(255, 255, 255, 0.10);
 	--lpnw-glass-border: rgba(255, 255, 255, 0.15);
 	--lpnw-glass-border-light: rgba(255, 255, 255, 0.3);
 	--lpnw-glass-blur: 16px;
@@ -127,10 +127,6 @@ Text Domain: lpnw-theme
 
 @keyframes lpnw-nav-active-line {
 	to { transform: scaleX(1); }
-}
-
-@keyframes lpnw-pricing-border-spin {
-	to { transform: rotate(360deg); }
 }
 
 @keyframes lpnw-footer-border-flow {
@@ -813,7 +809,7 @@ body.no-sidebar .site-main {
 }
 
 /* ==========================================================================
-   HERO
+   HERO - DRAMATIC TYPOGRAPHY
    ========================================================================== */
 
 .lpnw-hero {
@@ -824,8 +820,8 @@ body.no-sidebar .site-main {
 		radial-gradient(ellipse 120% 90% at 50% 120%, rgba(0, 212, 170, 0.08) 0%, transparent 45%),
 		linear-gradient(165deg, #040810 0%, #0a1524 28%, #0f2138 55%, #081018 100%);
 	color: var(--lpnw-white);
-	padding: clamp(100px, 12vw, 160px) 24px clamp(100px, 10vw, 160px);
-	text-align: center;
+	padding: clamp(120px, 15vw, 200px) 24px clamp(100px, 12vw, 180px);
+	text-align: left;
 	width: 100vw;
 	max-width: 100vw;
 	margin-left: calc(50% - 50vw);
@@ -1260,76 +1256,6 @@ body.no-sidebar .site-main {
 	pointer-events: none;
 }
 
-.lpnw-hero__content {
-	position: relative;
-	z-index: 2;
-	max-width: 52rem;
-	margin: 0 auto;
-}
-
-.lpnw-hero h1 {
-	color: var(--lpnw-white);
-	font-size: clamp(2.25rem, 5vw, 4rem);
-	font-weight: 900;
-	margin-bottom: 24px;
-	line-height: 1.12;
-	letter-spacing: -0.02em;
-	text-wrap: balance;
-	background: linear-gradient(135deg, var(--lpnw-amber) 0%, #FFFFFF 50%, var(--lpnw-amber-light) 100%);
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-	color: transparent;
-	text-shadow: none;
-}
-
-@supports not (background-clip: text) {
-	.lpnw-hero h1 {
-		background: none;
-		-webkit-text-fill-color: var(--lpnw-white);
-		color: var(--lpnw-white);
-		text-shadow:
-			0 2px 28px rgba(0, 0, 0, 0.28),
-			0 0 42px var(--lpnw-glow-teal),
-			0 0 72px var(--lpnw-glow-gold);
-	}
-}
-
-.lpnw-hero p {
-	font-size: clamp(1.0625rem, 2vw, 1.3125rem);
-	opacity: 0.88;
-	max-width: 38rem;
-	margin: 0 auto 40px;
-	line-height: 1.7;
-	color: rgba(255, 255, 255, 0.85);
-}
-
-.lpnw-hero .lpnw-btn--primary {
-	font-size: 1.125rem;
-	padding: 16px 32px;
-	border-radius: 12px;
-	background: linear-gradient(135deg, var(--lpnw-amber) 0%, var(--lpnw-amber-dark) 100%);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
-	border: 1px solid var(--lpnw-glass-border-light);
-	box-shadow:
-		0 0 0 1px var(--lpnw-glass-border),
-		0 4px 20px rgba(240, 165, 0, 0.48),
-		0 12px 40px rgba(0, 0, 0, 0.25);
-	transition: background 0.25s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-	animation: lpnw-hero-cta-glow 3.2s ease-in-out infinite;
-}
-
-.lpnw-hero .lpnw-btn--primary:hover {
-	transform: translateY(-2px);
-	animation: none;
-	box-shadow:
-		0 0 0 1px rgba(255, 255, 255, 0.3),
-		0 6px 28px rgba(240, 165, 0, 0.6),
-		0 16px 48px rgba(0, 0, 0, 0.3),
-		0 0 44px var(--lpnw-glow-teal);
-}
-
 /* ==========================================================================
    BUTTONS
    ========================================================================== */
@@ -1516,6 +1442,15 @@ body.no-sidebar .site-main {
 .lpnw-stats-bar__list li:nth-child(3) {
 	flex-direction: column-reverse;
 	gap: 8px;
+}
+
+.lpnw-stats-bar__list li:nth-child(3) .lpnw-stats-bar__value,
+.lpnw-stats-bar__list li:nth-child(4) .lpnw-stats-bar__value {
+	font-size: clamp(1.25rem, 3vw, 1.75rem);
+	letter-spacing: -0.01em;
+	text-shadow:
+		0 0 12px var(--lpnw-glow-gold),
+		0 1px 8px rgba(240, 165, 0, 0.2);
 }
 
 @media (max-width: 639px) {
@@ -1789,26 +1724,6 @@ body.no-sidebar .site-main {
 	position: relative;
 }
 
-@media (min-width: 900px) {
-	.lpnw-how-it-works .lpnw-steps::before {
-		content: '';
-		position: absolute;
-		left: 8%;
-		right: 8%;
-		top: 32px;
-		height: 2px;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			var(--lpnw-glass-border-light) 8%,
-			var(--lpnw-glass-border-light) 92%,
-			transparent
-		);
-		pointer-events: none;
-		z-index: 0;
-	}
-}
-
 .lpnw-how-it-works .lpnw-step {
 	max-width: 320px;
 	margin: 0 auto;
@@ -2078,6 +1993,12 @@ body.no-sidebar .site-main {
 	color: rgba(255, 255, 255, 0.7) !important;
 }
 
+.site-footer .site-info,
+.site-footer .inside-site-info {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
 .site-footer a {
 	color: rgba(255, 255, 255, 0.88) !important;
 }
@@ -2204,6 +2125,43 @@ body.no-sidebar .site-main {
 .site-footer .footer-bar:empty,
 .site-footer .footer-bar .copyright:empty {
 	display: none;
+}
+
+.lpnw-footer-mega,
+.lpnw-footer-mega__inner,
+.lpnw-footer-mega__col {
+	opacity: 1 !important;
+	visibility: visible !important;
+	transform: none !important;
+}
+
+.site-footer .lpnw-footer-mega,
+.site-footer .lpnw-footer-mega p,
+.site-footer .lpnw-footer-mega ul,
+.site-footer .lpnw-footer-mega li,
+.site-footer .lpnw-footer-mega nav {
+	color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.site-footer .lpnw-footer-mega .lpnw-footer-mega__brand-title,
+.site-footer .lpnw-footer-mega .lpnw-footer-mega__heading {
+	color: #FFFFFF !important;
+}
+
+.site-footer .lpnw-footer-mega .lpnw-footer-mega__tagline {
+	color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.site-footer .lpnw-footer-mega .lpnw-footer-mega__copyright {
+	color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.site-footer .lpnw-footer-mega .lpnw-footer-mega__list a {
+	color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.site-footer .lpnw-footer-mega .lpnw-footer-mega__list a:hover {
+	color: var(--lpnw-teal) !important;
 }
 
 /* ==========================================================================
@@ -2486,6 +2444,80 @@ body.no-sidebar .site-main {
 
 .lpnw-faq .lpnw-step__text + .lpnw-step__title {
 	margin-top: 28px;
+}
+
+.lpnw-faq__item {
+	margin: 0 0 12px;
+	border: 1px solid var(--lpnw-glass-border);
+	border-radius: 12px;
+	background: var(--lpnw-glass-bg);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	overflow: hidden;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lpnw-faq__item:hover {
+	border-color: var(--lpnw-glass-border-light);
+}
+
+.lpnw-faq__item[open] {
+	border-color: rgba(240, 165, 0, 0.3);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.lpnw-faq__question {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 16px 20px;
+	font-family: var(--lpnw-font-heading);
+	font-size: 1.0625rem;
+	font-weight: 700;
+	color: var(--lpnw-white);
+	cursor: pointer;
+	list-style: none;
+	transition: color 0.15s ease;
+}
+
+.lpnw-faq__question::-webkit-details-marker {
+	display: none;
+}
+
+.lpnw-faq__question::after {
+	content: '';
+	flex-shrink: 0;
+	width: 10px;
+	height: 10px;
+	border-right: 2px solid var(--lpnw-amber);
+	border-bottom: 2px solid var(--lpnw-amber);
+	transform: rotate(45deg);
+	transition: transform 0.25s ease;
+}
+
+.lpnw-faq__item[open] > .lpnw-faq__question::after {
+	transform: rotate(-135deg);
+}
+
+.lpnw-faq__question:hover {
+	color: var(--lpnw-amber-light);
+}
+
+.lpnw-faq__answer {
+	padding: 0 20px 16px;
+	border-top: 1px solid var(--lpnw-glass-border);
+}
+
+.lpnw-faq__answer p {
+	margin: 12px 0 0;
+	font-size: 0.9375rem;
+	line-height: 1.7;
+	color: rgba(255, 255, 255, 0.78);
+}
+
+.lpnw-faq__answer p:first-child {
+	margin-top: 12px;
 }
 
 /* ==========================================================================
@@ -2795,6 +2827,457 @@ body.no-sidebar .site-main {
 }
 
 /* ==========================================================================
+   PREMIUM PROPTECH OVERHAUL
+   ========================================================================== */
+
+/* Stronger card backgrounds for readability */
+.lpnw-pricing-card,
+.lpnw-how-it-works .lpnw-step,
+.lpnw-home-feed .lpnw-property-card,
+.lpnw-stats-bar__list li {
+	background: rgba(26, 45, 79, 0.6) !important;
+	border-color: rgba(255, 255, 255, 0.1) !important;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.lpnw-pricing-card:hover,
+.lpnw-how-it-works .lpnw-step:hover,
+.lpnw-home-feed .lpnw-property-card:hover {
+	background: rgba(26, 45, 79, 0.75) !important;
+	border-color: rgba(255, 255, 255, 0.15) !important;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Featured pricing card - amber top border only */
+.lpnw-pricing-card--featured {
+	border-top: 3px solid var(--lpnw-amber) !important;
+	border-color: rgba(240, 165, 0, 0.3) !important;
+	border-top-color: var(--lpnw-amber) !important;
+}
+
+/* Stats bar - better separated cards */
+.lpnw-stats-bar {
+	padding: 48px 24px 52px !important;
+}
+
+.lpnw-stats-bar__list li {
+	border-radius: 12px !important;
+	margin: 0 6px !important;
+	border: 1px solid rgba(255, 255, 255, 0.08) !important;
+	border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.lpnw-stats-bar__list li:first-child {
+	border-radius: 12px !important;
+}
+
+.lpnw-stats-bar__list li:last-child {
+	border-radius: 12px !important;
+}
+
+/* SVG icon decorations in stats - hide them since they're confusing */
+.lpnw-stats-bar__icon {
+	display: none !important;
+}
+
+/* How it works - cleaner step numbers */
+.lpnw-how-it-works .lpnw-step__icon {
+	margin-bottom: 16px;
+}
+
+.lpnw-how-it-works .lpnw-step__icon svg {
+	width: 48px;
+	height: 48px;
+	opacity: 0.7;
+}
+
+/* Pricing section - better spacing */
+.lpnw-pricing-section {
+	padding: 80px 24px !important;
+}
+
+.lpnw-pricing {
+	gap: 20px !important;
+}
+
+/* Comparison table polish */
+.lpnw-pricing-table thead th {
+	padding: 16px !important;
+	font-size: 0.9375rem !important;
+}
+
+.lpnw-pricing-table tbody td,
+.lpnw-pricing-table tbody th[scope="row"] {
+	padding: 14px 16px !important;
+	font-size: 0.9375rem !important;
+}
+
+/* FAQ accordion polish */
+.lpnw-faq__item {
+	margin-bottom: 8px !important;
+}
+
+.lpnw-faq__item + .lpnw-faq__item {
+	margin-top: 0 !important;
+}
+
+/* Trust bar tighter */
+.lpnw-trust-bar {
+	padding: 14px 24px !important;
+}
+
+/* Home feed section */
+.lpnw-home-feed {
+	padding: 80px 24px !important;
+}
+
+/* CTA banner */
+.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard) {
+	padding: 80px 24px !important;
+}
+
+/* Footer readability - override GeneratePress white bg on .site-info */
+.site-footer .site-info,
+.site-footer .inside-site-info,
+.site-footer .footer-bar {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLES 1-3
+   ========================================================================== */
+
+/* Homepage heading gradient - more vibrant */
+.lpnw-pricing-section__title,
+.lpnw-how-it-works__title {
+	background: linear-gradient(135deg, #FFFFFF 0%, var(--lpnw-amber) 50%, var(--lpnw-teal) 100%) !important;
+	-webkit-background-clip: text !important;
+	background-clip: text !important;
+	-webkit-text-fill-color: transparent !important;
+}
+
+/* Section dividers - subtle gradient line between sections */
+.lpnw-trust-bar,
+.lpnw-stats-bar,
+.lpnw-home-feed,
+.lpnw-how-it-works {
+	border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Stats bar - individual card hover glow */
+.lpnw-stats-bar__list li:hover {
+	border-color: rgba(240, 165, 0, 0.2) !important;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 20px rgba(240, 165, 0, 0.08) !important;
+}
+
+/* How it works - step number circles */
+.lpnw-how-it-works .lpnw-step__number {
+	width: 48px !important;
+	height: 48px !important;
+	font-size: 1.125rem !important;
+	border-color: var(--lpnw-amber) !important;
+	box-shadow: 0 0 16px rgba(240, 165, 0, 0.15) !important;
+}
+
+/* Property card image placeholder - better styling */
+.lpnw-property-card__image-placeholder {
+	background: linear-gradient(135deg, rgba(26, 45, 79, 0.8) 0%, rgba(15, 29, 53, 0.9) 100%) !important;
+	color: rgba(255, 255, 255, 0.4) !important;
+	font-size: 0.8125rem !important;
+}
+
+/* Source badge colors - more distinct */
+.lpnw-source-badge--rightmove {
+	background: linear-gradient(135deg, rgba(0, 163, 80, 0.2) 0%, rgba(0, 163, 80, 0.12) 100%) !important;
+	color: #34D399 !important;
+	border-color: rgba(0, 163, 80, 0.3) !important;
+}
+
+.lpnw-source-badge--onthemarket {
+	background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(147, 51, 234, 0.12) 100%) !important;
+	color: #C084FC !important;
+	border-color: rgba(147, 51, 234, 0.3) !important;
+}
+
+/* Pricing card featured - amber top border glow */
+.lpnw-pricing-card--featured {
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 -4px 20px rgba(240, 165, 0, 0.1) !important;
+}
+
+/* CTA section - more dramatic gradient */
+.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard)::before {
+	background: linear-gradient(135deg, rgba(240, 165, 0, 0.08) 0%, transparent 30%, rgba(0, 212, 170, 0.06) 70%, transparent 100%) !important;
+}
+
+/* Button shine effect on primary buttons */
+.lpnw-btn--primary {
+	position: relative;
+	overflow: hidden;
+}
+
+.lpnw-btn--primary::after {
+	content: '';
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: radial-gradient(circle at var(--lpnw-shine-x, 50%) var(--lpnw-shine-y, 50%), rgba(255,255,255,0.15) 0%, transparent 50%);
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.lpnw-btn--primary:hover::after {
+	opacity: 1;
+}
+
+/* Dashboard action card icons - better visibility */
+.lpnw-action-card__icon {
+	background-color: currentColor !important;
+	opacity: 0.6;
+}
+
+/* Dashboard welcome left border gradient */
+.lpnw-dashboard-welcome {
+	border-left: 3px solid transparent !important;
+	border-image: linear-gradient(180deg, var(--lpnw-amber) 0%, var(--lpnw-teal) 100%) 1 !important;
+}
+
+/* Progress fill bars - more vibrant */
+.lpnw-progress__fill--navy {
+	background: linear-gradient(90deg, var(--lpnw-navy) 0%, var(--lpnw-teal-dark) 100%) !important;
+}
+
+.lpnw-progress__fill--amber {
+	background: linear-gradient(90deg, var(--lpnw-amber-dark) 0%, var(--lpnw-amber-light) 100%) !important;
+}
+
+/* Pricing table - highlight Pro column */
+.lpnw-pricing-table thead th:nth-child(3) {
+	background: rgba(240, 165, 0, 0.08) !important;
+	color: var(--lpnw-amber) !important;
+}
+
+.lpnw-pricing-table tbody td:nth-child(3) {
+	background: rgba(240, 165, 0, 0.03) !important;
+}
+
+/* Pricing table checkmarks - teal colored */
+.lpnw-pricing-table tbody td {
+	font-size: 1rem !important;
+}
+
+/* Footer - better link hover */
+.lpnw-footer-mega__list a:hover {
+	transform: translateX(2px);
+}
+
+/* Smooth scroll-to for anchor links */
+html {
+	scroll-padding-top: 80px;
+}
+
+/* ==========================================================================
+   VISUAL POLISH CYCLES 8-10
+   ========================================================================== */
+
+/* Footer polish - better visual hierarchy */
+.lpnw-footer-mega {
+	padding: 3rem 24px 2.5rem !important;
+}
+
+.lpnw-footer-mega__brand-title {
+	font-size: 1.25rem !important;
+	margin-bottom: 1rem !important;
+}
+
+.lpnw-footer-mega__heading {
+	color: var(--lpnw-amber) !important;
+	font-size: 0.75rem !important;
+	letter-spacing: 0.1em !important;
+}
+
+/* About page - better content styling */
+.lpnw-page-about h2 {
+	color: var(--lpnw-amber) !important;
+	margin-top: 40px !important;
+}
+
+.lpnw-page-about p {
+	color: rgba(255, 255, 255, 0.82) !important;
+}
+
+/* Contact form - polish */
+.lpnw-page-contact h1 {
+	margin-bottom: 12px !important;
+}
+
+/* Map page title treatment */
+body.page-map .entry-title {
+	display: none;
+}
+
+/* Browse Properties page - hide redundant title */
+body.page-properties .entry-title,
+body.page-browse-properties .entry-title {
+	display: none;
+}
+
+/* Login page - ensure consistency */
+body.login #login h1 a::after {
+	font-family: var(--lpnw-font-heading) !important;
+}
+
+/* Smooth transitions for all interactive elements */
+.lpnw-btn,
+.lpnw-pricing-card,
+.lpnw-property-card,
+.lpnw-action-card,
+.lpnw-stat-card,
+.lpnw-checkbox-group__item,
+.lpnw-area-stats__item,
+.lpnw-prefs-section,
+.lpnw-faq__item {
+	transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Consistent border radius across components */
+.lpnw-pricing-card,
+.lpnw-how-it-works .lpnw-step,
+.lpnw-action-card,
+.lpnw-stat-card,
+.lpnw-dashboard-welcome,
+.lpnw-dashboard-coverage,
+.lpnw-prefs-section,
+.lpnw-preferences-coverage {
+	border-radius: 14px !important;
+}
+
+/* Section heading subtext */
+.lpnw-home-pricing-teaser__lead,
+.lpnw-home-feed > p:not(.lpnw-home-feed__count) {
+	color: rgba(255, 255, 255, 0.6) !important;
+	font-size: 1rem !important;
+}
+
+/* Better scrollbar styling for dark theme */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(15, 29, 53, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.25);
+}
+
+/* Selection color */
+::selection {
+	background: rgba(240, 165, 0, 0.3);
+	color: #FFFFFF;
+}
+
+/* ==========================================================================
+   SCROLL-TRIGGERED SECTION REVEALS
+   ========================================================================== */
+
+.lpnw-trust-bar,
+.lpnw-stats-bar,
+.lpnw-how-it-works,
+.lpnw-home-feed,
+.lpnw-pricing-section,
+.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard) {
+	opacity: 0;
+	transform: translateY(40px);
+	transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.lpnw-trust-bar.lpnw-visible,
+.lpnw-stats-bar.lpnw-visible,
+.lpnw-how-it-works.lpnw-visible,
+.lpnw-home-feed.lpnw-visible,
+.lpnw-pricing-section.lpnw-visible,
+.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard).lpnw-visible {
+	opacity: 1 !important;
+	transform: translateY(0) !important;
+}
+
+/* Staggered card reveals within sections */
+.lpnw-how-it-works .lpnw-step,
+.lpnw-home-feed .lpnw-property-card,
+.lpnw-pricing .lpnw-pricing-card,
+.lpnw-stats-bar__list li {
+	opacity: 0;
+	transform: translateY(30px);
+	transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.lpnw-visible .lpnw-how-it-works .lpnw-step,
+.lpnw-how-it-works.lpnw-visible .lpnw-step,
+.lpnw-visible .lpnw-home-feed .lpnw-property-card,
+.lpnw-home-feed.lpnw-visible .lpnw-property-card,
+.lpnw-visible .lpnw-pricing .lpnw-pricing-card,
+.lpnw-pricing-section.lpnw-visible .lpnw-pricing-card,
+.lpnw-stats-bar.lpnw-visible .lpnw-stats-bar__list li {
+	opacity: 1 !important;
+	transform: translateY(0) !important;
+}
+
+/* Stagger delays for cards */
+.lpnw-how-it-works.lpnw-visible .lpnw-step:nth-child(1) { transition-delay: 0.1s !important; }
+.lpnw-how-it-works.lpnw-visible .lpnw-step:nth-child(2) { transition-delay: 0.2s !important; }
+.lpnw-how-it-works.lpnw-visible .lpnw-step:nth-child(3) { transition-delay: 0.3s !important; }
+
+.lpnw-stats-bar.lpnw-visible li:nth-child(1) { transition-delay: 0.05s !important; }
+.lpnw-stats-bar.lpnw-visible li:nth-child(2) { transition-delay: 0.15s !important; }
+.lpnw-stats-bar.lpnw-visible li:nth-child(3) { transition-delay: 0.25s !important; }
+.lpnw-stats-bar.lpnw-visible li:nth-child(4) { transition-delay: 0.35s !important; }
+
+.lpnw-pricing-section.lpnw-visible .lpnw-pricing-card:nth-child(1) { transition-delay: 0.1s !important; }
+.lpnw-pricing-section.lpnw-visible .lpnw-pricing-card:nth-child(2) { transition-delay: 0.2s !important; }
+.lpnw-pricing-section.lpnw-visible .lpnw-pricing-card:nth-child(3) { transition-delay: 0.3s !important; }
+
+.lpnw-home-feed.lpnw-visible .lpnw-property-card:nth-child(1) { transition-delay: 0.05s !important; }
+.lpnw-home-feed.lpnw-visible .lpnw-property-card:nth-child(2) { transition-delay: 0.1s !important; }
+.lpnw-home-feed.lpnw-visible .lpnw-property-card:nth-child(3) { transition-delay: 0.15s !important; }
+.lpnw-home-feed.lpnw-visible .lpnw-property-card:nth-child(4) { transition-delay: 0.2s !important; }
+.lpnw-home-feed.lpnw-visible .lpnw-property-card:nth-child(5) { transition-delay: 0.25s !important; }
+.lpnw-home-feed.lpnw-visible .lpnw-property-card:nth-child(6) { transition-delay: 0.3s !important; }
+
+/* Footer always visible */
+.lpnw-footer-mega {
+	opacity: 1 !important;
+	transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lpnw-trust-bar,
+	.lpnw-stats-bar,
+	.lpnw-how-it-works,
+	.lpnw-home-feed,
+	.lpnw-pricing-section,
+	.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard),
+	.lpnw-how-it-works .lpnw-step,
+	.lpnw-home-feed .lpnw-property-card,
+	.lpnw-pricing .lpnw-pricing-card,
+	.lpnw-stats-bar__list li {
+		opacity: 1 !important;
+		transform: none !important;
+		transition: none !important;
+	}
+}
+
+/* ==========================================================================
    PREMIUM MOTION (only when no-preference)
    ========================================================================== */
 
@@ -2998,8 +3481,7 @@ body.no-sidebar .site-main {
 		.lpnw-home-feed,
 		.lpnw-pricing-section,
 		.lpnw-how-it-works,
-		.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard),
-		.lpnw-footer-mega {
+		.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard) {
 			animation: lpnw-section-fade-up linear both;
 			animation-timeline: view();
 			animation-range: entry 0% cover 38%;
@@ -3109,8 +3591,7 @@ body.no-sidebar .site-main {
 	.lpnw-home-feed,
 	.lpnw-pricing-section,
 	.lpnw-how-it-works,
-	.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard),
-	.lpnw-footer-mega {
+	.lpnw-cta-banner:not(.lpnw-cta-banner--dashboard) {
 		animation: none !important;
 		opacity: 1 !important;
 		transform: none !important;

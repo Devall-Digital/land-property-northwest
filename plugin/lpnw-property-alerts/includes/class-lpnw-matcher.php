@@ -25,6 +25,7 @@ class LPNW_Matcher {
 
 		$subscribers = LPNW_Subscriber::get_active();
 		$queued      = 0;
+		$tier_cache  = array();
 
 		foreach ( $property_ids as $property_id ) {
 			$property = LPNW_Property::get( $property_id );
@@ -34,8 +35,11 @@ class LPNW_Matcher {
 
 			foreach ( $subscribers as $subscriber ) {
 				if ( $this->matches( $property, $subscriber ) ) {
-					$tier = LPNW_Subscriber::get_tier( $subscriber->user_id );
-					$this->queue_alert( $subscriber->id, $property_id, $tier );
+					$uid = (int) $subscriber->user_id;
+					if ( ! isset( $tier_cache[ $uid ] ) ) {
+						$tier_cache[ $uid ] = LPNW_Subscriber::get_tier( $uid );
+					}
+					$this->queue_alert( $subscriber->id, $property_id, $tier_cache[ $uid ] );
 					++$queued;
 				}
 			}
@@ -257,8 +261,28 @@ class LPNW_Matcher {
 			return false;
 		}
 
-		foreach ( $areas as $prefix ) {
-			if ( str_starts_with( $postcode, strtoupper( $prefix ) ) ) {
+		$outward = '';
+		if ( preg_match( '/^([A-Z]{1,2}[0-9][0-9A-Z]?)\s/i', $postcode, $m ) ) {
+			$outward = strtoupper( $m[1] );
+		} else {
+			$outward = strtoupper( preg_replace( '/\s.*$/', '', $postcode ) );
+		}
+
+		if ( '' === $outward ) {
+			return false;
+		}
+
+		$area_letter = preg_replace( '/[0-9].*$/', '', $outward );
+
+		foreach ( $areas as $pref ) {
+			$pref = strtoupper( trim( $pref ) );
+			if ( '' === $pref ) {
+				continue;
+			}
+			if ( $pref === $outward ) {
+				return true;
+			}
+			if ( $pref === $area_letter ) {
 				return true;
 			}
 		}
@@ -425,7 +449,7 @@ class LPNW_Matcher {
 			return;
 		}
 
-		$wpdb->insert(
+		$result = $wpdb->insert(
 			$wpdb->prefix . 'lpnw_alert_queue',
 			array(
 				'subscriber_id' => $subscriber_id,
@@ -434,5 +458,16 @@ class LPNW_Matcher {
 				'status'        => 'queued',
 			)
 		);
+
+		if ( false === $result ) {
+			error_log(
+				sprintf(
+					'LPNW Matcher: failed to queue alert for subscriber %d, property %d: %s',
+					$subscriber_id,
+					$property_id,
+					$wpdb->last_error
+				)
+			);
+		}
 	}
 }

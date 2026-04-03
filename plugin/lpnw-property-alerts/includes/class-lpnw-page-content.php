@@ -300,6 +300,12 @@ HTML;
 
 		return <<<HTML
 <section class="lpnw-hero" aria-labelledby="lpnw-pricing-hero-heading">
+	<div class="lpnw-hero__cityscape lpnw-hero__cityscape--pricing" aria-hidden="true">
+		<svg class="lpnw-hero__skyline lpnw-hero__skyline--mid" viewBox="0 0 1600 200" preserveAspectRatio="xMidYMax slice" fill="none">
+			<path d="M0 200V170L40 170L40 155L60 155L60 140L65 135L70 140L70 155L100 155L100 170L200 170L200 150L210 150L210 135L220 135L220 120L225 115L230 120L230 135L240 135L240 150L250 150L250 170L400 170L400 145L410 145L410 130L420 130L420 100L424 90L428 90L428 130L440 130L440 145L450 145L450 170L600 170L600 155L610 155L610 140L620 140L620 155L640 155L640 170L800 170L800 150L810 150L810 135L820 135L820 150L840 150L840 170L1000 170L1000 155L1010 155L1010 140L1020 140L1020 155L1040 155L1040 170L1200 170L1200 160L1220 160L1220 145L1240 145L1240 160L1260 160L1260 170L1400 170L1400 162L1420 162L1420 170L1600 170V200Z" fill="rgba(10,20,38,0.5)"/>
+		</svg>
+		<div class="lpnw-hero__glow"></div>
+	</div>
 	<h1 id="lpnw-pricing-hero-heading">Pricing</h1>
 	<p>We scan Rightmove listings for Northwest England every 15 minutes, match them to your criteria where your plan allows, and email you. Three plans: a free weekly digest, Pro for full filters and alerts as listings are found, and Investor VIP if you want your alerts processed about half an hour before Pro subscribers.</p>
 </section>
@@ -397,18 +403,30 @@ HTML;
 <section class="lpnw-how-it-works" id="lpnw-pricing-faq" aria-labelledby="lpnw-pricing-faq-title">
 	<h2 id="lpnw-pricing-faq-title" class="lpnw-how-it-works__title">Frequently asked questions</h2>
 	<div class="lpnw-faq">
-		<h3 class="lpnw-step__title">What exactly does this service do?</h3>
-		<p class="lpnw-step__text">We run an automated check on Rightmove listings for Northwest England roughly every 15 minutes. When a listing matches a paying subscriber&rsquo;s criteria, we send an email. Free accounts get a single weekly digest instead of instant or daily alerts, and they cannot narrow listings with our filters or use the dashboard.</p>
-		<h3 class="lpnw-step__title">How quickly will I get alerts?</h3>
-		<p class="lpnw-step__text">We scan every 15 minutes. On Pro and Investor VIP, you can get an email as soon as we detect a match (or choose a daily summary). Free tier is weekly only. Investor VIP alerts are queued about 30 minutes before the same matches go to Pro.</p>
-		<h3 class="lpnw-step__title">Can I cancel anytime?</h3>
-		<p class="lpnw-step__text">Yes. Cancel whenever you like, no questions asked. You keep access until the end of the billing period you have already paid for.</p>
-		<h3 class="lpnw-step__title">What areas do you cover?</h3>
-		<p class="lpnw-step__text">Northwest England: broadly Manchester, Liverpool, Lancashire, Cheshire, and Cumbria, using the postcode areas we support across the region.</p>
-		<h3 class="lpnw-step__title">Do I need a Rightmove account?</h3>
-		<p class="lpnw-step__text">No. We run the scans; you do not need to log in to Rightmove for this service.</p>
-		<h3 class="lpnw-step__title">Is my payment secure?</h3>
-		<p class="lpnw-step__text">Yes. Card payments go through Stripe. We never see or store your full card details on our site.</p>
+		<details class="lpnw-faq__item" open>
+			<summary class="lpnw-faq__question">What exactly does this service do?</summary>
+			<div class="lpnw-faq__answer"><p>We run an automated check on Rightmove listings for Northwest England roughly every 15 minutes. When a listing matches a paying subscriber&rsquo;s criteria, we send an email. Free accounts get a single weekly digest instead of instant or daily alerts, and they cannot narrow listings with our filters or use the dashboard.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">How quickly will I get alerts?</summary>
+			<div class="lpnw-faq__answer"><p>We scan every 15 minutes. On Pro and Investor VIP, you can get an email as soon as we detect a match (or choose a daily summary). Free tier is weekly only. Investor VIP alerts are queued about 30 minutes before the same matches go to Pro.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Can I cancel anytime?</summary>
+			<div class="lpnw-faq__answer"><p>Yes. Cancel whenever you like, no questions asked. You keep access until the end of the billing period you have already paid for.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">What areas do you cover?</summary>
+			<div class="lpnw-faq__answer"><p>Northwest England: broadly Manchester, Liverpool, Lancashire, Cheshire, and Cumbria, using the postcode areas we support across the region.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Do I need a Rightmove account?</summary>
+			<div class="lpnw-faq__answer"><p>No. We run the scans; you do not need to log in to Rightmove for this service.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Is my payment secure?</summary>
+			<div class="lpnw-faq__answer"><p>Yes. Card payments go through Stripe. We never see or store your full card details on our site.</p></div>
+		</details>
 	</div>
 </section>
 HTML;
