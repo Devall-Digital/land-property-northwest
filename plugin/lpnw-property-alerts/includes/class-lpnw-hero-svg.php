@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class LPNW_Hero_Svg {
 
-	public const VERSION = '5';
+	public const VERSION = '6';
 
 	private const VIEW_H = 520;
 
@@ -122,10 +122,15 @@ class LPNW_Hero_Svg {
 		return (int) ( ( $seed * 7919 + $i * 104729 ) % 100 );
 	}
 
-	private static function window_lit( int $seed, int $r, int $c, float $lit_pct ): bool {
+	private static function window_lit( int $seed, int $r, int $c, float $lit_pct, int $total_rows ): bool {
 		$h = self::hash99( $seed, $r * 997 + $c * 37 );
+		$tr = max( 1, $total_rows );
+		// Grid row r=0 is top of facade; larger r is lower. Bias up occupancy toward street level.
+		$t      = ( $r + 1 ) / $tr;
+		$bias   = 0.62 + ( $t * 0.55 );
+		$threshold = (int) min( 99.0, $lit_pct * 100 * $bias );
 
-		return $h < ( $lit_pct * 100 );
+		return $h < $threshold;
 	}
 
 	/**
@@ -151,11 +156,11 @@ class LPNW_Hero_Svg {
 				if ( $x + $gw > $bx + $bw - $pad || $y + $gh > $by + $bh - $pad ) {
 					continue;
 				}
-				$lit = self::window_lit( $seed, $r, $c, $lit_pct );
+				$lit = self::window_lit( $seed, $r, $c, $lit_pct, $rows );
 				$h2  = self::hash99( $seed, 400 + $r * 31 + $c );
 				if ( $lit ) {
 					$op = 0.38 + ( $h2 % 40 ) / 100;
-					$fl = ( 0 === $h2 % 4 ) ? '#fff8e6' : ( ( 0 === $h2 % 3 ) ? '#f7c23a' : '#f0a500' );
+					$fl = ( 0 === $h2 % 5 ) ? '#e8f4ff' : ( ( 0 === $h2 % 4 ) ? '#fff8e6' : ( ( 0 === $h2 % 3 ) ? '#f7c23a' : '#f0a500' ) );
 					$html .= sprintf(
 						'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="0.5" fill="%s" opacity="%.2f" filter="url(#%s)"/>',
 						$x,
@@ -184,7 +189,7 @@ class LPNW_Hero_Svg {
 	}
 
 	/**
-	 * @param int $style 0–6 silhouette variants.
+	 * @param int $style 0–7 silhouette variants (7 = mill / warehouse loading bays).
 	 */
 	private static function building( float $x, float $y_bottom, float $w, float $h, string $fill, int $seed, float $lit_pct, string $fid, int $style ): string {
 		$y      = $y_bottom - $h;
@@ -224,10 +229,52 @@ class LPNW_Hero_Svg {
 			);
 		}
 
-		if ( 6 !== $style ) {
-			$html .= self::windows_grid( $x, $y, $w, $h, $seed, $lit_pct, $fid, $gw, $gh );
-		} else {
+		if ( 6 === $style ) {
 			$html .= self::windows_grid( $x + $w * 0.12, $y + $h * 0.08, $w * 0.76, $h * 0.42, $seed + 3, $lit_pct * 0.85, $fid, $gw * 0.9, $gh );
+		} elseif ( 7 === $style ) {
+			$html .= sprintf(
+				'<rect x="%.2f" y="%.2f" width="%.2f" height="5" fill="%s" opacity="0.92"/>',
+				$x + $w * 0.08,
+				$y - 4,
+				$w * 0.84,
+				$fill_e
+			);
+			$html .= sprintf(
+				'<rect x="%.2f" y="%.2f" width="7" height="%.2f" fill="%s" opacity="0.9"/>',
+				$x + $w * 0.76,
+				$y - $h * 0.09,
+				$h * 0.09,
+				$fill_e
+			);
+			$html .= self::windows_grid( $x, $y, $w, $h * 0.58, $seed, $lit_pct, $fid, $gw, $gh );
+			$band_y = $y + $h * 0.58;
+			$band_h = $h * 0.42;
+			$html .= sprintf(
+				'<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="%s" opacity="0.94"/>',
+				$x,
+				$band_y,
+				$w,
+				$band_h,
+				$fill_e
+			);
+			$arch_n = max( 2, (int) floor( $w / 13 ) );
+			$aw     = ( $w - 8 ) / $arch_n;
+			for ( $ai = 0; $ai < $arch_n; $ai++ ) {
+				$ax = $x + 4 + $ai * $aw;
+				$html .= sprintf(
+					'<path d="M%.2f %.2f A %.2f %.2f 0 0 1 %.2f %.2f L %.2f %.2f Z" fill="rgba(12,24,42,0.55)"/>',
+					$ax,
+					$band_y + $band_h * 0.35,
+					$aw * 0.45,
+					$band_h * 0.28,
+					$ax + $aw,
+					$band_y + $band_h * 0.35,
+					$ax + $aw,
+					$band_y + $band_h
+				);
+			}
+		} else {
+			$html .= self::windows_grid( $x, $y, $w, $h, $seed, $lit_pct, $fid, $gw, $gh );
 		}
 
 		if ( 1 === $style ) {
@@ -326,9 +373,13 @@ class LPNW_Hero_Svg {
 			$bw = 22.0 + self::hash99( $layer_seed, $i * 3 ) * 0.65 + ( $i % 5 ) * 2.8;
 			$bh = $min_h + ( self::hash99( $layer_seed, $i * 7 ) / 100 ) * ( $max_h - $min_h );
 			$fi = $fills[ ( $i + self::hash99( $layer_seed, $i ) ) % count( $fills ) ];
-			$st = self::hash99( $layer_seed, $i * 11 ) % 7;
+			$st = self::hash99( $layer_seed, $i * 11 ) % 8;
+			// Occasional taller spike (spire / tower) to break the roofline rhythm.
+			if ( 0 === self::hash99( $layer_seed, $i * 19 ) % 11 ) {
+				$bh = min( $max_h * 1.12, $bh + 55 + self::hash99( $layer_seed, $i * 23 ) * 0.9 );
+			}
 			$html .= self::building( $cx, $y_bottom, $bw, $bh, $fi, $layer_seed + $i * 17, $lit_pct, $fid, $st );
-			$gap = -16 + self::hash99( $layer_seed, $i * 5 ) * 0.52;
+			$gap = -22 + self::hash99( $layer_seed, $i * 5 ) * 0.72;
 			$cx += $bw + $gap;
 			++$i;
 		}
@@ -363,6 +414,49 @@ class LPNW_Hero_Svg {
 				$dur
 			);
 			++$bi;
+		}
+		$out .= '</g>';
+
+		return $out;
+	}
+
+	/**
+	 * Distant construction cranes (mid layer, subtle).
+	 */
+	private static function cranes_layer( float $w, float $y_horizon, int $seed ): string {
+		$spots = array(
+			array( 0.12, 0.92 ),
+			array( 0.38, 0.88 ),
+			array( 0.71, 0.9 ),
+		);
+		$out   = '<g fill="none" stroke="rgba(25,42,68,0.55)" stroke-width="2" stroke-linecap="round" opacity="0.72">';
+		$si    = 0;
+		foreach ( $spots as $sp ) {
+			if ( 0 === self::hash99( $seed, $si * 17 ) % 3 ) {
+				++$si;
+				continue;
+			}
+			$cx = $w * $sp[0];
+			$by = $y_horizon - 8;
+			$m  = 95 + self::hash99( $seed, $si * 31 ) % 55;
+			$jx = $cx + 32 + self::hash99( $seed, $si * 7 ) % 18;
+			$jy = $by - $m * 0.55;
+			$out .= sprintf(
+				'<g><line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f"/><line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f"/><line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f"/></g>',
+				$cx,
+				$by,
+				$cx,
+				$by - $m,
+				$cx,
+				$by - $m,
+				$jx,
+				$jy,
+				$cx,
+				$by - $m * 0.35,
+				$cx + 18,
+				$by - $m * 0.2
+			);
+			++$si;
 		}
 		$out .= '</g>';
 
@@ -450,6 +544,7 @@ class LPNW_Hero_Svg {
 		. '</defs>'
 		. sprintf( '<rect width="%.2f" height="%d" fill="transparent"/>', $w, $h )
 		. self::skyline( 701, (float) $h - 2, $w, 125, 275, 0.29, $fid, $pal )
+		. self::cranes_layer( $w, (float) $h - 2, 701 )
 		. sprintf( '<rect width="%.2f" height="%d" fill="url(#%s-atm)"/>', $w, $h, $p )
 		. '</svg>';
 	}
@@ -471,22 +566,35 @@ class LPNW_Hero_Svg {
 		)
 		. '<defs>'
 		. sprintf( '<filter id="%s" x="-100%%" y="-100%%" width="300%%" height="300%%"><feGaussianBlur stdDeviation="1.6"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>', esc_attr( $fid ) )
-		. '<linearGradient id="' . $p . '-street" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="100%" stop-color="rgba(8,14,26,0.55)"/></linearGradient>'
+		. '<linearGradient id="' . $p . '-street" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,0,0,0)"/><stop offset="55%" stop-color="rgba(12,20,38,0.38)"/><stop offset="100%" stop-color="rgba(8,14,26,0.62)"/></linearGradient>'
+		. '<radialGradient id="' . $p . '-lamp" cx="0.5" cy="0.5" r="0.5"><stop offset="0%" stop-color="rgba(255,190,110,0.22)"/><stop offset="70%" stop-color="rgba(255,160,70,0.06)"/><stop offset="100%" stop-color="transparent"/></radialGradient>'
 		. '<linearGradient id="' . $p . '-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.14)"/><stop offset="100%" stop-color="rgba(0,212,170,0.08)"/></linearGradient>'
 		. '</defs>'
 		. sprintf( '<rect width="%.2f" height="%d" fill="transparent"/>', $w, $h )
 		. self::skyline( 503, $base, $w, 190, 405, 0.44, $fid, $pal );
 
 		for ( $t = 0; $t < 12; $t++ ) {
-			$tx = 20 + ( $t * 143 + self::hash99( 88, $t * 3 ) ) % (int) ( $w - 90 );
-			$gh = 0.52 + ( self::hash99( 77, $t ) % 22 ) / 100;
+			$tx    = 20 + ( $t * 143 + self::hash99( 88, $t * 3 ) ) % (int) ( $w - 90 );
+			$gh    = 0.52 + ( self::hash99( 77, $t ) % 22 ) / 100;
+			$rx    = 10 + self::hash99( 66, $t * 5 ) % 7;
+			$ry    = 15 + self::hash99( 55, $t * 11 ) % 9;
+			$trunk = 4 + self::hash99( 44, $t * 13 ) % 3;
+			$cx    = $tx + 9 + ( self::hash99( 33, $t ) % 5 - 2 ) * 0.5;
+			$fol   = ( 0 === self::hash99( 22, $t * 17 ) % 4 ) ? '#3a7d5c' : ( ( 0 === $t % 3 ) ? '#256348' : '#2d6b52' );
 			$html .= sprintf(
-				'<ellipse cx="%.2f" cy="%.2f" rx="13" ry="19" fill="#2d6b52" opacity="%.2f"/><rect x="%.2f" y="%.2f" width="5" height="26" fill="#1f4a38"/>',
-				$tx + 9,
+				'<ellipse cx="%.2f" cy="%.2f" rx="%.2f" ry="4" fill="rgba(0,0,0,0.35)"/><ellipse cx="%.2f" cy="%.2f" rx="%.2f" ry="%.2f" fill="%s" opacity="%.2f"/><rect x="%.2f" y="%.2f" width="%.2f" height="26" rx="1" fill="#1a3d2e"/>',
+				$cx,
+				$base - 3,
+				$rx + 4,
+				$cx,
 				$base - 16,
+				$rx,
+				$ry,
+				esc_attr( $fol ),
 				$gh,
-				$tx + 6.5,
-				$base - 8
+				$cx - $trunk / 2,
+				$base - 8,
+				$trunk
 			);
 		}
 
@@ -533,6 +641,15 @@ class LPNW_Hero_Svg {
 			$p
 		);
 
+		for ( $sl = 0; $sl < 6; $sl++ ) {
+			$sx = 120 + $sl * ( $w / 6.2 ) + self::hash99( 91, $sl * 4 );
+			$html .= sprintf(
+				'<ellipse cx="%.2f" cy="%.2f" rx="18" ry="6" fill="url(#%s-lamp)" opacity="0.85"/>',
+				$sx,
+				$base - 5,
+				$p
+			);
+		}
 		for ( $b = 0; $b < 7; $b++ ) {
 			$bx = 70 + $b * ( $w / 6.5 ) + self::hash99( 44, $b * 2 );
 			$html .= sprintf(
