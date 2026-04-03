@@ -2,8 +2,8 @@
 /**
  * Open Graph and Twitter Card meta for public pages.
  *
- * When Rank Math SEO is active, image URL is supplied via its filters so tags are not duplicated.
- * Otherwise this class prints a full fallback set on wp_head.
+ * When Rank Math outputs Open Graph (module on), image URL is supplied via its filters so tags are not duplicated.
+ * If Rank Math is active but OG is off, or no SEO plugin handles social meta, this class prints a full fallback on wp_head.
  *
  * @package LPNW_Theme
  */
@@ -47,7 +47,7 @@ final class LPNW_Open_Graph {
 			return;
 		}
 
-		if ( self::rank_math_handles_social() ) {
+		if ( self::seo_plugin_outputs_social_meta() ) {
 			return;
 		}
 
@@ -90,18 +90,23 @@ final class LPNW_Open_Graph {
 	}
 
 	/**
-	 * Whether Rank Math outputs Open Graph / Twitter tags for this request.
+	 * Whether an SEO plugin will print Open Graph / Twitter tags (avoid duplicates).
+	 *
+	 * Rank Math can be active with the Open Graph module off; in that case we must still
+	 * output our fallback. Detection uses the hooks Rank Math registers when OG is on.
 	 *
 	 * @return bool
 	 */
-	private static function rank_math_handles_social(): bool {
+	private static function seo_plugin_outputs_social_meta(): bool {
 		if ( defined( 'RANK_MATH_VERSION' ) ) {
-			return true;
+			return (bool) ( has_action( 'rank_math/opengraph/facebook' ) || has_action( 'rank_math/opengraph/twitter' ) );
 		}
-		// Yoast SEO outputs its own Open Graph tags.
+
 		if ( defined( 'WPSEO_VERSION' ) ) {
-			return true;
+			// Yoast hooks these when social meta is enabled (approximation; avoids skipping when social is off).
+			return (bool) ( has_action( 'wpseo_opengraph' ) || has_action( 'wpseo_twitter' ) );
 		}
+
 		return false;
 	}
 
