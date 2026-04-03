@@ -418,6 +418,12 @@
 	}
 }
 
+.lpnw-new-badge--urgent {
+	background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(185, 28, 28, 0.85) 100%) !important;
+	border-color: rgba(255, 255, 255, 0.3) !important;
+	box-shadow: 0 2px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
 .lpnw-new-badge {
 	position: absolute;
 	top: 18px;
@@ -2832,6 +2838,28 @@
 	font-style: normal;
 	color: var(--lpnw-amber, #F0A500);
 	letter-spacing: 0.02em;
+}
+
+.lpnw-property-card__listed--urgent {
+	font-weight: 700;
+	font-style: normal;
+	color: #ef4444;
+	letter-spacing: 0.02em;
+	font-size: 0.8125rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.lpnw-property-card__listed--urgent::before {
+		content: '';
+		display: inline-block;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #ef4444;
+		margin-right: 0.4rem;
+		vertical-align: middle;
+		animation: lpnw-live-blink 1.5s ease-in-out infinite;
+	}
 }
 
 .lpnw-dashboard .lpnw-property-card__listed.lpnw-property-card__listed--recent {

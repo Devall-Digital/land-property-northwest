@@ -53,40 +53,15 @@ if ( empty( $properties ) ) : ?>
 
 			$agent_line = trim( (string) ( $prop->agent_name ?? '' ) );
 
-			$listed_label = '';
-			if ( ! empty( $prop->first_listed_date ) ) {
-				$listed_ts = strtotime( (string) $prop->first_listed_date );
-				if ( false !== $listed_ts ) {
-					$listed_day = wp_date( 'Y-m-d', $listed_ts );
-					$today_day  = current_time( 'Y-m-d' );
-					$tz         = wp_timezone();
-					$listed_dt  = date_create_immutable( $listed_day, $tz );
-					$today_dt   = date_create_immutable( $today_day, $tz );
-					if ( $listed_dt && $today_dt && $listed_dt <= $today_dt ) {
-						if ( $listed_day === $today_day ) {
-							$listed_label = __( 'Listed today', 'lpnw-alerts' );
-						} else {
-							$cal_days = (int) $listed_dt->diff( $today_dt )->days;
-							if ( 1 === $cal_days ) {
-								$listed_label = __( 'Listed yesterday', 'lpnw-alerts' );
-							} elseif ( $cal_days > 1 ) {
-								$listed_label = sprintf(
-									/* translators: %d: number of days since listing */
-									_n( 'Listed %d day ago', 'Listed %d days ago', $cal_days, 'lpnw-alerts' ),
-									$cal_days
-								);
-							}
-						}
-					}
-				}
-			}
-
-			$is_new_listing = false;
-			if ( ! empty( $prop->first_listed_date ) ) {
-				$listed_ts_new = strtotime( (string) $prop->first_listed_date );
-				$is_new_listing = $listed_ts_new && ( time() - $listed_ts_new ) < 2 * DAY_IN_SECONDS;
-			}
-			$listed_class = $is_new_listing ? 'lpnw-property-card__listed lpnw-property-card__listed--recent' : 'lpnw-property-card__listed';
+			$lpnw_listed_info = LPNW_Property::get_listed_label( (string) ( $prop->first_listed_date ?? '' ) );
+			$listed_label   = $lpnw_listed_info['label'];
+			$is_new_listing = $lpnw_listed_info['is_new'];
+			$is_urgent      = $lpnw_listed_info['is_urgent'];
+			$listed_class   = $is_urgent
+				? 'lpnw-property-card__listed lpnw-property-card__listed--urgent'
+				: ( $is_new_listing
+					? 'lpnw-property-card__listed lpnw-property-card__listed--recent'
+					: 'lpnw-property-card__listed' );
 
 			$price_raw   = isset( $prop->price ) ? (int) $prop->price : 0;
 			$is_pcm      = 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) );
@@ -163,7 +138,9 @@ if ( empty( $properties ) ) : ?>
 			<li class="lpnw-property-list__item">
 				<article class="lpnw-property-card<?php echo $is_off_market ? ' lpnw-property-card--off-market' : ''; ?>" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
 					<div class="lpnw-property-card__image">
-						<?php if ( $is_new_listing ) : ?>
+						<?php if ( $is_urgent ) : ?>
+							<span class="lpnw-new-badge lpnw-new-badge--urgent"><?php esc_html_e( 'JUST LISTED', 'lpnw-alerts' ); ?></span>
+						<?php elseif ( $is_new_listing ) : ?>
 							<span class="lpnw-new-badge"><?php esc_html_e( 'NEW', 'lpnw-alerts' ); ?></span>
 						<?php endif; ?>
 						<?php if ( '' !== $image_url ) : ?>
