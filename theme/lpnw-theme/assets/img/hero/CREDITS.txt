@@ -1,0 +1,11 @@
+Hero photographs — Unsplash License (https://unsplash.com/license)
+
+Bundled copies for local hosting. Filenames are fixed in the plugin
+(`LPNW_Hero_Svg::get_photo_slides()`). Replace files to swap art; keep names or filter `lpnw_hero_photo_slides`.
+
+Original CDN references (Unsplash; attribute on site):
+- manchester — images.unsplash.com/photo-1724135869739-6055627ba5df
+- liverpool — images.unsplash.com/photo-1692968678752-3f24021a188e
+- northwest — images.unsplash.com/photo-1467269204594-9661b134dd2b
+
+Verify each image still matches your brand and geography; commission local shots if you need guaranteed NW landmarks.

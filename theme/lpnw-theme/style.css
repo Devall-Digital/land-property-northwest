@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.10.0
+Version: 6.11.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -833,6 +833,107 @@ body.no-sidebar .site-main {
 	--lpnw-parallax-p: 0;
 	--lpnw-hero-mx: 0;
 	--lpnw-hero-my: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Hero: rotating Northwest photography (theme /assets/img/hero/*.jpg)
+   -------------------------------------------------------------------------- */
+.lpnw-hero:has(.lpnw-hero__media) {
+	padding-top: clamp(5.5rem, 14vw, 8rem);
+	padding-bottom: clamp(3.5rem, 9vw, 6.5rem);
+}
+
+.lpnw-hero:has(.lpnw-hero__media) .lpnw-hero__bg {
+	display: none !important;
+}
+
+.lpnw-hero__media {
+	position: relative;
+	width: 100%;
+	max-width: min(100%, 1200px);
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: clamp(0.75rem, 2.5vw, 1.5rem);
+	pointer-events: none;
+	z-index: 2;
+}
+
+.lpnw-hero__photos {
+	position: relative;
+	width: 100%;
+	height: min(48vh, 520px);
+	min-height: 200px;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow:
+		0 24px 64px rgba(0, 0, 0, 0.45),
+		0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.lpnw-hero__photo {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 42%;
+	opacity: 0;
+	transition: opacity 1.25s ease-in-out;
+}
+
+.lpnw-hero__photo.is-active {
+	opacity: 1;
+}
+
+.lpnw-hero__media-shade {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+	border-radius: 16px;
+	background: linear-gradient(
+		180deg,
+		rgba(8, 14, 26, 0.2) 0%,
+		rgba(8, 14, 26, 0.35) 40%,
+		rgba(8, 14, 26, 0.82) 100%
+	);
+}
+
+.lpnw-hero:has(.lpnw-hero__media) .lpnw-hero__content {
+	position: relative;
+	z-index: 3;
+	margin-top: 0;
+}
+
+@media (max-width: 768px) {
+	.lpnw-hero__photos {
+		height: min(38vh, 320px);
+		min-height: 180px;
+		border-radius: 12px;
+	}
+
+	.lpnw-hero__media-shade {
+		border-radius: 12px;
+	}
+
+	.lpnw-hero:has(.lpnw-hero__media) {
+		padding-left: max(1rem, env(safe-area-inset-left, 0px));
+		padding-right: max(1rem, env(safe-area-inset-right, 0px));
+		padding-top: max(4.5rem, env(safe-area-inset-top, 0px));
+	}
+}
+
+@media (max-width: 480px) {
+	.lpnw-hero__photos {
+		height: min(32vh, 280px);
+		min-height: 160px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lpnw-hero__photo {
+		transition: none;
+	}
 }
 
 /* Three-layer procedural city (plugin replaces inline SVG). */

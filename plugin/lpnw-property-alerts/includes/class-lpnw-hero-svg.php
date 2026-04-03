@@ -1,6 +1,8 @@
 <?php
 /**
- * Front-page hero: layered procedural SVG (afternoon cityscape, motion-safe SMIL).
+ * Front-page hero: rotating Northwest England cityscape photography (theme assets).
+ *
+ * Replaces legacy SVG/parallax markup in synced front-page content.
  *
  * @package LPNW_Property_Alerts
  */
@@ -8,11 +10,11 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Procedural cityscape with sky depth, slow clouds, and skyline parallax layers.
+ * Hero media injection for the marketing home hero.
  */
 class LPNW_Hero_Svg {
 
-	public const VERSION = '6';
+	public const VERSION = '7';
 
 	private const VIEW_H = 520;
 
@@ -91,6 +93,20 @@ class LPNW_Hero_Svg {
 			return $content;
 		}
 
+		// Photo hero: replace the whole scene wrapper (SVG fallback uses inner parallax swap).
+		if ( str_contains( $new, 'lpnw-hero__media' ) && str_contains( $content, 'lpnw-hero__scene' ) ) {
+			$out = preg_replace(
+				'/<div\s+class="lpnw-hero__scene"[^>]*>[\s\S]*?<\/div>\s*/i',
+				$new . "\n",
+				$content,
+				1
+			);
+			if ( is_string( $out ) && $out !== $content ) {
+				self::$replaced_hero = true;
+				return $out;
+			}
+		}
+
 		$has_scene = str_contains( $content, 'lpnw-hero__scene' );
 		$has_svg   = str_contains( $content, 'lpnw-hero__illustration' );
 
@@ -153,7 +169,95 @@ class LPNW_Hero_Svg {
 		return $p;
 	}
 
-	// --- V6: Hand-crafted 3-layer SVG cityscape ---
+	/**
+	 * Absolute paths to hero JPEGs in the active child theme (empty if missing).
+	 *
+	 * @return array<int, array{url: string, path: string, alt: string}>
+	 */
+	public static function get_photo_slides(): array {
+		$theme_dir = get_stylesheet_directory();
+		$theme_uri = get_stylesheet_directory_uri();
+
+		$defs = array(
+			array(
+				'file' => '/assets/img/hero/manchester.jpg',
+				'alt'  => __( 'Manchester city centre skyline', 'lpnw-alerts' ),
+			),
+			array(
+				'file' => '/assets/img/hero/liverpool.jpg',
+				'alt'  => __( 'Liverpool waterfront and the Mersey', 'lpnw-alerts' ),
+			),
+			array(
+				'file' => '/assets/img/hero/northwest.jpg',
+				'alt'  => __( 'Northwest England landscape', 'lpnw-alerts' ),
+			),
+		);
+
+		$slides = array();
+		foreach ( $defs as $row ) {
+			$path = $theme_dir . $row['file'];
+			if ( ! is_readable( $path ) ) {
+				continue;
+			}
+			$slides[] = array(
+				'url'  => $theme_uri . $row['file'],
+				'path' => $path,
+				'alt'  => $row['alt'],
+			);
+		}
+
+		/**
+		 * Filter hero photo slides. Each item: url (string), path (string, optional), alt (string).
+		 *
+		 * @param array<int, array<string, string>> $slides Slides with url and alt.
+		 */
+		return apply_filters( 'lpnw_hero_photo_slides', $slides );
+	}
+
+	/**
+	 * Markup for photo carousel (no slides returns empty string).
+	 */
+	public static function get_photo_markup(): string {
+		$slides = self::get_photo_slides();
+		if ( empty( $slides ) ) {
+			return '';
+		}
+
+		$imgs = '';
+		foreach ( $slides as $i => $slide ) {
+			$url = isset( $slide['url'] ) ? esc_url( $slide['url'] ) : '';
+			if ( '' === $url ) {
+				continue;
+			}
+			$alt   = isset( $slide['alt'] ) ? $slide['alt'] : '';
+			$class = 'lpnw-hero__photo' . ( 0 === $i ? ' is-active' : '' );
+			$load  = 0 === $i ? 'eager' : 'lazy';
+			$prio  = 0 === $i ? ' fetchpriority="high"' : '';
+			$imgs .= sprintf(
+				'<img class="%1$s" src="%2$s" alt="%3$s" width="1920" height="1080" loading="%4$s" decoding="async"%5$s />',
+				esc_attr( $class ),
+				$url,
+				esc_attr( $alt ),
+				esc_attr( $load ),
+				$prio
+			);
+		}
+
+		if ( '' === $imgs ) {
+			return '';
+		}
+
+		$v = esc_attr( self::VERSION );
+
+		return '<div class="lpnw-hero__media" aria-hidden="true">'
+			. '<div class="lpnw-hero__photos" data-lpnw-hero-photos="' . $v . '">'
+			. $imgs
+			. '</div>'
+			. '<div class="lpnw-hero__media-shade"></div>'
+			. '</div>';
+	}
+
+	// --- Legacy V6 SVG layers (retained for reference; not output when photos exist) ---
 
 	private static function layer_back_v6( string $p ): string {
 		return '<svg class="lpnw-hero__layer lpnw-hero__layer--back" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">'
@@ -318,6 +422,11 @@ class LPNW_Hero_Svg {
 	}
 
 	public static function get_illustration_markup(): string {
+		$photos = self::get_photo_markup();
+		if ( '' !== $photos ) {
+			return $photos;
+		}
+
 		$p = self::id_prefix();
 		$v = esc_attr( self::VERSION );
 

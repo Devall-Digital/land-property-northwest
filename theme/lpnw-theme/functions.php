@@ -1393,40 +1393,135 @@ function lpnw_output_json_ld_schema(): void {
 add_action( 'wp_head', 'lpnw_output_json_ld_schema', 5 );
 
 /**
- * Open Graph meta tags for social media sharing.
- * Rank Math may add its own OG tags; this acts as a fallback when they're absent.
+ * Absolute URL for the default social share image (1920×1080 JPEG in theme).
+ *
+ * @return string Empty if file missing.
  */
-function lpnw_theme_open_graph_meta(): void {
+function lpnw_theme_get_default_og_image_url(): string {
+	$path = get_stylesheet_directory() . '/assets/img/og/og-default.jpg';
+	if ( ! is_readable( $path ) ) {
+		return '';
+	}
 
+	return get_stylesheet_directory_uri() . '/assets/img/og/og-default.jpg';
+}
+
+/**
+ * Title, description, canonical URL, and image for Open Graph / Twitter.
+ *
+ * @return array{title: string, description: string, url: string, image: string, og_type: string}
+ */
+function lpnw_theme_get_share_meta(): array {
 	$site_name   = get_bloginfo( 'name' );
 	$description = 'NW property alerts before anyone else. Instant notifications from Rightmove and more, straight to your inbox.';
-	$og_image    = get_stylesheet_directory_uri() . '/assets/img/logo-full.svg';
+	$image       = lpnw_theme_get_default_og_image_url();
+	$og_type     = 'website';
 
 	if ( is_front_page() ) {
 		$title = 'Get NW Property Alerts Before Anyone Else | ' . $site_name;
+		$url   = home_url( '/' );
 	} elseif ( is_page( 'pricing' ) ) {
-		$title       = 'Pricing | ' . $site_name;
-		$description = 'Free weekly digest or instant Pro alerts from £19.99/month. Priority access for Investor VIP.';
-	} elseif ( is_page( 'properties' ) ) {
+		$title         = 'Pricing | ' . $site_name;
+		$description   = 'Free weekly digest or instant Pro alerts from £19.99/month. Priority access for Investor VIP.';
+		$url           = get_permalink();
+	} elseif ( is_page( 'properties' ) || is_page( 'browse-properties' ) ) {
 		$title       = 'Browse Northwest Properties | ' . $site_name;
 		$description = 'Search thousands of live property listings across Greater Manchester, Merseyside, Lancashire, Cheshire, and Cumbria.';
+		$url         = get_permalink();
+	} elseif ( is_singular( 'post' ) ) {
+		$title       = get_the_title() . ' | ' . $site_name;
+		$excerpt     = get_the_excerpt();
+		$description = ! empty( $excerpt ) ? wp_strip_all_tags( $excerpt ) : $description;
+		$url         = get_permalink();
+		$og_type     = 'article';
+		if ( has_post_thumbnail() ) {
+			$thumb = get_the_post_thumbnail_url( null, 'full' );
+			if ( is_string( $thumb ) && '' !== $thumb ) {
+				$image = $thumb;
+			}
+		}
 	} elseif ( is_singular() ) {
 		$title       = get_the_title() . ' | ' . $site_name;
 		$excerpt     = get_the_excerpt();
 		$description = ! empty( $excerpt ) ? wp_strip_all_tags( $excerpt ) : $description;
+		$url         = get_permalink();
+		if ( has_post_thumbnail() ) {
+			$thumb = get_the_post_thumbnail_url( null, 'full' );
+			if ( is_string( $thumb ) && '' !== $thumb ) {
+				$image = $thumb;
+			}
+		}
 	} else {
 		$title = $site_name . ' | NW Property Intelligence';
+		$url   = home_url( '/' );
 	}
 
-	echo '<meta property="og:type" content="website"/>' . "\n";
+	if ( ! is_string( $url ) || '' === $url ) {
+		$url = home_url( '/' );
+	}
+
+	return array(
+		'title'       => $title,
+		'description' => $description,
+		'url'         => $url,
+		'image'       => $image,
+		'og_type'     => $og_type,
+	);
+}
+
+/**
+ * Rank Math: use a proper JPEG fallback when no featured or custom OG image is set.
+ *
+ * @param mixed $url Existing image URL from Rank Math.
+ * @return mixed
+ */
+function lpnw_theme_rank_math_og_image_fallback( $url ) {
+	$current = is_string( $url ) ? trim( $url ) : '';
+	if ( '' !== $current ) {
+		return $url;
+	}
+	$fallback = lpnw_theme_get_default_og_image_url();
+
+	return '' !== $fallback ? $fallback : $url;
+}
+add_filter( 'rank_math/opengraph/facebook/image', 'lpnw_theme_rank_math_og_image_fallback', 20 );
+add_filter( 'rank_math/opengraph/twitter/image', 'lpnw_theme_rank_math_og_image_fallback', 20 );
+
+/**
+ * Open Graph and Twitter Card tags when Rank Math is not active (avoids duplicate og:* tags).
+ */
+function lpnw_theme_open_graph_meta(): void {
+	if ( lpnw_schema_rank_math_active() ) {
+		return;
+	}
+
+	$site_name = get_bloginfo( 'name' );
+	$meta      = lpnw_theme_get_share_meta();
+	$title     = $meta['title'];
+	$description = $meta['description'];
+	$url       = $meta['url'];
+	$og_image  = $meta['image'];
+	$og_type   = $meta['og_type'];
+
+	echo '<meta property="og:type" content="' . esc_attr( $og_type ) . '"/>' . "\n";
 	echo '<meta property="og:site_name" content="' . esc_attr( $site_name ) . '"/>' . "\n";
 	echo '<meta property="og:title" content="' . esc_attr( $title ) . '"/>' . "\n";
 	echo '<meta property="og:description" content="' . esc_attr( $description ) . '"/>' . "\n";
-	echo '<meta property="og:url" content="' . esc_url( is_front_page() ? home_url( '/' ) : get_permalink() ) . '"/>' . "\n";
-	echo '<meta property="og:image" content="' . esc_url( $og_image ) . '"/>' . "\n";
+	echo '<meta property="og:url" content="' . esc_url( $url ) . '"/>' . "\n";
+	if ( '' !== $og_image ) {
+		echo '<meta property="og:image" content="' . esc_url( $og_image ) . '"/>' . "\n";
+		$default_og = lpnw_theme_get_default_og_image_url();
+		if ( '' !== $default_og && $og_image === $default_og ) {
+			echo '<meta property="og:image:width" content="1920"/>' . "\n";
+			echo '<meta property="og:image:height" content="1080"/>' . "\n";
+		}
+	}
 	echo '<meta name="twitter:card" content="summary_large_image"/>' . "\n";
 	echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '"/>' . "\n";
 	echo '<meta name="twitter:description" content="' . esc_attr( $description ) . '"/>' . "\n";
+	if ( '' !== $og_image ) {
+		echo '<meta name="twitter:image" content="' . esc_url( $og_image ) . '"/>' . "\n";
+	}
 }
 add_action( 'wp_head', 'lpnw_theme_open_graph_meta', 1 );
 
