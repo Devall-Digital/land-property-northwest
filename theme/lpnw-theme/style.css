@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.8.0
+Version: 6.9.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -3084,7 +3084,68 @@ html {
 }
 
 /* ==========================================================================
-   VISUAL POLISH CYCLE 11 — PREMIUM MICRO-INTERACTIONS
+   VISUAL POLISH CYCLE 11 — MOBILE + OG + MICRO-INTERACTIONS
+   ========================================================================== */
+
+@media (max-width: 480px) {
+	.lpnw-hero__parallax {
+		height: min(35vh, 280px) !important;
+		min-height: 180px !important;
+	}
+
+	.lpnw-hero__content {
+		padding: 1rem 1.25rem 1.5rem !important;
+	}
+
+	.lpnw-hero__title {
+		font-size: clamp(1.5rem, 7vw, 2rem) !important;
+		line-height: 1.2 !important;
+	}
+
+	.lpnw-hero p {
+		font-size: 0.875rem !important;
+		line-height: 1.5 !important;
+	}
+
+	.lpnw-hero__actions {
+		flex-direction: column !important;
+		align-items: stretch !important;
+		gap: 0.5rem !important;
+	}
+
+	.lpnw-hero__actions .lpnw-btn {
+		width: 100% !important;
+		min-height: 48px !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
+
+	.lpnw-live-pulse {
+		display: flex !important;
+		margin-bottom: 0.5rem !important;
+	}
+
+	.lpnw-stats-bar__list {
+		grid-template-columns: 1fr 1fr !important;
+	}
+
+	.lpnw-pricing {
+		padding: 0 8px !important;
+	}
+
+	.lpnw-pricing-card {
+		padding: 1.25rem 1rem !important;
+	}
+
+	.lpnw-faq__question {
+		font-size: 0.9375rem !important;
+		padding: 1rem 0.875rem !important;
+	}
+}
+
+/* ==========================================================================
+   PREMIUM MICRO-INTERACTIONS
    ========================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
