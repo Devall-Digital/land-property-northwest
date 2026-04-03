@@ -177,6 +177,7 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 				var city = heroScroll.querySelector('.lpnw-hero__cityscape');
 				var sceneEl = heroScroll.querySelector('.lpnw-hero__scene');
 				var parallax = heroScroll.querySelector('.lpnw-hero__parallax');
+				var photoWrap = heroScroll.querySelector('.lpnw-hero__photos');
 				var parallaxFallback = !parallax && sceneEl && sceneEl.querySelector('.lpnw-hero__layer--back') ? sceneEl : null;
 				var parallaxTarget = parallax || parallaxFallback;
 				var scrollHandler = function () {
@@ -188,6 +189,9 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 					p = Math.pow(p, 0.85);
 					if (parallaxTarget) {
 						parallaxTarget.style.setProperty('--lpnw-parallax-p', String(p));
+					}
+					if (photoWrap) {
+						photoWrap.style.setProperty('--lpnw-parallax-p', String(p));
 					}
 					if (sky) {
 						sky.style.transform = 'translateY(' + (p * 12) + 'px)';
@@ -201,6 +205,25 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 				};
 				window.addEventListener('scroll', scrollHandler, { passive: true });
 				scrollHandler();
+			}
+		}
+
+		var photoRoot = document.querySelector('.lpnw-hero__photos');
+		if (photoRoot) {
+			var slides = photoRoot.querySelectorAll('.lpnw-hero__photo');
+			if (slides.length > 1) {
+				if (reduceMotion) {
+					slides.forEach(function (s, idx) {
+						s.classList.toggle('is-active', idx === 0);
+					});
+				} else {
+					var pi = 0;
+					window.setInterval(function () {
+						slides[pi].classList.remove('is-active');
+						pi = (pi + 1) % slides.length;
+						slides[pi].classList.add('is-active');
+					}, 8000);
+				}
 			}
 		}
 

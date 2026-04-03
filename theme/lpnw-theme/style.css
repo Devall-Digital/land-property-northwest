@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.10.0
+Version: 6.11.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -887,6 +887,66 @@ body.no-sidebar .site-main {
 	}
 }
 
+/* Rotating Unsplash hero photos (plugin injects .lpnw-hero__photos). */
+.lpnw-hero__photos {
+	--lpnw-parallax-p: 0;
+	position: relative;
+	width: 100vw;
+	max-width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+	height: min(52vh, 520px);
+	min-height: 240px;
+	margin-bottom: clamp(0.5rem, 2vw, 1.25rem);
+	pointer-events: none;
+	z-index: 2;
+	overflow: hidden;
+	border-radius: 0 0 22px 22px;
+	box-shadow: 0 28px 56px rgba(0, 0, 0, 0.45);
+}
+
+.lpnw-hero__photo {
+	position: absolute;
+	inset: 0;
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+	opacity: 0;
+	transition: opacity 1.5s ease-in-out;
+	will-change: opacity;
+	transform: scale(1.06) translateY(calc(var(--lpnw-parallax-p, 0) * -22px));
+}
+
+.lpnw-hero__photo.is-active {
+	opacity: 1;
+	z-index: 1;
+}
+
+.lpnw-hero__photos::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background:
+		linear-gradient(180deg, rgba(4, 8, 16, 0.5) 0%, rgba(4, 8, 16, 0.12) 42%, rgba(4, 8, 16, 0.65) 100%),
+		radial-gradient(ellipse 90% 70% at 50% 20%, rgba(0, 212, 170, 0.06) 0%, transparent 55%);
+}
+
+@media (max-width: 768px) {
+	.lpnw-hero__photos {
+		height: min(40vh, 360px);
+		min-height: 200px;
+		border-radius: 0 0 16px 16px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lpnw-hero__photo {
+		transition: none;
+	}
+}
+
 .lpnw-hero:has(.lpnw-hero__scene) {
 	perspective: 1400px;
 	perspective-origin: 50% 40%;
@@ -996,6 +1056,16 @@ body.no-sidebar .site-main {
 	margin: 0 auto;
 	filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
 	transition: transform 0.14s ease-out;
+}
+
+/* Full-bleed photo strip inside legacy .lpnw-hero__scene wrapper from page HTML. */
+.lpnw-hero__scene:has(.lpnw-hero__photos) {
+	max-width: none;
+	width: 100%;
+	margin-left: 0;
+	margin-right: 0;
+	margin-bottom: 0;
+	transform: none;
 }
 
 .lpnw-hero__scan-line {
@@ -3087,26 +3157,32 @@ html {
    VISUAL POLISH CYCLE 12 — HERO CLEANUP + REFINEMENTS
    ========================================================================== */
 
-.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__bg {
+.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__bg,
+.lpnw-hero:has(.lpnw-hero__photos) .lpnw-hero__bg {
 	display: none !important;
 }
 
-.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__content {
+.lpnw-hero:has(.lpnw-hero__parallax) .lpnw-hero__content,
+.lpnw-hero:has(.lpnw-hero__photos) .lpnw-hero__content {
 	position: relative;
 	z-index: 10;
 }
 
 .lpnw-hero:has(.lpnw-hero__parallax)::before,
-.lpnw-hero:has(.lpnw-hero__parallax)::after {
+.lpnw-hero:has(.lpnw-hero__parallax)::after,
+.lpnw-hero:has(.lpnw-hero__photos)::before,
+.lpnw-hero:has(.lpnw-hero__photos)::after {
 	display: none !important;
 }
 
-.lpnw-hero__parallax + .lpnw-hero__content {
+.lpnw-hero__parallax + .lpnw-hero__content,
+.lpnw-hero__photos + .lpnw-hero__content {
 	margin-top: -2rem;
 }
 
 @media (min-width: 768px) {
-	.lpnw-hero__parallax + .lpnw-hero__content {
+	.lpnw-hero__parallax + .lpnw-hero__content,
+	.lpnw-hero__photos + .lpnw-hero__content {
 		margin-top: -4rem;
 	}
 }
@@ -3210,7 +3286,8 @@ html {
    ========================================================================== */
 
 @media (max-width: 480px) {
-	.lpnw-hero__parallax {
+	.lpnw-hero__parallax,
+	.lpnw-hero__photos {
 		height: min(35vh, 280px) !important;
 		min-height: 180px !important;
 	}
