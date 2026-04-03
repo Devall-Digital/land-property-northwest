@@ -28,6 +28,52 @@ class LPNW_Mautic {
 	}
 
 	/**
+	 * Recent channel emails from Mautic (IDs for Settings fields).
+	 *
+	 * @param int $limit Max rows.
+	 * @return array<int, array{id: int, name: string, subject: string}>
+	 */
+	public function list_channel_emails_for_admin( int $limit = 40 ): array {
+		if ( ! $this->is_configured() ) {
+			return array();
+		}
+
+		$response = $this->request(
+			'GET',
+			'api/emails',
+			array(
+				'limit'        => $limit,
+				'orderBy'      => 'id',
+				'orderByDir'   => 'DESC',
+			)
+		);
+
+		if ( ! is_array( $response ) || empty( $response['emails'] ) ) {
+			return array();
+		}
+
+		$out = array();
+		foreach ( $response['emails'] as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$id = isset( $row['id'] ) ? (int) $row['id'] : 0;
+			if ( $id < 1 ) {
+				continue;
+			}
+			$name    = isset( $row['name'] ) ? (string) $row['name'] : '';
+			$subject = isset( $row['subject'] ) ? (string) $row['subject'] : '';
+			$out[]   = array(
+				'id'      => $id,
+				'name'    => $name,
+				'subject' => $subject,
+			);
+		}
+
+		return $out;
+	}
+
+	/**
 	 * Whether a Mautic email template ID is set for this tier (required for API send).
 	 *
 	 * @param string $tier Subscriber tier (free, pro, vip).

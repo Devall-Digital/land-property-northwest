@@ -709,6 +709,14 @@ class LPNW_Admin {
 	}
 
 	public static function render_settings(): void {
+		$lpnw_mautic_email_catalog = array();
+		if ( class_exists( 'LPNW_Mautic' ) ) {
+			$lpnw_mautic_client = new LPNW_Mautic();
+			if ( $lpnw_mautic_client->is_configured() ) {
+				$lpnw_mautic_email_catalog = $lpnw_mautic_client->list_channel_emails_for_admin( 50 );
+			}
+		}
+
 		include LPNW_PLUGIN_DIR . 'admin/views/settings.php';
 	}
 

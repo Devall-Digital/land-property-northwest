@@ -4,9 +4,9 @@ Short list you can run through in order. The agent keeps working the technical b
 
 ## Security and launch
 
-1. **Cron URL:** In `wp-config.php`, add `define( 'LPNW_CRON_SECRET', 'long-random-string' );` and update any external cron job to  
+1. **Cron (20i often 401 on `wp-cron.php`):** In `wp-config.php`, add `define( 'LPNW_CRON_SECRET', 'long-random-string' );`. Point **EasyCron** (or 20i scheduled task) at  
    `https://land-property-northwest.co.uk/?lpnw_cron=tick&key=long-random-string`  
-   (Until you do this, the tick URL stays open.)
+   every **15 minutes**. Avoid relying on `wp-cron.php` from outside if the host returns **401**. Until the secret is set, the tick URL stays open.
 
 2. **EPC:** Register at [epc.opendatacommunities.org](https://epc.opendatacommunities.org/), then paste **email + API key** in **LPNW Alerts → Settings**.
 

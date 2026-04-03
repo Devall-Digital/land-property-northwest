@@ -104,9 +104,9 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 ### Revenue and reliability first
 
-1. **Scheduled tasks:** Plugin **1.0.6+** adds `LPNW_Traffic_Cron`: on normal front-end page views, `spawn_cron()` runs **at most once per 15 minutes** (transient lock), matching the advertised portal cadence and avoiding a storm of cron spawns when traffic is heavy. **Better long-term:** host cron or whitelisted ping to `wp-cron.php` or `?lpnw_cron=tick&key=…` every 15 minutes so timing does not depend on visitors. Define **`LPNW_CRON_SECRET`** in `wp-config.php` so the `lpnw_cron=tick` URL is not public (update external cron URLs to append `&key=SECRET`).
+1. **Scheduled tasks (20i / 401):** Direct hits to **`wp-cron.php`** from some external pingers get **401** from the host WAF. **Preferred:** ping **`https://YOURSITE/?lpnw_cron=tick&key=SECRET`** every **15 minutes** (same as portal interval) after defining **`LPNW_CRON_SECRET`** in `wp-config.php`. **Fallback:** traffic still triggers `spawn_cron()` at most **once per 900s** via `LPNW_Traffic_Cron` when `DISABLE_WP_CRON` is not true. **If you need clock reliability:** ask **20i support** to allowlist one caller IP or one URL path for cron.
 
-**Theme 6.3.0:** Front hero motion is **CSS-first** (no full-screen canvas animation loops) to avoid browser tab instability; see `docs/OWNER-MORNING-TODO.md` for owner-facing tasks.
+**Theme 6.4+:** Hero uses **three full-width SVG layers** + scroll parallax (`--lpnw-parallax-p`); no canvas loops.
 2. **Zoopla:** Code present; live ingestion blocked by Cloudflare from hosting—needs approved approach if that source must contribute.
 3. **EPC:** Pipeline exists; needs **EPC Open Data API key** in plugin settings for live pulls.
 

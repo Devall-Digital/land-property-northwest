@@ -170,12 +170,16 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 				var sky = heroScroll.querySelector('.lpnw-hero__sky');
 				var city = heroScroll.querySelector('.lpnw-hero__cityscape');
 				var sceneEl = heroScroll.querySelector('.lpnw-hero__scene');
+				var parallax = heroScroll.querySelector('.lpnw-hero__parallax');
 				var scrollHandler = function () {
 					var rect = heroScroll.getBoundingClientRect();
 					if (rect.bottom < 0 || rect.top > window.innerHeight) {
 						return;
 					}
 					var p = Math.max(0, Math.min(1, 1 - (rect.top + rect.height * 0.3) / window.innerHeight));
+					if (parallax) {
+						parallax.style.setProperty('--lpnw-parallax-p', String(p));
+					}
 					if (sky) {
 						sky.style.transform = 'translateY(' + (p * 12) + 'px)';
 					}

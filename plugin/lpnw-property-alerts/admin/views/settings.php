@@ -17,6 +17,31 @@ defined( 'ABSPATH' ) || exit;
 		<?php submit_button(); ?>
 	</form>
 
+	<?php if ( ! empty( $lpnw_mautic_email_catalog ) && is_array( $lpnw_mautic_email_catalog ) ) : ?>
+		<hr>
+		<h2><?php esc_html_e( 'Mautic: recent emails (copy IDs)', 'lpnw-alerts' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'These IDs are what you paste into VIP / Pro / Free digest above. Create the emails in Mautic first (Channels → Emails), then pick the row that matches each tier.', 'lpnw-alerts' ); ?></p>
+		<table class="widefat striped" style="max-width:920px;">
+			<thead>
+				<tr>
+					<th scope="col"><?php esc_html_e( 'ID', 'lpnw-alerts' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Name', 'lpnw-alerts' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Subject', 'lpnw-alerts' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $lpnw_mautic_email_catalog as $lpnw_row ) : ?>
+					<tr>
+						<td><code><?php echo esc_html( (string) $lpnw_row['id'] ); ?></code></td>
+						<td><?php echo esc_html( $lpnw_row['name'] ); ?></td>
+						<td><?php echo esc_html( $lpnw_row['subject'] ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<p class="description"><?php esc_html_e( 'Template body: use tokens {lpnw_subscriber_first_name}, {lpnw_alert_count}, {lpnw_tier}, {lpnw_properties_html}. See docs/mautic-templates-setup.md in the plugin repo.', 'lpnw-alerts' ); ?></p>
+	<?php endif; ?>
+
 	<hr>
 
 	<h2><?php esc_html_e( 'Manual Feed Run', 'lpnw-alerts' ); ?></h2>
