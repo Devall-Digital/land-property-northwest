@@ -86,36 +86,60 @@ class LPNW_Hero_Svg {
 			return $content;
 		}
 
-		if ( ! str_contains( $content, 'lpnw-hero__illustration' ) ) {
-			return $content;
-		}
-
 		$new = self::get_illustration_markup();
 		if ( '' === $new ) {
 			return $content;
 		}
 
-		$out = preg_replace(
-			'/<svg\b[^>]*\bclass="[^"]*\blpnw-hero__illustration\b[^"]*"[^>]*>[\s\S]*?<\/svg>/i',
-			$new,
-			$content,
-			1
-		);
+		$has_scene = str_contains( $content, 'lpnw-hero__scene' );
+		$has_svg   = str_contains( $content, 'lpnw-hero__illustration' );
 
-		if ( ! is_string( $out ) || $out === $content ) {
-			return $content;
+		if ( $has_svg ) {
+			$out = preg_replace(
+				'/<svg\b[^>]*\bclass="[^"]*\blpnw-hero__illustration\b[^"]*"[^>]*>[\s\S]*?<\/svg>/i',
+				$new,
+				$content,
+				1
+			);
+			if ( is_string( $out ) && $out !== $content ) {
+				$unwrapped = preg_replace(
+					'/<div\s+class="lpnw-hero__scene"(?:\s+aria-hidden="true")?>\s*(<div\s+class="lpnw-hero__parallax"[\s\S]*?<\/div>)\s*<\/div>/i',
+					'$1',
+					$out,
+					1
+				);
+				self::$replaced_hero = true;
+				return is_string( $unwrapped ) ? $unwrapped : $out;
+			}
 		}
 
-		$unwrapped = preg_replace(
-			'/<div\s+class="lpnw-hero__scene"(?:\s+aria-hidden="true")?>\s*(<div\s+class="lpnw-hero__parallax"[\s\S]*?<\/div>)\s*<\/div>/i',
-			'$1',
-			$out,
-			1
-		);
+		if ( $has_scene ) {
+			$out = preg_replace(
+				'/<div\s+class="lpnw-hero__scene"[^>]*>[\s\S]*?<\/div>/i',
+				$new,
+				$content,
+				1
+			);
+			if ( is_string( $out ) && $out !== $content ) {
+				self::$replaced_hero = true;
+				return $out;
+			}
+		}
 
-		self::$replaced_hero = true;
+		if ( str_contains( $content, 'lpnw-hero__content' ) ) {
+			$out = preg_replace(
+				'/(<div\s+class="lpnw-hero__content")/i',
+				$new . '$1',
+				$content,
+				1
+			);
+			if ( is_string( $out ) && $out !== $content ) {
+				self::$replaced_hero = true;
+				return $out;
+			}
+		}
 
-		return is_string( $unwrapped ) ? $unwrapped : $out;
+		return $content;
 	}
 
 	/**
