@@ -315,6 +315,13 @@ class LPNW_Dispatcher {
 		$lines = array( '<h2>Your NW Property Alerts</h2>' );
 
 		foreach ( $properties as $prop ) {
+			$postcode_html = esc_html( $prop->postcode );
+			if ( class_exists( 'LPNW_Property' ) && is_object( $prop ) ) {
+				$cap = LPNW_Property::format_postcode_caption( $prop );
+				if ( '' !== $cap ) {
+					$postcode_html .= ' — ' . esc_html( $cap );
+				}
+			}
 			$lines[] = sprintf(
 				'<div style="margin-bottom:16px;padding:12px;border:1px solid #e5e7eb;border-radius:4px;">
 					<strong>%s</strong><br>
@@ -323,7 +330,7 @@ class LPNW_Dispatcher {
 					<a href="%s">View details</a>
 				</div>',
 				esc_html( $prop->address ),
-				esc_html( $prop->postcode ),
+				$postcode_html,
 				$prop->price ? '&pound;' . number_format( (int) $prop->price ) . '<br>' : '',
 				esc_html( ucfirst( $prop->source ) ) . ' | ' . esc_html( $prop->property_type ) . '<br>',
 				esc_url( $prop->source_url )
@@ -570,12 +577,16 @@ class LPNW_Dispatcher {
 	/**
 	 * Body for POST api/emails/{id}/contact/{id}/send with merge tokens for the Mautic template.
 	 *
+	 * @param \WP_User|null $user       Subscriber user when known; null if no WP account for the email.
 	 * @param array<object> $properties Rows from LPNW_Property::get().
 	 * @return array<string, array<string, string>>
 	 */
-	public static function get_mautic_send_body_with_tokens( \WP_User $user, array $properties, string $tier ): array {
-		$first = self::get_subscriber_greeting_first_name( $user );
-		$html  = self::build_plain_email( $properties );
+	public static function get_mautic_send_body_with_tokens( ?\WP_User $user, array $properties, string $tier ): array {
+		$first = 'there';
+		if ( $user instanceof \WP_User ) {
+			$first = self::get_subscriber_greeting_first_name( $user );
+		}
+		$html = self::build_plain_email( $properties );
 
 		$postcode_area_lines = array();
 		foreach ( $properties as $p ) {
@@ -586,14 +597,20 @@ class LPNW_Dispatcher {
 				}
 			}
 		}
-		$postcode_area_block = ! empty( $postcode_area_lines ) ? implode( "\n", $postcode_area_lines ) : '';
+		$postcode_area_block = '';
+		if ( ! empty( $postcode_area_lines ) ) {
+			$postcode_area_block = implode(
+				"\n",
+				array_map( 'sanitize_text_field', $postcode_area_lines )
+			);
+		}
 
 		$tokens = array(
 			'{lpnw_subscriber_first_name}' => $first,
 			'{lpnw_alert_count}'           => (string) count( $properties ),
 			'{lpnw_tier}'                  => strtoupper( $tier ),
 			'{lpnw_properties_html}'       => $html,
-			'{lpnw_postcode_areas}'        => esc_html( $postcode_area_block ),
+			'{lpnw_postcode_areas}'        => $postcode_area_block,
 		);
 
 		$tokens = apply_filters( 'lpnw_mautic_alert_email_tokens', $tokens, $user, $properties, $tier );
