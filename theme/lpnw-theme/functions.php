@@ -171,14 +171,17 @@ function lpnw_theme_enqueue_glass_interactions_js(): void {
 				var city = heroScroll.querySelector('.lpnw-hero__cityscape');
 				var sceneEl = heroScroll.querySelector('.lpnw-hero__scene');
 				var parallax = heroScroll.querySelector('.lpnw-hero__parallax');
+				var parallaxFallback = !parallax && sceneEl && sceneEl.querySelector('.lpnw-hero__layer--back') ? sceneEl : null;
+				var parallaxTarget = parallax || parallaxFallback;
 				var scrollHandler = function () {
 					var rect = heroScroll.getBoundingClientRect();
 					if (rect.bottom < 0 || rect.top > window.innerHeight) {
 						return;
 					}
-					var p = Math.max(0, Math.min(1, 1 - (rect.top + rect.height * 0.3) / window.innerHeight));
-					if (parallax) {
-						parallax.style.setProperty('--lpnw-parallax-p', String(p));
+					var p = Math.max(0, Math.min(1, 1 - (rect.top + rect.height * 0.22) / window.innerHeight));
+					p = Math.pow(p, 0.85);
+					if (parallaxTarget) {
+						parallaxTarget.style.setProperty('--lpnw-parallax-p', String(p));
 					}
 					if (sky) {
 						sky.style.transform = 'translateY(' + (p * 12) + 'px)';

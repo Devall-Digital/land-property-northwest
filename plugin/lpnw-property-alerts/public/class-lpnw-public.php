@@ -577,7 +577,10 @@ class LPNW_Public {
 			);
 		}
 
-		$admin_email = get_option( 'admin_email' );
+		$admin_email = LPNW_Email_Branding::get_contact_notification_to_email();
+		if ( '' === $admin_email || ! is_email( $admin_email ) ) {
+			$admin_email = get_option( 'admin_email' );
+		}
 		if ( ! is_email( $admin_email ) ) {
 			wp_send_json_error(
 				array(

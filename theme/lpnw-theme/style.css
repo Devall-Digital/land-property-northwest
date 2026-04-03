@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.5.0
+Version: 6.5.1
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -811,18 +811,18 @@ body.no-sidebar .site-main {
 
 .lpnw-hero__layer--back {
 	z-index: 0;
-	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 18px)) translateY(calc(var(--lpnw-parallax-p, 0) * -18px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.02));
+	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 52px)) translateY(calc(var(--lpnw-parallax-p, 0) * -36px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.045));
 }
 
 .lpnw-hero__layer--mid {
 	z-index: 1;
-	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 10px)) translateY(calc(var(--lpnw-parallax-p, 0) * -42px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.035));
+	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 28px)) translateY(calc(var(--lpnw-parallax-p, 0) * -78px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.065));
 	opacity: 0.99;
 }
 
 .lpnw-hero__layer--front {
 	z-index: 2;
-	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 4px)) translateY(calc(var(--lpnw-parallax-p, 0) * -72px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.05));
+	transform: translateX(calc(-50% + var(--lpnw-parallax-p, 0) * 10px)) translateY(calc(var(--lpnw-parallax-p, 0) * -118px)) scale(calc(1 + var(--lpnw-parallax-p, 0) * 0.09));
 	filter: drop-shadow(0 14px 40px rgba(0, 0, 0, 0.5));
 }
 

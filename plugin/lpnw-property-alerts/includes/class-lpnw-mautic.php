@@ -74,6 +74,81 @@ class LPNW_Mautic {
 	}
 
 	/**
+	 * Map tier keys to Mautic email row IDs using seeded template names (fills empty settings).
+	 *
+	 * @return array<string, int> Keys: vip, pro, free.
+	 */
+	public function get_alert_email_ids_by_name(): array {
+		if ( ! $this->is_configured() ) {
+			return array();
+		}
+
+		$response = $this->request(
+			'GET',
+			'api/emails',
+			array(
+				'limit'      => 120,
+				'orderBy'    => 'id',
+				'orderByDir' => 'DESC',
+			)
+		);
+
+		if ( ! is_array( $response ) || empty( $response['emails'] ) ) {
+			return array();
+		}
+
+		$vip_id  = 0;
+		$pro_id  = 0;
+		$free_id = 0;
+
+		foreach ( $response['emails'] as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$id = isset( $row['id'] ) ? (int) $row['id'] : 0;
+			if ( $id < 1 ) {
+				continue;
+			}
+			$name = isset( $row['name'] ) ? (string) $row['name'] : '';
+			$key  = self::normalize_email_name_key( $name );
+
+			if ( str_contains( $key, 'lpnwalertvip' ) && $vip_id < 1 ) {
+				$vip_id = $id;
+			} elseif ( str_contains( $key, 'lpnwalertpro' ) && $pro_id < 1 ) {
+				$pro_id = $id;
+			} elseif ( str_contains( $key, 'weeklydigest' ) && str_contains( $key, 'free' ) && $free_id < 1 ) {
+				$free_id = $id;
+			}
+		}
+
+		$out = array();
+		if ( $vip_id > 0 ) {
+			$out['vip'] = $vip_id;
+		}
+		if ( $pro_id > 0 ) {
+			$out['pro'] = $pro_id;
+		}
+		if ( $free_id > 0 ) {
+			$out['free'] = $free_id;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Normalize template name for loose matching (Unicode dashes, case).
+	 *
+	 * @param string $name Raw name from Mautic.
+	 */
+	private static function normalize_email_name_key( string $name ): string {
+		$n = strtolower( $name );
+		$n = str_replace( array( '—', '–', '-' ), '', $n );
+		$n = preg_replace( '/\s+/', '', $n );
+
+		return is_string( $n ) ? $n : '';
+	}
+
+	/**
 	 * Whether a Mautic email template ID is set for this tier (required for API send).
 	 *
 	 * @param string $tier Subscriber tier (free, pro, vip).
@@ -118,6 +193,18 @@ class LPNW_Mautic {
 	 * @return bool
 	 */
 	public function send_alert( string $email, array $properties, string $tier ): bool {
+		return null !== $this->send_alert_get_template_id( $email, $properties, $tier );
+	}
+
+	/**
+	 * Send alert via Mautic; returns template ID used when the API reports success.
+	 *
+	 * @param string        $email      Recipient email.
+	 * @param array<object> $properties Properties to include in the email.
+	 * @param string        $tier       Subscriber tier (free, pro, vip).
+	 * @return int|null Template ID, or null on failure.
+	 */
+	public function send_alert_get_template_id( string $email, array $properties, string $tier ): ?int {
 		$user         = get_user_by( 'email', $email );
 		$sync_payload = array();
 		if ( $user instanceof \WP_User ) {
@@ -130,12 +217,12 @@ class LPNW_Mautic {
 		}
 
 		if ( ! $contact_id ) {
-			return false;
+			return null;
 		}
 
 		$email_id = $this->get_email_id_for_tier( $tier );
 		if ( ! $email_id ) {
-			return false;
+			return null;
 		}
 
 		$send_body = array();
@@ -149,16 +236,24 @@ class LPNW_Mautic {
 			$send_body
 		);
 
-		return ! empty( $response['success'] );
+		if ( ! empty( $response['success'] ) ) {
+			return (int) $email_id;
+		}
+
+		return null;
 	}
 
 	/**
 	 * @return int|false
 	 */
 	private function get_contact_id_by_email( string $email ) {
-		$response = $this->request( 'GET', 'api/contacts', array(
-			'search' => 'email:' . $email,
-		) );
+		$response = $this->request(
+			'GET',
+			'api/contacts',
+			array(
+				'search' => 'email:' . $email,
+			)
+		);
 
 		if ( $response && ! empty( $response['contacts'] ) ) {
 			$contact = reset( $response['contacts'] );

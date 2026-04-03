@@ -101,17 +101,18 @@ class LPNW_Dispatcher {
 			return;
 		}
 
-		$sent = false;
+		$sent       = false;
+		$mautic_tpl = null;
 
 		$prefs               = LPNW_Subscriber::get_preferences( $user_id );
 		$effective_frequency = self::get_effective_alert_frequency( $tier, $prefs );
-
 		if ( $this->mautic->is_configured() && $this->mautic->has_email_template_for_tier( $tier ) ) {
-			$sent = $this->mautic->send_alert(
+			$mautic_tpl = $this->mautic->send_alert_get_template_id(
 				$user->user_email,
 				$properties,
 				$tier
 			);
+			$sent       = null !== $mautic_tpl;
 		}
 
 		if ( ! $sent ) {
@@ -123,12 +124,21 @@ class LPNW_Dispatcher {
 
 		if ( ! empty( $ids ) ) {
 			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-			$sent_at_sql = ( 'sent' === $status ) ? 'NOW()' : 'NULL';
-			$wpdb->query( $wpdb->prepare(
-				"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$status,
-				...$ids
-			) );
+			$sent_at_sql  = ( 'sent' === $status ) ? 'NOW()' : 'NULL';
+			if ( 'sent' === $status && null !== $mautic_tpl && $mautic_tpl > 0 ) {
+				$mid_sql = $wpdb->prepare( '%s', (string) $mautic_tpl );
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql}, mautic_email_id = {$mid_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$status,
+					...$ids
+				) );
+			} else {
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$status,
+					...$ids
+				) );
+			}
 		}
 	}
 

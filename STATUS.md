@@ -30,7 +30,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 - **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live child theme header **version 6.0.0**; may differ from repo until next theme deploy); **LPNW Property Alerts plugin 1.0.0** (matches repo header until next bump)
 - **WP-Cron:** `DISABLE_WP_CRON` not set; **next scheduled jobs visible** in LPNW dashboard (portals, dispatch, planning, EPC, auctions, digest). **External** cron URLs may still be blocked by the WAF for third-party ping services (see Owner actions); traffic-driven cron is clearly firing.
 - **Must-use plugins on live:** includes `lpnw-cron-endpoint.php`, operational helpers (`lpnw-backfill-otm.php`, `lpnw-postcode-stats.php`, `lpnw-tier-test.php`), **`lpnw-login-as.php`** (review security: should not rely on a static URL key long term), host `wp-stack-cache.php`
-- **Mautic** base URL configured; **API check: connected (HTTP 200)**. **Mautic email template IDs** for VIP / Pro / Free digest are **empty** in plugin settings (alerts likely use **wp_mail** fallback until IDs are set).
+- **Mautic** base URL configured; **API check: connected (HTTP 200)**. **Repo plugin 1.0.11+** can **auto-fill VIP/Pro/Free email IDs** from Mautic template names; live needs deploy and one visit to **LPNW Alerts > Settings** (or wait for daily sync).
 - **WooCommerce** with **Stripe** gateway; **three published products** in catalog; admin bar shows **Store coming soon** (confirm before public launch)
 - **Tier detection** from WooCommerce orders (completed/processing) is **working** (alert log shows PRO tier)
 - **Search indexing:** Rank Math admin notice reports **No Index** (WordPress Reading or Rank Math). **Reconcile** with intended launch state; do not assume the site is visible in Google until this is cleared
@@ -43,7 +43,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 - **Leaflet map:** interactive view with **clustered markers**
 - **Property cards:** images, prices, beds/baths, tenure, features, agent, listed date
 - **Auction presentation:** guide prices, auction dates where applicable
-- **Email alerts:** pipeline active (large **queued** volume observed); Mautic template IDs not set in settings, so expect **wp_mail** (or partial Mautic) until templates are wired
+- **Email alerts:** pipeline active (large **queued** volume observed); after **1.0.11** deploy, Mautic sends when templates exist and IDs sync; otherwise **wp_mail** fallback
 - **Contact form:** native AJAX (no third-party form plugin required)
 - **14 Northwest area landing pages**
 - **10 SEO blog posts**
@@ -63,7 +63,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 ## Owner Actions Still Needed
 
 1. **SEO / launch:** Fix **No Index** if the site should rank; clear **WooCommerce “coming soon”** when the shop should sell in public.
-2. **Alert delivery:** Enter **Mautic email template IDs** (VIP, Pro, free digest) if you want sends through Mautic instead of raw wp_mail.
+2. **Alert delivery:** After deploy, open **LPNW Alerts > Settings** once (IDs sync from Mautic). If you rename templates in Mautic, adjust names or set IDs manually.
 3. **External cron:** `cron-job.org` is blocked by 20i; try **EasyCron**, another provider, or ask **20i to whitelist** a single caller IP or URL so `wp-cron.php` (or your mu-plugin cron URL) can run on a fixed schedule without relying only on traffic.
 4. **EPC:** register for an **EPC Open Data API key** (and email if required) and enter both in **LPNW Alerts > Settings**.
 5. **Security / ops:** Audit **mu-plugins** (especially any login-bypass scripts); complete **Wordfence** onboarding; finish **Redirection** plugin setup (admin nag); consider **Wordfence Login Security** integration with WooCommerce (admin nag).

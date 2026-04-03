@@ -21,7 +21,8 @@ class LPNW_Hero_Svg {
 	}
 
 	public static function filter_replace_illustration( string $content ): string {
-		if ( ! is_front_page() || ! in_the_loop() || ! is_main_query() ) {
+		// Static front pages often render outside a normal "loop"; do not require in_the_loop().
+		if ( ! is_front_page() || ! is_main_query() || is_feed() ) {
 			return $content;
 		}
 
@@ -35,7 +36,7 @@ class LPNW_Hero_Svg {
 		}
 
 		$out = preg_replace(
-			'/<svg\s+class="lpnw-hero__illustration"[\s\S]*?<\/svg>/i',
+			'/<svg\b[^>]*\bclass="[^"]*\blpnw-hero__illustration\b[^"]*"[^>]*>[\s\S]*?<\/svg>/i',
 			$new,
 			$content,
 			1

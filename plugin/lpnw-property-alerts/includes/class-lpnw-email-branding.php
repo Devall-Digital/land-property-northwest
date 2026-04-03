@@ -26,6 +26,11 @@ class LPNW_Email_Branding {
 	public const CONTEXT_CONTACT = 'contact';
 
 	/**
+	 * Context: inbound contact notification recipient (admin mailbox).
+	 */
+	public const CONTEXT_ADMIN_NOTIFY = 'admin_notify';
+
+	/**
 	 * Primary hostname from home URL (lowercase).
 	 */
 	public static function get_site_domain(): string {
@@ -39,9 +44,17 @@ class LPNW_Email_Branding {
 	 * @param string $context self::CONTEXT_* .
 	 */
 	public static function get_local_part( string $context ): string {
-		$default = ( self::CONTEXT_CONTACT === $context ) ? 'hello' : 'alerts';
+		if ( self::CONTEXT_ADMIN_NOTIFY === $context ) {
+			$default = 'admin';
+		} elseif ( self::CONTEXT_CONTACT === $context ) {
+			$default = 'hello';
+		} else {
+			$default = 'alerts';
+		}
 		if ( self::CONTEXT_ALERTS === $context ) {
 			$local = apply_filters( 'lpnw_alert_mail_from_local_part', $default );
+		} elseif ( self::CONTEXT_ADMIN_NOTIFY === $context ) {
+			$local = apply_filters( 'lpnw_admin_notify_mail_local_part', $default );
 		} else {
 			$local = apply_filters( 'lpnw_contact_mail_from_local_part', $default );
 		}
@@ -64,6 +77,8 @@ class LPNW_Email_Branding {
 
 		if ( self::CONTEXT_ALERTS === $context ) {
 			$email = apply_filters( 'lpnw_alert_mail_from_email', $email );
+		} elseif ( self::CONTEXT_ADMIN_NOTIFY === $context ) {
+			$email = apply_filters( 'lpnw_admin_notify_mail_to_email', $email );
 		} else {
 			$email = apply_filters( 'lpnw_contact_mail_from_email', $email );
 		}
@@ -126,5 +141,12 @@ class LPNW_Email_Branding {
 			$headers[] = sprintf( 'From: %s <%s>', $q, $mail );
 		}
 		return $headers;
+	}
+
+	/**
+	 * Where contact-form notifications are delivered (typically admin@yourdomain).
+	 */
+	public static function get_contact_notification_to_email(): string {
+		return self::get_from_email( self::CONTEXT_ADMIN_NOTIFY );
 	}
 }
