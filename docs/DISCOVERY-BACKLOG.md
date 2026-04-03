@@ -161,4 +161,5 @@
 | 2026-04-02 | **Shipped (Plugin 1.0.6):** `LPNW_Traffic_Cron` rate-limits `spawn_cron()` to **once per 900s** on front-end requests; optional `LPNW_CRON_SECRET` on `?lpnw_cron=tick`. `deploy-ftp.sh` mirrors **mu-plugins**. |
 | 2026-04-02 | **Shipped (Theme 6.3.0):** Removed **dual canvas RAF loops** (likely tab crashes). Hero: **CSS-only** clouds on `.lpnw-hero__scene`, gentler tilt, hide empty `#lpnw-hero-particles` when SVG hero present. **body.lpnw-site** overrides for plugin cards/forms on dark background (contrast). Owner list: `docs/OWNER-MORNING-TODO.md`. |
 | 2026-04-02 | **Shipped (Plugin 1.0.7):** Rent listings use **price min/max** in matcher; tier skips **cancelled/failed/trash** orders. **Theme 6.3.1:** broader **body.lpnw-site** contrast (search filters, dashboard, map legend). |
+| 2026-04-02 | **Shipped (Plugin 1.0.8):** `LPNW_Hero_Svg` replaces inline front-page **lpnw-hero__illustration** from PHP (versioned `data-lpnw-hero-svg`); richer sky, moon, clouds, river glow, glass sheen, animated bell halos (SMIL). |
 | 2026-04-02 | Initial discovery synthesis from multi-agent audit; no code changes. |
