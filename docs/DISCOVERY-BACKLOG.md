@@ -6,12 +6,15 @@
 
 **How to use:** Treat items as a candidate backlog; validate each before implementation (especially security and product promises).
 
+**Visual / artistic UX:** Live browser findings (logged-in test user, VM agents) live in **`docs/VISUAL-AUDIT.md`**. Pull UI polish items from there into P1–P3 below when you schedule work.
+
 ---
 
 ## Executive summary
 
 | Theme | Headline |
 |-------|----------|
+| **Visual / premium UX** | Deep dive April 2026 in **`docs/VISUAL-AUDIT.md`**: dashboard preview **images vs placeholders**, **preferences label contrast**, **pricing** duplicate title + table UX, **WCAG** on chips/gold headings, **mobile** pass still needed for shop/checkout/map. |
 | **Product truth** | VIP **30-minute head start** and **direct introductions** are marketed but **not implemented** in the alert pipeline; Mautic sends **do not pass listing content** the way wp_mail does. |
 | **Reliability** | Feeds are fragile by nature (scraping, Cloudflare, timeouts); several **admin manual-run** gaps and a likely **broken Settings “Run feed” form** (nonce/field mismatch). |
 | **Scale** | Matcher runs on **every upsert** (updates too), **O(properties × subscribers)** with repeated tier lookups; queue dedup is **not enforced in DB**. |
@@ -71,7 +74,7 @@
 
 25. **Scroll class bug** — JS sets `lpnw-scrolled` on `body`; CSS targets `.site-header.scrolled`.
 26. **Login CSS broken** — Orphan rules after `#login h1 a` block in `functions.php`.
-27. **Version drift** — Repo `style.css` **2.0.0** vs live **6.0.0** until deploy aligned.
+27. **Version drift** — Repo `style.css` **2.0.0** vs live **6.0.0** until deploy aligned. **Visual / premium (April 2026):** **`docs/VISUAL-AUDIT.md`** — VM browser audit (test user): dashboard preview **images vs placeholders**, **preferences** label contrast, **pricing** duplicate title + table UX, **VIP** card differentiation, **chip/gold** contrast, **hero** CTAs, **micro-interactions**; **shop/checkout/map** still to audit.
 
 ### Documentation
 
@@ -166,3 +169,4 @@
 | 2026-04-03 | **Shipped (Plugin 1.0.10):** Hero **v4** afternoon sky (sun, warm gradient, day clouds); **7 building silhouettes** + varied widths/gaps/window sizes; stronger **scroll parallax** (translate + scale + horizontal drift). **Theme 6.5.0.** **Mautic:** API-seeded emails **2/3/4** + `tools/mautic-seed-alert-emails.php`. |
 | 2026-04-02 | **Shipped (Plugin 1.0.11–1.0.13 / Theme 6.5.1):** **Hero:** register `the_content` on **`wp`** for front page; **replace once per request** when SVG matches (covers GeneratePress + no-loop themes). **SVG replace** tolerates attribute order. **Mautic:** `LPNW_Mautic_Sync` fills **mautic_email_vip/pro/free** from template names; **dispatcher** stores **mautic_email_id** on successful Mautic send. **Email:** contact form **To** = `admin@` domain; **From** stays **hello@**. **Parallax:** stronger layer motion + **scene fallback** when old markup has no `.lpnw-hero__parallax`. |
 | 2026-04-02 | Initial discovery synthesis from multi-agent audit; no code changes. |
+| 2026-04-02 | **Visual audit:** Added **`docs/VISUAL-AUDIT.md`** (parallel VM browser review, test user). **`PROJECT-RUNBOOK.md`:** VM visual workflow + delete recordings after use. |

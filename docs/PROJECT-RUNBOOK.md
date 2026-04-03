@@ -20,6 +20,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 | `STATUS.md` | Live data snapshot, infrastructure, owner actions |
 | `docs/DEPLOYMENT.md` | FTP paths and release steps |
 | `docs/DISCOVERY-BACKLOG.md` | Read-only audit: full backlog of gaps and improvements (synthesised from code review) |
+| `docs/VISUAL-AUDIT.md` | Live **UI/UX and artistic direction** findings from browser review (test user); update after each visual pass |
 | `docs/SETUP.md` | Hosting and plugin setup (may lag live; cross-check STATUS) |
 | `.cursor/rules/secrets.mdc` | Where credentials are named (not values) |
 
@@ -37,6 +38,8 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 ## How we test (depth and parallelism)
 
 **Shallow checks** (curl status codes, public REST) catch outages only. **Deep dives** need many probes in parallel: key URLs, forms, logged-in flows, WooCommerce paths, feed admin screens, mobile breakpoints, console errors, and cross-links. That is best done with **several agents or browser sessions at once**, each owning a slice (e.g. one on commerce, one on subscriber UX, one on plugin admin, one on SEO/schema). I will use that pattern whenever you want maximum coverage quickly.
+
+**Visual review (VM browser):** Agents can drive a **real browser on the cloud VM**, log in with **`/?nocache&lpnw_login_as=test&key=...`** (see `mu-plugins/lpnw-login-as.php`), and audit pages like a user. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space. This does not replace **your** check on a real phone, but it catches most desktop/tablet layout and contrast issues.
 
 **GitHub vs live:** This repo is the **source of truth** for **plugin and theme code**. Pushing to GitHub means you can redeploy or rebuild the custom product after a host failure. A full site restore also needs **WordPress database, uploads, and wp-config** (use **UpdraftPlus** or 20i backups on a schedule). FTP deploy only replaces the two custom folders.
 
