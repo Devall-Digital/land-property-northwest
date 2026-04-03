@@ -264,6 +264,11 @@ final class LPNW_Open_Graph {
 			return self::get_branded_static_image( 'home' );
 		}
 
+		// Key marketing pages: always use the branded message card, not a hero or inline photo.
+		if ( is_page( array( 'pricing', 'properties', 'browse-properties', 'about', 'contact' ) ) ) {
+			return self::get_branded_static_image( 'default' );
+		}
+
 		if ( $rank_math_url !== '' && self::is_acceptable_og_image_url( $rank_math_url ) ) {
 			return array(
 				'url' => $rank_math_url,
@@ -285,6 +290,21 @@ final class LPNW_Open_Graph {
 	 * @return array{url:string,width:int,height:int,alt:string}
 	 */
 	private static function get_branded_static_image( string $which ): array {
+		if ( self::can_use_dynamic_share_card() ) {
+			$alt = ( 'home' === $which )
+				/* translators: %s: site name. */
+				? sprintf( __( '%s — instant property alerts for Northwest England (listings, planning, auctions, and more)', 'lpnw-theme' ), get_bloginfo( 'name' ) )
+				/* translators: %s: site name. */
+				: sprintf( __( '%s — Northwest property intelligence and alerts', 'lpnw-theme' ), get_bloginfo( 'name' ) );
+
+			return array(
+				'url'    => LPNW_OG_Card::get_image_url( $which ),
+				'width'  => LPNW_OG_Card::WIDTH,
+				'height' => LPNW_OG_Card::HEIGHT,
+				'alt'    => $alt,
+			);
+		}
+
 		$file     = ( 'home' === $which ) ? 'og-home.png' : 'og-default.png';
 		$path     = get_stylesheet_directory() . '/assets/img/' . $file;
 		$base_uri = get_stylesheet_directory_uri() . '/assets/img/' . $file;
@@ -315,6 +335,21 @@ final class LPNW_Open_Graph {
 			'height' => 630,
 			'alt'    => get_bloginfo( 'name' ),
 		);
+	}
+
+	/**
+	 * Dynamic PNG card (headline + value prop) when GD + bundled TTF are available.
+	 *
+	 * @return bool
+	 */
+	private static function can_use_dynamic_share_card(): bool {
+		if ( ! function_exists( 'imagecreatetruecolor' ) || ! function_exists( 'imagettftext' ) ) {
+			return false;
+		}
+
+		$font = get_stylesheet_directory() . '/assets/fonts/DejaVuSans-Bold.ttf';
+
+		return is_readable( $font );
 	}
 
 	/**
