@@ -49,6 +49,7 @@ class LPNW_Page_Content {
 		<div class="lpnw-hero__particles"></div>
 		<div class="lpnw-hero__vignette"></div>
 	</div>
+	<div class="lpnw-hero__scene" aria-hidden="true"><svg class="lpnw-hero__illustration" viewBox="0 0 1600 500"></svg></div>
 	<div class="lpnw-hero__content">
 		<h1 id="lpnw-hero-heading" class="lpnw-hero__title">Get NW property alerts before <em>anyone else</em></h1>
 		<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>
@@ -60,7 +61,7 @@ class LPNW_Page_Content {
 </section>
 
 <section class="lpnw-trust-bar" aria-label="How often listings are refreshed">
-	<p class="lpnw-trust-bar__text">Pulling the latest property listings from across the Northwest every 15 minutes.</p>
+	<p class="lpnw-trust-bar__text">[lpnw_live_activity] Pulling the latest property listings from across the Northwest every 15 minutes.</p>
 </section>
 
 <section class="lpnw-stats-bar" aria-labelledby="lpnw-stats-bar-title">
@@ -154,7 +155,7 @@ class LPNW_Page_Content {
 
 <section class="lpnw-home-feed" aria-labelledby="lpnw-home-feed-title">
 	<h2 id="lpnw-home-feed-title" class="lpnw-pricing-section__title">Latest activity</h2>
-	<p>A live sample of six recent records from our normalised Northwest database.</p>
+	<p>[lpnw_live_activity] Fresh listings from across the Northwest. Pro subscribers get these as instant alerts.</p>
 	<div class="lpnw-home-feed__properties">
 		[lpnw_latest_properties limit="6"]
 	</div>
@@ -307,7 +308,7 @@ HTML;
 		<div class="lpnw-hero__glow"></div>
 	</div>
 	<h1 id="lpnw-pricing-hero-heading">Pricing</h1>
-	<p>We scan Rightmove listings for Northwest England every 15 minutes, match them to your criteria where your plan allows, and email you. Three plans: a free weekly digest, Pro for full filters and alerts as listings are found, and Investor VIP if you want your alerts processed about half an hour before Pro subscribers.</p>
+	<p>[lpnw_live_activity] We scan property listings across Northwest England every 15 minutes. [lpnw_property_count plus="1"] properties in our index right now. Pick your speed: weekly digest, instant alerts, or priority access.</p>
 </section>
 
 <section class="lpnw-pricing-section" id="lpnw-pricing-compare" aria-labelledby="lpnw-pricing-compare-title">
@@ -392,8 +393,10 @@ HTML;
 			<p class="lpnw-pricing-card__price">£79.99</p>
 			<p class="lpnw-pricing-card__period">per month</p>
 			<ul class="lpnw-pricing-card__features" role="list">
-				<li>Everything in Pro</li>
-				<li>Your alerts are processed about 30 minutes ahead of Pro when speed matters on competitive listings</li>
+				<li>Everything in Pro, plus priority processing</li>
+				<li>Your alerts are queued 30 minutes ahead of Pro subscribers</li>
+				<li>First to know means first to act on competitive listings</li>
+				<li>Off-market property alerts (when available)</li>
 			</ul>
 			<a class="lpnw-btn lpnw-btn--secondary" href="{$shop_url}">Get Investor VIP</a>
 		</article>
@@ -426,6 +429,18 @@ HTML;
 		<details class="lpnw-faq__item">
 			<summary class="lpnw-faq__question">Is my payment secure?</summary>
 			<div class="lpnw-faq__answer"><p>Yes. Card payments go through Stripe. We never see or store your full card details on our site.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Is it worth the money?</summary>
+			<div class="lpnw-faq__answer"><p>If you invest in property, even one deal found a day early can save you thousands in negotiation or stop you missing it entirely. Pro costs less than a single estate agent viewing trip. VIP costs less than a property sourcing fee, and you are doing the sourcing yourself with better data.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">Why not just check Rightmove myself?</summary>
+			<div class="lpnw-faq__answer"><p>You can, and most people do. The difference is that we check every 15 minutes, across the entire Northwest, against your exact criteria. We email you the moment something matches. No manual searching, no missed listings because you were busy. The speed gap is where deals are won or lost.</p></div>
+		</details>
+		<details class="lpnw-faq__item">
+			<summary class="lpnw-faq__question">What if I want to change my filters later?</summary>
+			<div class="lpnw-faq__answer"><p>Change your preferences anytime from the subscriber dashboard. Updates take effect on the next scan cycle (within 15 minutes). No limit on how often you adjust them.</p></div>
 		</details>
 	</div>
 </section>
