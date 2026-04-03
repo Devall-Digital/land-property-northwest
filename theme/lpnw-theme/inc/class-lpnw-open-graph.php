@@ -200,6 +200,11 @@ final class LPNW_Open_Graph {
 			return 'Search thousands of live property listings across Greater Manchester, Merseyside, Lancashire, Cheshire, and Cumbria.';
 		}
 
+		// Front page is often a Page; avoid auto-excerpt (credits, "Read more", etc.) in share previews.
+		if ( is_front_page() ) {
+			return $default;
+		}
+
 		if ( is_singular() ) {
 			$excerpt = get_the_excerpt();
 			if ( is_string( $excerpt ) && $excerpt !== '' ) {
