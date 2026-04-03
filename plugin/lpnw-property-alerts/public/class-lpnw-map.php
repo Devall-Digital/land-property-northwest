@@ -228,9 +228,14 @@ class LPNW_Map {
 		$limit  = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 500;
 		$limit  = min( 500, max( 1, $limit ) );
 
-		$pc_prefix = isset( $_POST['postcode_prefix'] ) ? sanitize_text_field( wp_unslash( $_POST['postcode_prefix'] ) ) : '';
-		if ( '' !== $pc_prefix && ! in_array( strtoupper( $pc_prefix ), LPNW_NW_POSTCODES, true ) ) {
-			$pc_prefix = '';
+		$pc_prefix = isset( $_POST['postcode_prefix'] ) ? strtoupper( trim( sanitize_text_field( wp_unslash( $_POST['postcode_prefix'] ) ) ) ) : '';
+		if ( '' !== $pc_prefix ) {
+			$ok = class_exists( 'LPNW_NW_Postcodes' )
+				? LPNW_NW_Postcodes::is_valid_area_or_district( $pc_prefix )
+				: in_array( $pc_prefix, LPNW_NW_POSTCODES, true );
+			if ( ! $ok ) {
+				$pc_prefix = '';
+			}
 		}
 
 		list( $rows, $has_more ) = self::fetch_map_page( $source, $limit, $offset, $pc_prefix );
@@ -436,9 +441,14 @@ JS;
 			$source_filter = '';
 		}
 
-		$postcode_prefix = (string) $atts['postcode_prefix'];
-		if ( '' !== $postcode_prefix && ! in_array( strtoupper( $postcode_prefix ), LPNW_NW_POSTCODES, true ) ) {
-			$postcode_prefix = '';
+		$postcode_prefix = strtoupper( trim( (string) $atts['postcode_prefix'] ) );
+		if ( '' !== $postcode_prefix ) {
+			$ok = class_exists( 'LPNW_NW_Postcodes' )
+				? LPNW_NW_Postcodes::is_valid_area_or_district( $postcode_prefix )
+				: in_array( $postcode_prefix, LPNW_NW_POSTCODES, true );
+			if ( ! $ok ) {
+				$postcode_prefix = '';
+			}
 		}
 
 		$initial_lat = null;

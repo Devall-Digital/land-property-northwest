@@ -256,7 +256,12 @@ class LPNW_Matcher {
 			return true;
 		}
 
-		$postcode = strtoupper( trim( $property->postcode ?? '' ) );
+		$postcode = (string) ( $property->postcode ?? '' );
+		if ( class_exists( 'LPNW_NW_Postcodes' ) ) {
+			return LPNW_NW_Postcodes::postcode_matches_selected_areas( $postcode, $areas );
+		}
+
+		$postcode = strtoupper( trim( $postcode ) );
 		if ( empty( $postcode ) ) {
 			return false;
 		}

@@ -748,14 +748,14 @@ class LPNW_Property {
 	}
 
 	/**
-	 * Restrict a WHERE clause to an NW outward code (M/L use regex so LA does not match L).
+	 * Restrict a WHERE clause to a broad NW bucket (M/L use regex so LA does not match L).
 	 *
 	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
-	 * @param string              $prefix        Outward code: M, L, PR, BB, etc.
+	 * @param string              $prefix        Bucket: M, L, PR, BB, etc.
 	 * @param array<int, string>  $where         WHERE fragments (modified).
 	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
 	 */
-	public static function append_postcode_prefix_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
+	public static function append_broad_nw_bucket_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
 		$p = strtoupper( trim( sanitize_text_field( $prefix ) ) );
 		if ( '' === $p || ! in_array( $p, LPNW_NW_POSTCODES, true ) ) {
 			return;
@@ -770,6 +770,22 @@ class LPNW_Property {
 		}
 		$where[] = "{$postcode_expr} LIKE %s";
 		$args[]  = $p . '%';
+	}
+
+	/**
+	 * Restrict a WHERE clause to an NW bucket or a specific outward district (e.g. OL2, CH41).
+	 *
+	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
+	 * @param string              $prefix        Broad bucket or district outward code.
+	 * @param array<int, string>  $where         WHERE fragments (modified).
+	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
+	 */
+	public static function append_postcode_prefix_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
+		if ( class_exists( 'LPNW_NW_Postcodes' ) ) {
+			LPNW_NW_Postcodes::append_area_filter_sql( $postcode_expr, $prefix, $where, $args );
+			return;
+		}
+		self::append_broad_nw_bucket_sql( $postcode_expr, $prefix, $where, $args );
 	}
 
 	private static function clean_postcode( string $postcode ): string {
