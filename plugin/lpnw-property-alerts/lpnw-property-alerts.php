@@ -99,6 +99,8 @@ final class LPNW_Property_Alerts {
 			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin-subscribers.php';
 		}
 
+		require_once LPNW_PLUGIN_DIR . 'includes/class-lpnw-off-market-submit.php';
+
 		require_once LPNW_PLUGIN_DIR . 'public/class-lpnw-public.php';
 		require_once LPNW_PLUGIN_DIR . 'public/class-lpnw-dashboard.php';
 		require_once LPNW_PLUGIN_DIR . 'public/class-lpnw-map.php';
@@ -116,6 +118,7 @@ final class LPNW_Property_Alerts {
 		LPNW_WooCommerce_Notices::init();
 		LPNW_WooCommerce_Store::init();
 		LPNW_User_Tier_Profile::init();
+		LPNW_Off_Market_Submit::init();
 
 		if ( is_admin() ) {
 			LPNW_Admin::init();
@@ -136,4 +139,8 @@ final class LPNW_Property_Alerts {
  */
 add_action( 'plugins_loaded', function () {
 	LPNW_Property_Alerts::instance();
-} );
+}, 10 );
+
+add_action( 'plugins_loaded', function () {
+	LPNW_Activator::maybe_reschedule_auction_cron();
+}, 20 );

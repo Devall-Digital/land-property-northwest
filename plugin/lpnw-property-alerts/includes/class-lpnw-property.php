@@ -866,6 +866,80 @@ class LPNW_Property {
 	}
 
 	/**
+	 * Portal listing sources where first_listed_date comes from the portal (not our ingest time).
+	 *
+	 * @return array<int, string>
+	 */
+	public static function get_portal_property_sources(): array {
+		return array( 'rightmove', 'zoopla', 'onthemarket' );
+	}
+
+	/**
+	 * Whether the property row is a main portal listing (sales/rentals from site scrape).
+	 *
+	 * @param object $property Row from lpnw_properties.
+	 */
+	public static function is_portal_listing_row( object $property ): bool {
+		$src = isset( $property->source ) ? sanitize_key( (string) $property->source ) : '';
+
+		return in_array( $src, self::get_portal_property_sources(), true );
+	}
+
+	/**
+	 * Recency for property cards: NEW / JUST LISTED badges follow portal first-listed date when present,
+	 * so we do not mark a week-old Rightmove listing "new" just because we only ingested it today.
+	 *
+	 * Label text still prefers portal date; falls back to created_at when the portal did not give a date.
+	 *
+	 * @param object $property Row with source, first_listed_date, created_at.
+	 * @return array{label: string, is_urgent: bool, is_new: bool}
+	 */
+	public static function get_card_listing_recency( object $property ): array {
+		$first = isset( $property->first_listed_date ) ? trim( (string) $property->first_listed_date ) : '';
+		$created = isset( $property->created_at ) ? trim( (string) $property->created_at ) : '';
+
+		$label_date = '' !== $first ? $first : $created;
+
+		if ( self::is_portal_listing_row( $property ) ) {
+			if ( '' !== $first ) {
+				return self::get_listed_label( $first );
+			}
+
+			if ( '' === $created ) {
+				return array(
+					'label'     => __( 'Listing date not supplied by portal', 'lpnw-alerts' ),
+					'is_urgent' => false,
+					'is_new'    => false,
+				);
+			}
+
+			$sub = self::get_listed_label( $created );
+
+			return array(
+				'label'     => '' !== $sub['label']
+					? sprintf(
+						/* translators: %s: human time since we first ingested this listing (portal did not give a listed date). */
+						__( 'First seen in LPNW: %s', 'lpnw-alerts' ),
+						$sub['label']
+					)
+					: __( 'First seen in LPNW (portal did not publish a listed date)', 'lpnw-alerts' ),
+				'is_urgent' => false,
+				'is_new'    => false,
+			);
+		}
+
+		if ( '' === $label_date ) {
+			return array(
+				'label'     => '',
+				'is_urgent' => false,
+				'is_new'    => false,
+			);
+		}
+
+		return self::get_listed_label( $label_date );
+	}
+
+	/**
 	 * Human-readable recency label from a date string (created_at or first_listed_date).
 	 *
 	 * Returns granular labels: "Just now", "X minutes ago", "X hours ago", "Listed today",

@@ -121,11 +121,31 @@
         });
     }
 
+    /**
+     * Rotate hero photos (CSS crossfade). One slide: no timer.
+     */
+    function initHeroPhotoRotation() {
+        var wrap = document.querySelector('.lpnw-hero__photos');
+        if (!wrap) return;
+        var imgs = wrap.querySelectorAll('.lpnw-hero__photo');
+        if (imgs.length < 2) return;
+        if (reducedMotion) return;
+
+        var i = 0;
+        var ms = 9000;
+        setInterval(function () {
+            imgs[i].classList.remove('is-active');
+            i = (i + 1) % imgs.length;
+            imgs[i].classList.add('is-active');
+        }, ms);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initSmoothScroll();
         initAnimateOnScroll();
         initStaggeredCardReveal();
         initStatCounters();
         initButtonShine();
+        initHeroPhotoRotation();
     });
 })();
