@@ -36,6 +36,10 @@ class LPNW_Admin {
 	);
 
 	public static function init(): void {
+		if ( class_exists( 'LPNW_Admin_Help' ) ) {
+			LPNW_Admin_Help::init();
+		}
+
 		if ( class_exists( 'LPNW_Admin_Subscribers' ) ) {
 			LPNW_Admin_Subscribers::init();
 		}

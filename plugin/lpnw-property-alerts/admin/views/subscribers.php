@@ -24,6 +24,11 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 
 <div class="wrap lpnw-admin-subscribers">
 	<h1><?php esc_html_e( 'Subscribers', 'lpnw-alerts' ); ?></h1>
+	<div class="notice notice-info inline" style="margin:12px 0;padding:8px 12px;">
+		<p style="margin:0;">
+			<?php esc_html_e( 'Open the Help panel (tab at the top of this screen) for a full guide to each column and how to change tiers.', 'lpnw-alerts' ); ?>
+		</p>
+	</div>
 	<p class="description">
 		<?php esc_html_e( 'Users who have saved alert preferences. Tier follows WooCommerce orders when Pro or VIP is paid; otherwise you can set an override on the user profile.', 'lpnw-alerts' ); ?>
 	</p>
@@ -60,12 +65,40 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 		<thead>
 			<tr>
 				<th scope="col"><?php esc_html_e( 'User', 'lpnw-alerts' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'Tier', 'lpnw-alerts' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'From orders', 'lpnw-alerts' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'Override', 'lpnw-alerts' ); ?></th>
+				<th scope="col">
+					<?php esc_html_e( 'Tier', 'lpnw-alerts' ); ?>
+					<?php
+					LPNW_Admin_Help::tip_icon(
+						__( 'Tier used for sending alerts. Paid Pro or VIP from WooCommerce always wins over a profile override.', 'lpnw-alerts' )
+					);
+					?>
+				</th>
+				<th scope="col">
+					<?php esc_html_e( 'From orders', 'lpnw-alerts' ); ?>
+					<?php
+					LPNW_Admin_Help::tip_icon(
+						__( 'Tier implied by recent completed or processing orders with lpnw-pro or lpnw-vip products. Ignores admin comps.', 'lpnw-alerts' )
+					);
+					?>
+				</th>
+				<th scope="col">
+					<?php esc_html_e( 'Override', 'lpnw-alerts' ); ?>
+					<?php
+					LPNW_Admin_Help::tip_icon(
+						__( 'Optional comp or trial set under Users: LPNW alert tier. Only applies when there is no qualifying paid Pro/VIP order.', 'lpnw-alerts' )
+					);
+					?>
+				</th>
 				<th scope="col"><?php esc_html_e( 'Frequency', 'lpnw-alerts' ); ?></th>
 				<th scope="col"><?php esc_html_e( 'Active', 'lpnw-alerts' ); ?></th>
-				<th scope="col"><?php esc_html_e( 'WooCommerce', 'lpnw-alerts' ); ?></th>
+				<th scope="col">
+					<?php esc_html_e( 'Orders', 'lpnw-alerts' ); ?>
+					<?php
+					LPNW_Admin_Help::tip_icon(
+						__( 'Opens WooCommerce orders for this customer. Use refunds or new orders to change paid tier.', 'lpnw-alerts' )
+					);
+					?>
+				</th>
 			</tr>
 		</thead>
 		<tbody>

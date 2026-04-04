@@ -39,6 +39,9 @@ final class LPNW_User_Tier_Profile {
 		wp_nonce_field( 'lpnw_save_tier_override', 'lpnw_tier_override_nonce' );
 		?>
 		<h2 id="lpnw-tier-override"><?php esc_html_e( 'LPNW alert tier (support)', 'lpnw-alerts' ); ?></h2>
+		<p class="description" style="margin:0 0 12px;max-width:720px;">
+			<?php esc_html_e( 'Paid access is driven by WooCommerce orders (Pro/VIP products). Use this section for trials and comps when there is no qualifying paid order. More detail: open the Help tab while editing this user.', 'lpnw-alerts' ); ?>
+		</p>
 		<table class="form-table" role="presentation">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Tier from orders', 'lpnw-alerts' ); ?></th>
