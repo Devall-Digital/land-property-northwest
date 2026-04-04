@@ -6,6 +6,21 @@
 
 This is a WordPress plugin + theme repo (no standalone app). The core product is the `lpnw-property-alerts` plugin in `plugin/` and the GeneratePress child theme in `theme/`. See `BRIEF.md` and `STATUS.md` for product context and priorities.
 
+### Live WordPress login (cloud agents, production site)
+
+Cloud agents and browser automation should **not** guess wp-admin passwords. On **https://land-property-northwest.co.uk** use the **`lpnw-login-as`** must-use plugin (`mu-plugins/lpnw-login-as.php` in the repo; lives on the server under `wp-content/mu-plugins/`).
+
+1. Include **`?nocache=1`** so 20i CDN does not return stale HTML.
+2. Add **`&lpnw_login_as=test`** (subscriber / dashboard) or **`&lpnw_login_as=admin`** (wp-admin).
+3. Add **`&key=`** — during development the default is **`lpnw2026setup`**. If the server defines **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`, use that value instead of the default (see `docs/DEPLOYMENT.md`).
+
+**Ready-to-use URLs (default dev key):**
+
+- Subscriber (test user): `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`
+- Admin: `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=admin&key=lpnw2026setup`
+
+**Alternative:** one-shot admin login via `tools/lpnw-autologin.php` copied to mu-plugins and `?lpnw_autologin=admin&key=...` — the file **removes itself** after one success. Full security notes: `docs/DEPLOYMENT.md`; batched checks and variants: `docs/VERIFICATION-BATCHES.md`, `docs/PROJECT-RUNBOOK.md`.
+
 ### Linting
 
 ```bash
@@ -40,7 +55,7 @@ Agent browser automation does **not** open Chrome or Edge on your PC. Cursor run
 
 - **Director / user:** Say “open the browser on the side” if the tab does not appear; the agent should use **`position`: `"side"`** on `browser_navigate`.
 - **If you see nothing:** Check the **View** menu for browser / simple browser options for your Cursor version, or focus the chat’s browser preview if your layout hides it.
-- **You can always mirror manually:** Open the same URL in your own browser (e.g. the site with `?nocache=1` or the `lpnw_login_as` URL from `docs/DEPLOYMENT.md`).
+- **You can always mirror manually:** Open the same URL in your own browser (use the **Live WordPress login** URLs above, or `docs/DEPLOYMENT.md`).
 
 ### Gotchas
 
