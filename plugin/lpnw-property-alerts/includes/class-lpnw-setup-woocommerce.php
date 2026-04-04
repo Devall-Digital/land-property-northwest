@@ -10,6 +10,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/class-lpnw-woocommerce-store.php';
+
 /**
  * Configures WooCommerce, subscription-tier products, and nav menus.
  */
@@ -187,6 +189,12 @@ final class LPNW_Setup_WooCommerce {
 		$product->set_manage_stock( false );
 
 		$product_id = $product->save();
+
+		$saved = wc_get_product( $product_id );
+		if ( $saved instanceof WC_Product && class_exists( 'LPNW_WooCommerce_Store' ) ) {
+			LPNW_WooCommerce_Store::apply_tier_product_flags( $saved );
+			$saved->save();
+		}
 
 		wc_delete_product_transients( $product_id );
 
