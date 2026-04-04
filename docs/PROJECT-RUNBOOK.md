@@ -23,6 +23,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 | `docs/DEPLOYMENT.md` | FTP paths and release steps |
 | `docs/DISCOVERY-BACKLOG.md` | Read-only audit: full backlog of gaps and improvements (synthesised from code review) |
 | `docs/VISUAL-AUDIT.md` | Live **UI/UX and artistic direction** findings from browser review (test user); update after each visual pass |
+| `docs/VERIFICATION-BATCHES.md` | **Batched live checks** (cron, feeds, prefs, alerts, off-market); login-as script URLs for VM/browser agents |
 | `docs/SETUP.md` | Hosting and plugin setup (may lag live; cross-check STATUS) |
 | `.cursor/rules/secrets.mdc` | Where credentials are named (not values) |
 
