@@ -24,23 +24,26 @@
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             var formData = new FormData(form);
-            var params = {};
-
+            // Build body with URLSearchParams.append so PHP receives repeated keys
+            // (e.g. alert_types[]=x&alert_types[]=y). Passing arrays into URLSearchParams
+            // via a plain object coerces them to comma-separated strings, which breaks
+            // $_POST['alert_types'] and corrupts saved preferences.
+            var usp = new URLSearchParams();
             formData.forEach(function (value, key) {
-                if (key.endsWith('[]')) {
-                    var clean = key.replace('[]', '');
-                    if (!params[clean]) params[clean] = [];
-                    params[clean].push(value);
-                } else {
-                    params[key] = value;
-                }
+                usp.append(key, value);
             });
+            usp.set('action', 'lpnw_save_preferences');
+            usp.set('nonce', data.nonce);
 
             var btn = form.querySelector('[type="submit"]');
             btn.disabled = true;
             btn.textContent = 'Saving...';
 
-            post('lpnw_save_preferences', params).then(function (res) {
+            fetch(data.ajaxUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: usp.toString()
+            }).then(function (res) { return res.json(); }).then(function (res) {
                 btn.disabled = false;
                 btn.textContent = 'Save Preferences';
                 if (res.success) {
@@ -48,6 +51,10 @@
                 } else {
                     showNotice('Could not save preferences. Please try again.', 'error');
                 }
+            }).catch(function () {
+                btn.disabled = false;
+                btn.textContent = 'Save Preferences';
+                showNotice('Could not save preferences. Please try again.', 'error');
             });
         });
     }

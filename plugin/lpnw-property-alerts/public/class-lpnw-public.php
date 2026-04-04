@@ -476,6 +476,31 @@ class LPNW_Public {
 		return esc_url( add_query_arg( $clean, $base ) );
 	}
 
+	/**
+	 * Normalise multi-value POST fields: proper arrays, a single scalar, or comma-separated strings.
+	 *
+	 * @param mixed $raw Unslashed $_POST fragment.
+	 * @return array<int, string>
+	 */
+	private static function normalize_post_string_array( $raw ): array {
+		if ( is_array( $raw ) ) {
+			$out = array();
+			foreach ( $raw as $item ) {
+				if ( is_string( $item ) ) {
+					$out[] = $item;
+				} elseif ( is_scalar( $item ) ) {
+					$out[] = (string) $item;
+				}
+			}
+			return $out;
+		}
+		if ( is_string( $raw ) && '' !== $raw ) {
+			$parts = array_map( 'trim', explode( ',', $raw ) );
+			return array_values( array_filter( $parts, 'strlen' ) );
+		}
+		return array();
+	}
+
 	public static function ajax_save_preferences(): void {
 		check_ajax_referer( 'lpnw_public', 'nonce' );
 
@@ -486,24 +511,21 @@ class LPNW_Public {
 		$user_id = get_current_user_id();
 		$tier    = LPNW_Subscriber::get_tier( $user_id );
 
-		$listing_raw = isset( $_POST['listing_channels'] ) ? wp_unslash( $_POST['listing_channels'] ) : array();
-		if ( ! is_array( $listing_raw ) ) {
-			$listing_raw = array();
-		}
+		$listing_raw = self::normalize_post_string_array(
+			isset( $_POST['listing_channels'] ) ? wp_unslash( $_POST['listing_channels'] ) : array()
+		);
 		$allowed_listing = array( 'sale', 'rent' );
 		$listing_channels = array_values( array_intersect( $allowed_listing, array_map( 'sanitize_text_field', $listing_raw ) ) );
 
-		$tenure_raw = isset( $_POST['tenure_preferences'] ) ? wp_unslash( $_POST['tenure_preferences'] ) : array();
-		if ( ! is_array( $tenure_raw ) ) {
-			$tenure_raw = array();
-		}
+		$tenure_raw = self::normalize_post_string_array(
+			isset( $_POST['tenure_preferences'] ) ? wp_unslash( $_POST['tenure_preferences'] ) : array()
+		);
 		$allowed_tenure = array( 'freehold', 'leasehold', 'share_of_freehold' );
 		$tenure_preferences = array_values( array_intersect( $allowed_tenure, array_map( 'sanitize_text_field', $tenure_raw ) ) );
 
-		$features_raw = isset( $_POST['required_features'] ) ? wp_unslash( $_POST['required_features'] ) : array();
-		if ( ! is_array( $features_raw ) ) {
-			$features_raw = array();
-		}
+		$features_raw = self::normalize_post_string_array(
+			isset( $_POST['required_features'] ) ? wp_unslash( $_POST['required_features'] ) : array()
+		);
 		$allowed_features = array( 'garden', 'parking', 'garage', 'new_build', 'chain_free' );
 		$required_features = array_values( array_intersect( $allowed_features, array_map( 'sanitize_text_field', $features_raw ) ) );
 
@@ -511,23 +533,20 @@ class LPNW_Public {
 		if ( 'vip' === $tier ) {
 			$allowed_alert_types[] = 'off_market';
 		}
-		$alert_raw = isset( $_POST['alert_types'] ) ? wp_unslash( $_POST['alert_types'] ) : array();
-		if ( ! is_array( $alert_raw ) ) {
-			$alert_raw = array();
-		}
+		$alert_raw = self::normalize_post_string_array(
+			isset( $_POST['alert_types'] ) ? wp_unslash( $_POST['alert_types'] ) : array()
+		);
 		$alert_types_sanitized = array_values( array_intersect( $allowed_alert_types, array_map( 'sanitize_text_field', $alert_raw ) ) );
 
-		$areas_raw = isset( $_POST['areas'] ) ? wp_unslash( $_POST['areas'] ) : array();
-		if ( ! is_array( $areas_raw ) ) {
-			$areas_raw = array();
-		}
+		$areas_raw = self::normalize_post_string_array(
+			isset( $_POST['areas'] ) ? wp_unslash( $_POST['areas'] ) : array()
+		);
 		$areas_sanitized = class_exists( 'LPNW_NW_Postcodes' )
 			? LPNW_NW_Postcodes::sanitize_areas_array( $areas_raw )
 			: array_values( array_intersect( array_map( 'sanitize_text_field', $areas_raw ), LPNW_NW_POSTCODES ) );
-		$ptypes_raw = isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array();
-		if ( ! is_array( $ptypes_raw ) ) {
-			$ptypes_raw = array();
-		}
+		$ptypes_raw = self::normalize_post_string_array(
+			isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array()
+		);
 
 		$prefs = array(
 			'areas'                => $areas_sanitized,
