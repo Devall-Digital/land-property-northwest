@@ -1,6 +1,6 @@
 <?php
 /**
- * Hero: layered cityscape, clouds, particles, CTA (premium motion respects reduced-motion).
+ * Hero: photo background (front page via LPNW_Hero_Media) or solid gradient; CTAs.
  *
  * Variables (via lpnw_get_template_part or set before include):
  * - string $heading   Main H1 text.
@@ -30,26 +30,7 @@ if ( is_user_logged_in() ) {
 	$ghost_label   = __( 'Alert preferences', 'lpnw-theme' );
 }
 ?>
-<section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
-	<div class="lpnw-hero__bg" aria-hidden="true">
-		<div class="lpnw-hero__sky"></div>
-		<div class="lpnw-hero__cloud lpnw-hero__cloud--a"></div>
-		<div class="lpnw-hero__cloud lpnw-hero__cloud--b"></div>
-		<div class="lpnw-hero__cloud lpnw-hero__cloud--c"></div>
-		<div class="lpnw-hero__cityscape">
-			<span class="lpnw-hero__shape lpnw-hero__shape--1"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--2"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--3"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--4"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--5"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--6"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--7"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--8"></span>
-		</div>
-		<div class="lpnw-hero__orb"></div>
-		<div class="lpnw-hero__particles"></div>
-		<div class="lpnw-hero__vignette"></div>
-	</div>
+<section class="lpnw-hero lpnw-hero--photos" aria-labelledby="lpnw-hero-heading">
 	<div class="lpnw-hero__content">
 		<h1 id="lpnw-hero-heading" class="lpnw-hero__title"><?php echo esc_html( $heading ); ?></h1>
 		<p class="lpnw-hero__subtitle"><?php echo esc_html( $subheading ); ?></p>

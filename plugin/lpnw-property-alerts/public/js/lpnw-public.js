@@ -210,10 +210,58 @@
         });
     }
 
+    function initHeroPhotos() {
+        var root = document.querySelector('.lpnw-hero__photos[data-lpnw-hero-photos]');
+        if (!root) {
+            return;
+        }
+        var slides = root.querySelectorAll('.lpnw-hero__photo');
+        if (slides.length < 2) {
+            return;
+        }
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+        var i = 0;
+        var period = 7000;
+        window.setInterval(function () {
+            slides[i].classList.remove('is-active');
+            i = (i + 1) % slides.length;
+            slides[i].classList.add('is-active');
+        }, period);
+    }
+
+    function initPropertySearchFilters() {
+        var root = document.querySelector('[data-lpnw-property-search]');
+        if (!root) {
+            return;
+        }
+        var shell = root.querySelector('.lpnw-property-search__filters-shell');
+        if (!shell || typeof window.matchMedia !== 'function') {
+            return;
+        }
+        var mq = window.matchMedia('(max-width: 639px)');
+        function apply() {
+            if (mq.matches) {
+                shell.removeAttribute('open');
+            } else {
+                shell.setAttribute('open', '');
+            }
+        }
+        apply();
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', apply);
+        } else if (typeof mq.addListener === 'function') {
+            mq.addListener(apply);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initPreferencesForm();
         initContactForm();
         initSaveButtons();
         initUnsaveButtons();
+        initPropertySearchFilters();
+        initHeroPhotos();
     });
 })();

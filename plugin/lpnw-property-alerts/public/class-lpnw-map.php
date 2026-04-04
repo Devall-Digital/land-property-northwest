@@ -332,7 +332,7 @@ class LPNW_Map {
 		if (chunk < 1) {
 			setBusy(root, false);
 			var moreBtnEmpty = root.querySelector('.lpnw-map-load-more');
-			if (moreBtnEmpty) { moreBtnEmpty.style.display = 'none'; }
+			if (moreBtnEmpty) { moreBtnEmpty.hidden = true; }
 			return;
 		}
 		var body = new URLSearchParams();
@@ -361,7 +361,7 @@ class LPNW_Map {
 			var canMore = !!(data.data.has_more && newOffset < maxTotal);
 			root.dataset.lpnwHasMore = canMore ? '1' : '0';
 			var moreBtn = root.querySelector('.lpnw-map-load-more');
-			if (moreBtn) { moreBtn.style.display = canMore ? '' : 'none'; }
+			if (moreBtn) { moreBtn.hidden = !canMore; }
 		}).catch(function () { setBusy(root, false); });
 	}
 	function initRoot(root) {
@@ -386,7 +386,7 @@ class LPNW_Map {
 		root.dataset.lpnwHasMore = cfg.initialHasMore ? '1' : '0';
 		var moreBtn = root.querySelector('.lpnw-map-load-more');
 		if (moreBtn) {
-			moreBtn.style.display = cfg.initialHasMore ? '' : 'none';
+			moreBtn.hidden = !cfg.initialHasMore;
 			moreBtn.addEventListener('click', function () {
 				if (root.dataset.lpnwHasMore !== '1') { return; }
 				fetchMarkers(root, cluster, cfg, root.dataset.lpnwSource || '', parseInt(root.dataset.lpnwOffset, 10) || 0, true);
@@ -471,6 +471,12 @@ JS;
 
 		$map_id = 'lpnw-map-' . wp_rand( 10000, 99999 );
 
+		$height_attr = (string) $atts['height'];
+		$map_height  = 'min(62vh, 500px)';
+		if ( preg_match( '/^(\d+(?:\.\d+)?)\s*(px|vh|vw|rem|em|%)$/i', trim( $height_attr ), $hm ) ) {
+			$map_height = $hm[1] . $hm[2];
+		}
+
 		$config = array(
 			'mapId'            => $map_id,
 			'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
@@ -499,10 +505,10 @@ JS;
 		ob_start();
 		?>
 		<div class="lpnw-property-map-widget" data-lpnw-map-config="<?php echo esc_attr( wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ); ?>">
-			<div class="lpnw-map-toolbar" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px;">
-				<label style="display:inline-flex;align-items:center;gap:8px;">
-					<span><?php echo esc_html__( 'Source', 'lpnw-alerts' ); ?></span>
-					<select class="lpnw-map-source" name="lpnw_map_source">
+			<div class="lpnw-map-toolbar">
+				<label class="lpnw-map-toolbar__field">
+					<span class="lpnw-map-toolbar__label"><?php echo esc_html__( 'Source', 'lpnw-alerts' ); ?></span>
+					<select class="lpnw-map-source lpnw-map-toolbar__select" name="lpnw_map_source">
 						<option value="" <?php selected( $source_filter, '' ); ?>><?php echo esc_html__( 'All sources', 'lpnw-alerts' ); ?></option>
 						<option value="rightmove" <?php selected( $source_filter, 'rightmove' ); ?>><?php echo esc_html__( 'Rightmove', 'lpnw-alerts' ); ?></option>
 						<option value="zoopla" <?php selected( $source_filter, 'zoopla' ); ?>><?php echo esc_html__( 'Zoopla', 'lpnw-alerts' ); ?></option>
@@ -513,16 +519,16 @@ JS;
 						<option value="landregistry" <?php selected( $source_filter, 'landregistry' ); ?>><?php echo esc_html__( 'Land Registry', 'lpnw-alerts' ); ?></option>
 					</select>
 				</label>
-				<button type="button" class="lpnw-map-load-more button" style="display:none;"><?php echo esc_html__( 'Load more', 'lpnw-alerts' ); ?></button>
+				<button type="button" class="lpnw-map-load-more button lpnw-map-toolbar__load-more" hidden><?php echo esc_html__( 'Load more', 'lpnw-alerts' ); ?></button>
 			</div>
-			<div class="lpnw-map-body" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;">
-				<div id="<?php echo esc_attr( $map_id ); ?>" class="lpnw-map-canvas" style="flex:1;min-width:280px;height:<?php echo esc_attr( $atts['height'] ); ?>;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;"></div>
-				<div class="lpnw-map-legend" style="flex:0 0 auto;min-width:160px;padding:12px 14px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;line-height:1.4;">
-					<strong style="display:block;margin-bottom:8px;"><?php echo esc_html__( 'Legend', 'lpnw-alerts' ); ?></strong>
-					<ul style="margin:0;padding:0;list-style:none;">
+			<div class="lpnw-map-body">
+				<div id="<?php echo esc_attr( $map_id ); ?>" class="lpnw-map-canvas" style="height:<?php echo esc_attr( $map_height ); ?>;"></div>
+				<div class="lpnw-map-legend lpnw-map-legend--widget">
+					<strong class="lpnw-map-legend__title"><?php echo esc_html__( 'Legend', 'lpnw-alerts' ); ?></strong>
+					<ul class="lpnw-map-legend__list" role="list">
 						<?php foreach ( $legend_items as $item ) : ?>
-							<li style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-								<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:<?php echo esc_attr( $item['color'] ); ?>;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2);flex-shrink:0;"></span>
+							<li class="lpnw-map-legend__item">
+								<span class="lpnw-map-legend__swatch" style="background:<?php echo esc_attr( $item['color'] ); ?>;"></span>
 								<?php echo esc_html( $item['label'] ); ?>
 							</li>
 						<?php endforeach; ?>
