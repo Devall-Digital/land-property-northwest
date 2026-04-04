@@ -68,6 +68,8 @@ final class LPNW_Property_Alerts {
 		require_once $includes . 'class-lpnw-nw-postcodes.php';
 		require_once $includes . 'class-lpnw-property.php';
 		require_once $includes . 'class-lpnw-subscriber.php';
+		require_once $includes . 'class-lpnw-woocommerce-store.php';
+		require_once $includes . 'class-lpnw-user-tier-profile.php';
 		require_once $includes . 'class-lpnw-free-tier-instant.php';
 		require_once $includes . 'class-lpnw-matcher.php';
 		require_once $includes . 'class-lpnw-dispatcher.php';
@@ -92,7 +94,9 @@ final class LPNW_Property_Alerts {
 		require_once $feeds . 'class-lpnw-feed-portal-onthemarket.php';
 
 		if ( is_admin() ) {
+			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin-help.php';
 			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin.php';
+			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin-subscribers.php';
 		}
 
 		require_once LPNW_PLUGIN_DIR . 'includes/class-lpnw-off-market-submit.php';
@@ -112,6 +116,8 @@ final class LPNW_Property_Alerts {
 		LPNW_Mautic_Sync::init();
 		LPNW_Page_Content_Sync::init();
 		LPNW_WooCommerce_Notices::init();
+		LPNW_WooCommerce_Store::init();
+		LPNW_User_Tier_Profile::init();
 		LPNW_Off_Market_Submit::init();
 
 		if ( is_admin() ) {
