@@ -11,8 +11,15 @@ defined( 'ABSPATH' ) || exit;
 
 class LPNW_Cron {
 
+	/**
+	 * Transient key: rate-limit stale-cron self-heal checks.
+	 */
+	private const CRON_REPAIR_CHECK_TRANSIENT = 'lpnw_cron_stale_check';
+
 	public static function init(): void {
 		add_filter( 'cron_schedules', array( __CLASS__, 'add_intervals' ) );
+
+		add_action( 'init', array( __CLASS__, 'maybe_repair_stale_fifteen_min_cron' ), 5 );
 
 		add_action( 'lpnw_cron_planning', array( __CLASS__, 'run_planning_feed' ) );
 		add_action( 'lpnw_cron_epc', array( __CLASS__, 'run_epc_feed' ) );
@@ -38,6 +45,53 @@ class LPNW_Cron {
 			'display'  => __( 'Every 6 Hours', 'lpnw-alerts' ),
 		);
 		return $schedules;
+	}
+
+	/**
+	 * If portal or alert-dispatch events are far overdue, reschedule them.
+	 *
+	 * Long feed runs can exceed the HTTP request time limit during wp_cron(),
+	 * leaving `doing_cron` set and preventing reschedules. Events then sit in the
+	 * past and nothing runs until manual intervention.
+	 */
+	public static function maybe_repair_stale_fifteen_min_cron(): void {
+		if ( wp_installing() ) {
+			return;
+		}
+
+		if ( false !== get_transient( self::CRON_REPAIR_CHECK_TRANSIENT ) ) {
+			return;
+		}
+
+		set_transient( self::CRON_REPAIR_CHECK_TRANSIENT, 1, 5 * MINUTE_IN_SECONDS );
+
+		$grace = 20 * MINUTE_IN_SECONDS;
+
+		$hooks = array(
+			'lpnw_cron_portals',
+			'lpnw_cron_dispatch_alerts',
+		);
+
+		$stale = false;
+		foreach ( $hooks as $hook ) {
+			$next = wp_next_scheduled( $hook );
+			if ( false === $next || $next < time() - $grace ) {
+				$stale = true;
+				break;
+			}
+		}
+
+		if ( ! $stale ) {
+			return;
+		}
+
+		delete_transient( 'doing_cron' );
+
+		$now = time();
+		wp_clear_scheduled_hook( 'lpnw_cron_portals' );
+		wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
+		wp_schedule_event( $now, 'lpnw_fifteen_min', 'lpnw_cron_portals' );
+		wp_schedule_event( $now + 120, 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
 	}
 
 	public static function run_planning_feed(): void {
