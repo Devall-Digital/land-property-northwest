@@ -34,6 +34,14 @@ Agents **can** exercise the live subscriber UI the same way you do:
 | `lpnw_cron_auctions` | daily | Auction feeds (if enabled) |
 | `lpnw_cron_free_digest` | weekly | Free tier digest |
 
+**Should EPC / planning / Land Registry run every 15 minutes?** Usually **no**:
+
+- **EPC Open Data** is not a live “new listing” firehose like portals; daily (or a few times per day) is normal and avoids API rate and noise.
+- **Planning** is heavy and authority-dependent; 6 hours is already aggressive unless you measure value and cost.
+- **Land Registry** monthly CSV is inherently **not** a 15-minute signal.
+
+Keep **15 minutes** for what drives the **instant listing** USP: **portals + dispatch**. Tighten EPC/planning only if product research shows subscribers want that latency and the APIs tolerate it.
+
 **Checks:**
 
 - [ ] **LPNW Alerts → Dashboard:** “Next scheduled cron runs” shows sensible next times for portals + dispatch.
@@ -63,9 +71,11 @@ Agents **can** exercise the live subscriber UI the same way you do:
 **Checks (logged-in subscriber):**
 
 - [ ] `/preferences/` — change areas, prices, alert types, frequency → **Save** → success notice.
+- [ ] **Save again without changing anything** → should still show success (plugin 1.0.28+ fixed `wpdb->update` returning `0` for “no row changed”).
 - [ ] Hard refresh; values **persist**.
 - [ ] **Dashboard** coverage / email preview still load without PHP errors.
 - [ ] **Free vs Pro vs VIP:** Free cannot pick `instant` if UI hides it; VIP sees **off_market** toggle when tier is VIP.
+- [ ] If save still fails: browser **Network** tab → `admin-ajax.php` → response JSON; check for `403` (nonce/cache plugin), `-1` (logged out), or DB error in server logs.
 
 ---
 
@@ -87,6 +97,8 @@ Agents **can** exercise the live subscriber UI the same way you do:
 
 - [ ] Admin form creates row; VIP with **Off-market** enabled gets queue entries.
 - [ ] Product copy does not promise **automated** off-market discovery unless you add a feed + legal review.
+
+**Future product direction (not built yet):** A **user-submitted** off-market flow (submit via your site, moderation, then broadcast to matching VIPs) is plausible. **Auto-removal when the same address appears on a portal** needs careful rules (fuzzy address match, postcode + normalised line, false positives). Treat as a **new feature** with legal review (misrepresentation, exclusivity, data protection).
 
 **Future:** Automated “off-market” would need a **defined lawful source** (partnership feed, opted-in network, etc.), not portal scraping.
 

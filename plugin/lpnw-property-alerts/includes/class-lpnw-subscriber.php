@@ -72,10 +72,15 @@ class LPNW_Subscriber {
 		) );
 
 		if ( $existing ) {
-			return (bool) $wpdb->update( $table, $row, array( 'id' => $existing ) );
+			// $wpdb->update returns int rows affected; 0 means "no change" but is still success.
+			$result = $wpdb->update( $table, $row, array( 'id' => $existing ) );
+
+			return false !== $result;
 		}
 
-		return (bool) $wpdb->insert( $table, $row );
+		$result = $wpdb->insert( $table, $row );
+
+		return false !== $result;
 	}
 
 	/**
