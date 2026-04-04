@@ -245,7 +245,7 @@ class LPNW_Activator {
 			wp_schedule_event( time(), 'daily', 'lpnw_cron_landregistry' );
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_auctions' ) ) {
-			wp_schedule_event( time(), 'daily', 'lpnw_cron_auctions' );
+			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_portals' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_portals' );
@@ -259,5 +259,18 @@ class LPNW_Activator {
 		if ( ! wp_next_scheduled( 'lpnw_cron_data_retention' ) ) {
 			wp_schedule_event( time(), 'daily', 'lpnw_cron_data_retention' );
 		}
+	}
+
+	/**
+	 * One-time migration: auction feed was daily; align with portal cadence (15 min).
+	 */
+	public static function maybe_reschedule_auction_cron(): void {
+		if ( get_option( 'lpnw_auctions_cron_15m', '' ) === '1' ) {
+			return;
+		}
+
+		wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
+		wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
+		update_option( 'lpnw_auctions_cron_15m', '1', false );
 	}
 }

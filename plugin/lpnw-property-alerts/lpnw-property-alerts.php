@@ -3,7 +3,7 @@
  * Plugin Name: LPNW Property Alerts
  * Plugin URI: https://land-property-northwest.co.uk
  * Description: Property intelligence and alert engine for Northwest England. Aggregates planning applications, EPC data, Land Registry transactions, and auction listings into automated subscriber alerts.
- * Version: 1.0.28
+ * Version: 1.0.29
  * Author: Land & Property Northwest
  * Author URI: https://land-property-northwest.co.uk
  * License: Proprietary
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LPNW_VERSION', '1.0.28' );
+define( 'LPNW_VERSION', '1.0.29' );
 define( 'LPNW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LPNW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LPNW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -95,6 +95,8 @@ final class LPNW_Property_Alerts {
 			require_once LPNW_PLUGIN_DIR . 'admin/class-lpnw-admin.php';
 		}
 
+		require_once LPNW_PLUGIN_DIR . 'includes/class-lpnw-off-market-submit.php';
+
 		require_once LPNW_PLUGIN_DIR . 'public/class-lpnw-public.php';
 		require_once LPNW_PLUGIN_DIR . 'public/class-lpnw-dashboard.php';
 		require_once LPNW_PLUGIN_DIR . 'public/class-lpnw-map.php';
@@ -110,6 +112,7 @@ final class LPNW_Property_Alerts {
 		LPNW_Mautic_Sync::init();
 		LPNW_Page_Content_Sync::init();
 		LPNW_WooCommerce_Notices::init();
+		LPNW_Off_Market_Submit::init();
 
 		if ( is_admin() ) {
 			LPNW_Admin::init();
@@ -130,4 +133,8 @@ final class LPNW_Property_Alerts {
  */
 add_action( 'plugins_loaded', function () {
 	LPNW_Property_Alerts::instance();
-} );
+}, 10 );
+
+add_action( 'plugins_loaded', function () {
+	LPNW_Activator::maybe_reschedule_auction_cron();
+}, 20 );

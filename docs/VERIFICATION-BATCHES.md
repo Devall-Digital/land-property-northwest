@@ -31,7 +31,7 @@ Agents **can** exercise the live subscriber UI the same way you do:
 | `lpnw_cron_planning` | 6 h | Planning feed (if enabled) |
 | `lpnw_cron_epc` | daily | EPC (if enabled + API credentials) |
 | `lpnw_cron_landregistry` | daily | Land Registry CSV path |
-| `lpnw_cron_auctions` | daily | Auction feeds (if enabled) |
+| `lpnw_cron_auctions` | **15 min** (plugin 1.0.29+) | Auction feeds (Pugh, SDL, AHNW, Allsop) if enabled |
 | `lpnw_cron_free_digest` | weekly | Free tier digest |
 
 **Should EPC / planning / Land Registry run every 15 minutes?** Usually **no**:
@@ -42,9 +42,11 @@ Agents **can** exercise the live subscriber UI the same way you do:
 
 Keep **15 minutes** for what drives the **instant listing** USP: **portals + dispatch**. Tighten EPC/planning only if product research shows subscribers want that latency and the APIs tolerate it.
 
+**Zoopla:** Still often **Cloudflare-blocked** from datacentre IPs. The feed rotates **www / mobile** hosts, **User-Agents**, and **browser-like headers**; a lasting fix may need **allowlisted egress**, **licensed data**, or **residential proxy** (legal/host-approved). Watch **Feed Status** and **PHP error_log** lines prefixed `[LPNW feed=zoopla]`.
+
 **Checks:**
 
-- [ ] **LPNW Alerts → Dashboard:** “Next scheduled cron runs” shows sensible next times for portals + dispatch.
+- [ ] **LPNW Alerts → Dashboard:** “Next scheduled cron runs” shows **Auction feeds** on the **15-minute** cadence alongside portals (after 1.0.29 deploy and one page load).
 - [ ] **Feed Status:** Recent rows **completed**, `properties_new` plausible per source (expect **Zoopla 0** if upstream blocks).
 - [ ] **Traffic / external cron:** If you rely on `?lpnw_cron=tick&key=…`, confirm the ping fires (runbook: 20i WAF may block bare `wp-cron.php`).
 
@@ -91,14 +93,16 @@ Keep **15 minutes** for what drives the **instant listing** USP: **portals + dis
 
 ## Batch E — Off-market (VIP)
 
-**Intent:** **No automated off-market scanner.** Deals are **manually** added in wp-admin (**LPNW → Add off-market**), stored as `source = off_market`, matched to subscribers with **off_market** alert type.
+**Intent:** **No automated off-market scanner.** Staff add deals in wp-admin (**LPNW → Add off-market**). **VIP users** can submit via **`[lpnw_submit_off_market]`** (also embedded on **dashboard** for VIP tier): `admin-post.php` → `LPNW_Off_Market_Submit`, same `off_market` pipeline + rate limit + admin email. **Auto-removal when a portal lists the same property** is **not** implemented yet (needs matching rules + legal review).
 
 **Checks:**
 
 - [ ] Admin form creates row; VIP with **Off-market** enabled gets queue entries.
+- [ ] **VIP dashboard:** submission section visible; submit test row; admin receives email; Feed / browse shows `off_market` source.
+- [ ] **Non-VIP** sees upgrade message on shortcode; **logged-out** sees login prompt.
 - [ ] Product copy does not promise **automated** off-market discovery unless you add a feed + legal review.
 
-**Future product direction (not built yet):** A **user-submitted** off-market flow (submit via your site, moderation, then broadcast to matching VIPs) is plausible. **Auto-removal when the same address appears on a portal** needs careful rules (fuzzy address match, postcode + normalised line, false positives). Treat as a **new feature** with legal review (misrepresentation, exclusivity, data protection).
+**Future product direction:** **Portal-dedup** (hide or flag user off-market when a portal match appears) is a separate build: normalise address/postcode, handle false positives, terms of use.
 
 **Future:** Automated “off-market” would need a **defined lawful source** (partnership feed, opted-in network, etc.), not portal scraping.
 
@@ -110,6 +114,17 @@ Keep **15 minutes** for what drives the **instant listing** USP: **portals + dis
 - [ ] `/map/` markers load; filters work.
 - [ ] Contact form AJAX success.
 - [ ] WooCommerce checkout → tier changes → dashboard reflects tier.
+
+## Batch G — Content and SEO (smoke)
+
+- [ ] Home, pricing, about, contact: **200**, no obvious PHP warnings (WP_DEBUG off on live).
+- [ ] **Rank Math / Reading:** indexability matches launch intent (runbook: No Index).
+- [ ] **OG / Twitter** preview for home + one post (Facebook debugger).
+
+## Batch H — Data sources honesty
+
+- [ ] **Feed Status** table: Zoopla row behaviour documented for stakeholders (0 new vs block).
+- [ ] **EPC** settings: key present if you claim live EPC alerts.
 
 ---
 
