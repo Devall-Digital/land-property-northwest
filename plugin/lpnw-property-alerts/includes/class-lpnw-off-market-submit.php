@@ -35,7 +35,14 @@ class LPNW_Off_Market_Submit {
 
 			return '<p class="lpnw-off-market-submit__login">' . sprintf(
 				/* translators: %s: log in URL */
-				wp_kses_post( __( 'You need to <a href="%s">log in</a> to submit an off-market opportunity.', 'lpnw-alerts' ) ),
+				wp_kses(
+					__( 'You need to <a href="%s">log in</a> to submit an off-market opportunity.', 'lpnw-alerts' ),
+					array(
+						'a' => array(
+							'href' => array(),
+						),
+					)
+				),
 				esc_url( $url )
 			) . '</p>';
 		}
