@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.10.0
+Version: 6.11.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -42,6 +42,10 @@ Text Domain: lpnw-theme
 	--lpnw-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 	--lpnw-glow-gold: rgba(240, 165, 0, 0.3);
 	--lpnw-glow-teal: rgba(0, 212, 170, 0.2);
+
+	/* Sticky guest CTA + cookie banner offset (set in theme inline + footer script). */
+	--lpnw-cookie-offset: 0px;
+	--lpnw-sticky-cta-pad: 0px;
 }
 
 /* ==========================================================================
@@ -2266,6 +2270,19 @@ body.no-sidebar .site-main {
 }
 
 /* ==========================================================================
+   MOBILE LAYOUT: align content chrome with plugin blocks
+   ========================================================================== */
+
+@media (max-width: 639px) {
+	body.lpnw-site .grid-container,
+	body.lpnw-site .site.grid-container {
+		padding-left: max(16px, env(safe-area-inset-left, 0));
+		padding-right: max(16px, env(safe-area-inset-right, 0));
+		box-sizing: border-box;
+	}
+}
+
+/* ==========================================================================
    COMPARISON TABLE (Pricing Page)
    ========================================================================== */
 
@@ -2299,6 +2316,10 @@ body.no-sidebar .site-main {
 @media (max-width: 640px) {
 	.lpnw-pricing-table-wrap::after {
 		opacity: 1;
+	}
+
+	.lpnw-pricing-table {
+		font-size: 0.9375rem;
 	}
 }
 
@@ -2763,26 +2784,6 @@ body.no-sidebar .site-main {
 		margin-left: 0;
 	}
 
-	.lpnw-sticky-cta-bar {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		z-index: 99980;
-		padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
-		box-sizing: border-box;
-		background: rgba(15, 29, 53, 0.95);
-		backdrop-filter: blur(var(--lpnw-glass-blur));
-		-webkit-backdrop-filter: blur(var(--lpnw-glass-blur));
-		box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
-		border-top: 1px solid var(--lpnw-glass-border);
-	}
-
-	.lpnw-sticky-cta-bar .lpnw-btn {
-		width: 100%;
-		min-height: 44px;
-	}
-
 	#cookie-notice.cookie-notice,
 	#cookie-notice.cn-position-bottom {
 		max-height: min(42vh, 280px);
@@ -2959,6 +2960,16 @@ body.no-sidebar .site-main {
 	-webkit-background-clip: text !important;
 	background-clip: text !important;
 	-webkit-text-fill-color: transparent !important;
+}
+
+/* Pricing comparison heading: solid white for contrast (gradient was low-AA on navy). */
+#lpnw-pricing-compare-title.lpnw-pricing-section__title {
+	background: none !important;
+	-webkit-background-clip: unset !important;
+	background-clip: unset !important;
+	-webkit-text-fill-color: var(--lpnw-white) !important;
+	color: var(--lpnw-white) !important;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 /* Section dividers - subtle gradient line between sections */
