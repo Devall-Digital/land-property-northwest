@@ -16,7 +16,6 @@ class LPNW_Activator {
 		self::maybe_migrate();
 		self::set_default_options();
 		self::schedule_cron();
-
 		update_option( 'lpnw_version', LPNW_VERSION );
 		flush_rewrite_rules();
 	}
