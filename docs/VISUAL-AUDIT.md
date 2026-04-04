@@ -2,7 +2,7 @@
 
 **Purpose:** Single place for **live UI/UX and artistic direction** findings from browser-based review (logged-in test user). Complements `docs/DISCOVERY-BACKLOG.md` (code and product correctness). Update this file after each visual pass.
 
-**Last pass:** 2 April 2026 — **three** parallel **computer-use** VM browser audits (test user `/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`) plus **HTTP smoke** on all major paths (all **200** at time of check: `/about/`, `/contact/`, `/pricing/`, `/properties/`, `/map/`, `/shop/`, `/cart/`, `/checkout/`, `/my-account/`, `/saved/`). A fourth commerce-focused VM run **failed** (host image/document cap); treat WooCommerce as **not re-verified** this round. Intermittent **503** still possible on 20i; one agent saw it recover.
+**Last pass:** 2 April 2026 — **three** parallel **computer-use** VM browser audits (test user via `lpnw-login-as` with **`key=`** matching **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`; see `docs/DEPLOYMENT.md`) plus **HTTP smoke** on all major paths (all **200** at time of check: `/about/`, `/contact/`, `/pricing/`, `/properties/`, `/map/`, `/shop/`, `/cart/`, `/checkout/`, `/my-account/`, `/saved/`). A fourth commerce-focused VM run **failed** (host image/document cap); treat WooCommerce as **not re-verified** this round. Intermittent **503** still possible on 20i; one agent saw it recover.
 
 **Note on nav while logged in:** With a **subscriber** cookie, “About” may route to **subscriber home** (`/dashboard/`) by design; for marketing pages audit **open `/about/?nocache=1` in the address bar** or use a **logged-out** window.
 
@@ -18,12 +18,12 @@
 
 ## How we re-run this
 
-1. Use **`https://land-property-northwest.co.uk/?nocache`** (and append `&lpnw_login_as=test&key=...` for test user) so **20i CDN** does not serve stale HTML/CSS.
+1. Use **`https://land-property-northwest.co.uk/?nocache=1`** (and append `&lpnw_login_as=test&key=...` where **`key`** matches **`LPNW_LOGIN_AS_SECRET`**) so **20i CDN** does not serve stale HTML/CSS.
 2. Optional: **Screen record** on the agent VM during review; **delete the `.mp4` after** synthesis to save disk space.
 3. Split work across **parallel agents**: subscriber surfaces, commerce/pricing, marketing homepage, mobile viewport.
 4. Merge results here; push **actionable tickets** into `DISCOVERY-BACKLOG.md` or the runbook **Open work** when they are product-sized tasks.
 
-**Security note:** `lpnw-login-as.php` is a **temporary efficiency tool** for pre-launch QA. **Remove from production** and **rotate the key** before full public launch.
+**Security note:** `lpnw-login-as.php` is a **temporary efficiency tool** for pre-launch QA. It **only runs** when **`LPNW_LOGIN_AS_SECRET`** is set, and **self-deletes after one use**. **Remove the mu-plugin from production** when you do not need it, and **rotate the secret** if it could have leaked.
 
 ---
 

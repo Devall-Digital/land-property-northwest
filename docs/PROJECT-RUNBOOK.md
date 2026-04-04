@@ -46,7 +46,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **Shallow checks** (curl status codes, public REST) catch outages only. **Deep dives** need many probes in parallel: key URLs, forms, logged-in flows, WooCommerce paths, feed admin screens, mobile breakpoints, console errors, and cross-links. That is best done with **several agents or browser sessions at once**, each owning a slice (e.g. one on commerce, one on subscriber UX, one on plugin admin, one on SEO/schema). I will use that pattern whenever you want maximum coverage quickly.
 
-**Visual review (VM browser):** Agents can drive a **real browser on the cloud VM**, log in with **`/?nocache&lpnw_login_as=test&key=...`** (see `mu-plugins/lpnw-login-as.php`), and audit pages like a user. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space. This does not replace **your** check on a real phone, but it catches most desktop/tablet layout and contrast issues.
+**Visual review (VM browser):** Agents can drive a **real browser**, log in with **`/?nocache=1&lpnw_login_as=test&key=...`** where **`key`** equals **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` (see `docs/DEPLOYMENT.md` and `mu-plugins/lpnw-login-as.php`). The script **self-deletes after one use**; redeploy the file if you need it again. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space.
 
 **GitHub vs live:** This repo is the **source of truth** for **plugin and theme code**. Pushing to GitHub means you can redeploy or rebuild the custom product after a host failure. A full site restore also needs **WordPress database, uploads, and wp-config** (use **UpdraftPlus** or 20i backups on a schedule). FTP deploy only replaces the two custom folders.
 
@@ -67,9 +67,9 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 | Script (in repo) | Purpose |
 |------------------|---------|
 | `tools/lpnw-autologin.php` | One-shot login as **first administrator** (by user ID), redirect to **wp-admin**, then **deletes itself**. |
-| `mu-plugins/lpnw-login-as.php` | One-shot login as **admin** (same as above) or **test** subscriber (`admin@codevall.co.uk` → dashboard), then **deletes itself**. |
+| `mu-plugins/lpnw-login-as.php` | One-shot login as **admin** or **test** subscriber (`admin@codevall.co.uk` → dashboard). Requires **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`; **`key`** on the URL must match. **Deletes itself** after one successful login. |
 
-**Typical use:** Upload the chosen file to `wp-content/mu-plugins/` (must load on every request), hit the URL once with the query args defined **inside that file** (`lpnw_autologin` / `lpnw_login_as` and `key`), complete the review in the browser, confirm the file removed itself (or delete it if something failed). **Never leave these on the server after use.** If the shared `key` in those files could have leaked, change it in the repo and on any future copy you upload.
+**Typical use:** Define **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`, upload the file to `wp-content/mu-plugins/` if it is not already there, hit the URL once with `lpnw_login_as` / `lpnw_autologin` and matching **`key`**, then confirm the file removed itself (or delete it manually). **Remove the mu-plugin from the server when you do not need it**; the next full deploy may upload it again from the repo.
 
 Authenticated API checks (e.g. custom endpoints) are an alternative once a session or application password exists; the script path matches what you described for admin visibility under 20i.
 
@@ -92,6 +92,17 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 **Composer lint:** `composer lint` runs via **`@php vendor/bin/phpcs`** (see `composer.json`); PHPCS still reports many existing violations (exit code 2 is expected until cleaned up).
 
 **Not re-checked this pass:** Feed Status row counts, Mautic row, or full wp-admin screens (use 2 Apr snapshot below until next deep login).
+
+---
+
+### 4 April 2026 (wp-admin pass, after browser login)
+
+| Area | Finding |
+|------|---------|
+| **LPNW Overview** | **5,132** properties; **164** in last 24h; **2** active subscribers; **2** with preferences (**2** free / **0** pro / **0** vip); **0** sent today; **3,157** all-time sent; **141** queued |
+| **LPNW Settings** | **Mautic** URL + app user set; **VIP / Pro / Free** email ID fields filled; **EPC** email + API key fields **filled** |
+| **Admin nags** | **Redirection** setup; **Wordfence** prompts; **Cookie Notice** upsell; **Rank Math No Index**; Woo **coming soon** (as before) |
+| **Security (repo same day)** | **`lpnw-login-as.php`**: no hard-coded key; requires **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`; **`hash_equals`** for key; **self-deletes** after one successful login (`tools/lpnw-autologin.php` aligned). See `docs/DEPLOYMENT.md`. |
 
 ---
 
@@ -140,12 +151,12 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 **Theme 6.4+:** Hero uses **three full-width SVG layers** + scroll parallax (`--lpnw-parallax-p`); no canvas loops.
 2. **Zoopla:** Code present; live ingestion blocked by Cloudflare from hosting—needs approved approach if that source must contribute.
-3. **EPC:** Pipeline exists; needs **EPC Open Data API key** in plugin settings for live pulls.
+3. **EPC:** Credentials present in **LPNW Alerts → Settings** (4 Apr 2026); keep monitoring **Feed Status** for successful runs and rotate the API key if it was ever exposed.
 
 ### Product / ops hygiene
 
 4. **Operations:** Monitor **LPNW Alerts → Feed Status** and logs in wp-admin regularly.
-5. **Alert queue vs send:** Large **queued** count with Mautic template IDs **empty** — confirm dispatch cadence and whether wp_mail or Mautic should own production sends.
+5. **Alert queue vs send:** **~141 queued** observed 4 Apr 2026 — confirm dispatch cadence, Mautic deliverability, and whether **wp_mail** fallback is acceptable when Mautic is slow.
 6. **Launch toggles:** Clear **No Index** and **WooCommerce coming soon** when you intend to sell and rank.
 7. **Docs alignment:** Reconcile `docs/SETUP.md` (e.g. WPForms, wp-cron URL) with **STATUS.md** and live behaviour so operators are not misled.
 
@@ -173,6 +184,7 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 | Date | Item |
 |------|------|
+| 2026-04-04 | **Security + docs:** `lpnw-login-as.php` / `lpnw-autologin.php` require **`LPNW_LOGIN_AS_SECRET`**, timing-safe compare, self-delete; DEPLOYMENT + secrets.mdc + STATUS + runbook + verification docs updated; wp-admin audit (numbers + settings) |
 | 2026-04-04 | **FTP deploy** from repo main (plugin 1.0.32, theme 6.12.1, mu-plugins); public `?nocache` smoke + live theme header check; `composer.json` lint script uses `vendor/bin/phpcs`; STATUS + runbook versions aligned |
 | 2026-04-02 | **wp-admin read-only audit** (autologin script upload once, removed); STATUS + runbook updated with live numbers and notices |
 | 2026-04-02 | Runbook created; live smoke check home/properties/pricing/dashboard + REST index |

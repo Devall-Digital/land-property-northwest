@@ -8,11 +8,11 @@ Last updated: 4 April 2026
 
 ## Platform State: Live, Multi-Source
 
-The property alerts platform ingests listings from several active feeds, surfaces them in browse, map, and dashboard experiences, and runs the full subscriber preference and alert pipeline. **Live dashboard (wp-admin, last deep check 2 Apr 2026): ~3,465 properties tracked**, **1,696 added in the last 24 hours**, feeds running on schedule with **zero failed runs** on the Feed Status table. Rightmove and OnTheMarket drive bulk volume; auction feeds add specialist lots. **Zoopla** runs complete but **0 new properties** ingested (consistent with upstream blocking). **Allsop** auction feed shows **0** new properties so far.
+The property alerts platform ingests listings from several active feeds, surfaces them in browse, map, and dashboard experiences, and runs the full subscriber preference and alert pipeline. **Live dashboard (wp-admin, verified 4 Apr 2026): ~5,132 properties tracked**, **164 added in the last 24 hours** (figures move daily). Rightmove and OnTheMarket drive bulk volume; auction feeds add specialist lots. **Zoopla** typically completes with **0 new rows** (upstream blocking). **Allsop** often shows **0** in feed stats (monitor in **Feed Status**).
 
 ## Data Snapshot
 
-Figures below are **operational snapshots** from the live **LPNW Alerts** dashboard and **Feed Status** screen (2 Apr 2026), not a manual census of `lpnw_properties` by source.
+Figures below are **operational snapshots** from the live **LPNW Alerts** dashboard (4 Apr 2026), not a manual census of `lpnw_properties` by source. Re-check **LPNW Alerts → Overview** and **Feed Status** after major deploys.
 
 | Source | Notes (live) |
 |--------|----------------|
@@ -21,21 +21,21 @@ Figures below are **operational snapshots** from the live **LPNW Alerts** dashbo
 | Auction House NW | Running |
 | SDL Auctions | Running |
 | Pugh Auctions | Running |
-| **Zoopla** | **0 new properties** (feed completes; no rows) |
+| **Zoopla** | **0 new properties** typical (feed completes; no rows) |
 | **Allsop** | **0 new properties** in feed stats (monitor) |
-| Planning / EPC / Land Registry | Pipelines enabled; **EPC API email and key empty** in settings until configured |
+| Planning / EPC / Land Registry | Pipelines available; **EPC email + API key are set** in **LPNW Alerts → Settings** (4 Apr 2026); confirm rows in **Feed Status** for EPC |
 
 Planning Portal runs; national platform still limits practical coverage. Land Registry uses the **monthly CSV** path as designed.
 
 ## Infrastructure
 
-- **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live `style.css` header **version 6.12.1**, verified 4 Apr 2026 after FTP deploy); **LPNW Property Alerts plugin** deployed from repo **1.0.32** (4 Apr 2026 FTP mirror; confirm **Plugins** list in wp-admin on next login)
-- **WP-Cron:** `DISABLE_WP_CRON` not set; **next scheduled jobs visible** in LPNW dashboard (portals, dispatch, planning, EPC, auctions, digest). **External** cron URLs may still be blocked by the WAF for third-party ping services (see Owner actions); traffic-driven cron is clearly firing.
-- **Must-use plugins on live:** includes `lpnw-cron-endpoint.php`, operational helpers (`lpnw-backfill-otm.php`, `lpnw-postcode-stats.php`, `lpnw-tier-test.php`), **`lpnw-login-as.php`** (review security: should not rely on a static URL key long term), host `wp-stack-cache.php`
-- **Mautic** base URL configured; **API check: connected (HTTP 200)**. **Repo plugin 1.0.13+** can **auto-fill VIP/Pro/Free email IDs** from Mautic template names; after **1.0.32** deploy (4 Apr 2026), open **LPNW Alerts > Settings** once if IDs need a refresh (or wait for daily sync).
-- **WooCommerce** with **Stripe** gateway; **three published products** in catalog; admin bar shows **Store coming soon** (confirm before public launch)
-- **Tier detection** from WooCommerce orders (completed/processing) is **working** (alert log shows PRO tier)
-- **Search indexing:** Rank Math admin notice reports **No Index** (WordPress Reading or Rank Math). **Reconcile** with intended launch state; do not assume the site is visible in Google until this is cleared
+- **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live `style.css` **6.12.1**); **LPNW Property Alerts plugin** **1.0.32** (repo + FTP deploy 4 Apr 2026).
+- **WP-Cron:** `DISABLE_WP_CRON` not set; **next scheduled jobs visible** in LPNW dashboard. Prefer **`?lpnw_cron=tick&key=...`** with **`LPNW_CRON_SECRET`** for external pingers; traffic-driven cron still applies.
+- **Must-use plugins on live:** includes `lpnw-cron-endpoint.php` and other helpers; **`lpnw-login-as.php`** now requires **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` and **self-deletes after one successful use** (see `docs/DEPLOYMENT.md`). Remove the mu-plugin from the server when you do not need it.
+- **Mautic** base URL configured; **API check: connected (HTTP 200)**. **VIP / Pro / Free** Mautic email **IDs** were populated in settings (4 Apr 2026); reopen **Settings** after template changes.
+- **WooCommerce** with **Stripe** gateway; **three published products** in catalog; admin bar may show **Store coming soon** until you launch the shop publicly.
+- **Tier detection** from WooCommerce orders (completed/processing) is implemented; live tier mix varies (4 Apr: **2** active subscribers with preferences, **2 free / 0 pro / 0 vip** in the dashboard breakdown).
+- **Search indexing:** Rank Math may report **No Index** (WordPress Reading or Rank Math). **Reconcile** with intended launch state.
 
 ## Features Working
 
@@ -45,7 +45,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 - **Leaflet map:** interactive view with **clustered markers**
 - **Property cards:** images, prices, beds/baths, tenure, features, agent, listed date
 - **Auction presentation:** guide prices, auction dates where applicable
-- **Email alerts:** pipeline active (large **queued** volume observed); after **1.0.13** deploy, Mautic sends when templates exist and IDs sync; otherwise **wp_mail** fallback
+- **Email alerts:** pipeline active; **~141 alerts queued** observed 4 Apr 2026 (monitor **Alert Log** and Mautic / dispatch). Mautic sends when templates and IDs align; otherwise **wp_mail** fallback.
 - **Contact form:** native AJAX (no third-party form plugin required)
 - **14 Northwest area landing pages**
 - **10 SEO blog posts**
@@ -59,14 +59,14 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 - **Rightmove, OnTheMarket, Auction House NW, SDL Auctions, Pugh Auctions:** active and contributing rows as above
 - **Zoopla:** built; **0 properties** until Cloudflare allows the server or an approved workaround exists
 - **Planning Portal:** built; national platform limits practical coverage
-- **EPC:** built; **configure EPC API key** for live pulls
+- **EPC:** built; **credentials in plugin settings** (4 Apr); verify ingest in **Feed Status**
 - **Land Registry:** built; **monthly CSV** ingestion
 
 ## Owner Actions Still Needed
 
 1. **SEO / launch:** Fix **No Index** if the site should rank; clear **WooCommerce “coming soon”** when the shop should sell in public.
-2. **Alert delivery:** Open **LPNW Alerts > Settings** once after each plugin deploy (IDs sync from Mautic). If you rename templates in Mautic, adjust names or set IDs manually.
-3. **External cron:** `cron-job.org` is blocked by 20i; try **EasyCron**, another provider, or ask **20i to whitelist** a single caller IP or URL so `wp-cron.php` (or your mu-plugin cron URL) can run on a fixed schedule without relying only on traffic.
-4. **EPC:** register for an **EPC Open Data API key** (and email if required) and enter both in **LPNW Alerts > Settings**.
-5. **Security / ops:** Audit **mu-plugins** (especially any login-bypass scripts); complete **Wordfence** onboarding; finish **Redirection** plugin setup (admin nag); consider **Wordfence Login Security** integration with WooCommerce (admin nag).
-6. **Operations:** monitor **LPNW Alerts > Feed Status** and **Alert Log** (watch **queued vs sent**).
+2. **Alert delivery:** Watch **queued vs sent**; confirm Mautic templates and IDs match production sends.
+3. **External cron:** Prefer **`https://YOURSITE/?lpnw_cron=tick&key=SECRET`** on a fixed schedule with **`LPNW_CRON_SECRET`**; ask **20i** to allowlist a caller if the WAF blocks remote cron.
+4. **EPC:** Confirm **Feed Status** shows successful EPC runs now that settings are filled; rotate API key if it was ever exposed.
+5. **Security / ops:** Define **`LPNW_LOGIN_AS_SECRET`** before deploying `lpnw-login-as.php`; delete that mu-plugin from the server when not needed. Complete **Wordfence** onboarding; finish **Redirection** plugin setup (admin nag); consider **Wordfence Login Security** with WooCommerce (admin nag).
+6. **Operations:** monitor **LPNW Alerts → Feed Status** and **Alert Log**.
