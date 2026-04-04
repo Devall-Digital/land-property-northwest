@@ -9,7 +9,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once get_stylesheet_directory() . '/inc/class-lpnw-og-card.php';
 require_once get_stylesheet_directory() . '/inc/class-lpnw-open-graph.php';
+LPNW_OG_Card::bootstrap();
 LPNW_Open_Graph::bootstrap();
 
 /**
@@ -1456,33 +1458,47 @@ add_action(
 		}
 
 		$css = '
+:root {
+	--lpnw-cookie-offset: 0px;
+	--lpnw-sticky-cta-pad: 5.5rem;
+}
 .lpnw-sticky-cta-bar {
 	position: fixed;
 	left: 0;
 	right: 0;
-	bottom: 5.5rem;
-	z-index: 999990;
+	bottom: var(--lpnw-cookie-offset, 0px);
+	z-index: 99990;
 	background: linear-gradient(135deg, var(--lpnw-navy) 0%, var(--lpnw-navy-light) 100%);
 	color: var(--lpnw-white);
-	padding: 0.75rem 1rem;
+	padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0));
 	box-shadow: 0 -4px 24px rgba(27, 42, 74, 0.25);
 	box-sizing: border-box;
+	transform: translateY(110%);
+	opacity: 0;
+	pointer-events: none;
+	transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.lpnw-sticky-cta-bar.lpnw-sticky-cta-bar--visible {
+	transform: translateY(0);
+	opacity: 1;
+	pointer-events: auto;
 }
 .lpnw-sticky-cta-bar__inner {
-	max-width: 72rem;
+	max-width: min(72rem, 100%);
 	margin: 0 auto;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	justify-content: center;
-	gap: 0.75rem 1.25rem;
+	gap: 0.5rem 1rem;
 }
 .lpnw-sticky-cta-bar__text {
 	margin: 0;
-	font-size: 0.9375rem;
+	font-size: 0.875rem;
 	font-weight: 600;
 	line-height: 1.35;
 	text-align: center;
+	max-width: 20rem;
 }
 .lpnw-sticky-cta-bar__dismiss {
 	flex-shrink: 0;
@@ -1507,15 +1523,23 @@ add_action(
 	outline-offset: 2px;
 }
 body.lpnw-sticky-cta-visible {
-	padding-bottom: 5rem;
+	padding-bottom: calc(var(--lpnw-sticky-cta-pad) + var(--lpnw-cookie-offset, 0px));
 }
 @media (max-width: 600px) {
-	.lpnw-sticky-cta-bar {
-		bottom: 4.5rem;
+	:root {
+		--lpnw-sticky-cta-pad: 6.75rem;
 	}
 	.lpnw-sticky-cta-bar__inner {
 		flex-direction: column;
 		text-align: center;
+		gap: 0.5rem;
+	}
+	.lpnw-sticky-cta-bar__text {
+		max-width: none;
+	}
+	.lpnw-sticky-cta-bar .lpnw-btn {
+		width: 100%;
+		max-width: 20rem;
 	}
 }
 .lpnw-property-list--grid + .lpnw-latest-properties-signup-cta {
@@ -1567,17 +1591,68 @@ add_action(
 		</div>
 		<script>
 		(function () {
-			document.body.classList.add('lpnw-sticky-cta-visible');
 			var bar = document.getElementById('lpnw-sticky-cta-bar');
 			if (!bar) return;
+			var root = document.documentElement;
+			var revealMs = 5000;
+			var cookieSelectors = [
+				'#cookie-notice.cookie-notice',
+				'#cookie-notice.cn-position-bottom',
+				'#cmplz-cookiebanner-container',
+				'.cmplz-cookiebanner'
+			];
+			function lpnwCookieBannerHeight() {
+				var maxH = 0;
+				var vh = window.innerHeight || 0;
+				cookieSelectors.forEach(function (sel) {
+					var nodes = document.querySelectorAll(sel);
+					for (var i = 0; i < nodes.length; i++) {
+						var el = nodes[i];
+						var st = window.getComputedStyle(el);
+						if (st.display === 'none' || st.visibility === 'hidden' || parseFloat(st.opacity) === 0) {
+							continue;
+						}
+						var rect = el.getBoundingClientRect();
+						if (rect.height < 8) {
+							continue;
+						}
+						if (rect.bottom >= vh - 4) {
+							maxH = Math.max(maxH, Math.ceil(rect.height));
+						}
+					}
+				});
+				return maxH;
+			}
+			function lpnwSyncCookieOffset() {
+				root.style.setProperty('--lpnw-cookie-offset', lpnwCookieBannerHeight() + 'px');
+			}
+			function lpnwRevealBar() {
+				lpnwSyncCookieOffset();
+				bar.classList.add('lpnw-sticky-cta-bar--visible');
+				document.body.classList.add('lpnw-sticky-cta-visible');
+			}
 			var btn = bar.querySelector('.lpnw-sticky-cta-bar__dismiss');
-			if (!btn) return;
-			btn.addEventListener('click', function () {
-				bar.style.display = 'none';
-				document.body.classList.remove('lpnw-sticky-cta-visible');
-				var maxAge = 180 * 24 * 60 * 60;
-				document.cookie = 'lpnw_sticky_cta_dismiss=1; path=/; max-age=' + maxAge + '; SameSite=Lax';
+			if (btn) {
+				btn.addEventListener('click', function () {
+					bar.classList.remove('lpnw-sticky-cta-bar--visible');
+					document.body.classList.remove('lpnw-sticky-cta-visible');
+					var maxAge = 180 * 24 * 60 * 60;
+					document.cookie = 'lpnw_sticky_cta_dismiss=1; path=/; max-age=' + maxAge + '; SameSite=Lax';
+					setTimeout(lpnwSyncCookieOffset, 350);
+				});
+			}
+			window.addEventListener('resize', function () {
+				if (document.body.classList.contains('lpnw-sticky-cta-visible')) {
+					lpnwSyncCookieOffset();
+				}
 			});
+			var mo = new MutationObserver(function () {
+				if (document.body.classList.contains('lpnw-sticky-cta-visible')) {
+					lpnwSyncCookieOffset();
+				}
+			});
+			mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: [ 'class', 'style' ] });
+			setTimeout(lpnwRevealBar, revealMs);
 		})();
 		</script>
 		<?php

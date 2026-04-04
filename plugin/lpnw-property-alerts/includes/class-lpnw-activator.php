@@ -16,7 +16,6 @@ class LPNW_Activator {
 		self::maybe_migrate();
 		self::set_default_options();
 		self::schedule_cron();
-
 		update_option( 'lpnw_version', LPNW_VERSION );
 		flush_rewrite_rules();
 	}
@@ -208,13 +207,15 @@ class LPNW_Activator {
 	}
 
 	private static function set_default_options(): void {
+		// Launch focus: portals + auctions + alerts. Planning / EPC / Land Registry are optional
+		// "intelligence" feeds; enable in LPNW Settings when running a Land Insight-style product tier.
 		$defaults = array(
-			'planning_enabled'     => true,
+			'planning_enabled'     => false,
 			'portals_enabled'      => true,
-			'epc_enabled'          => true,
+			'epc_enabled'          => false,
 			'epc_api_email'        => '',
 			'epc_api_key'          => '',
-			'landregistry_enabled' => true,
+			'landregistry_enabled' => false,
 			'auctions_enabled'     => true,
 			'mautic_api_url'       => '',
 			'mautic_api_user'      => '',
@@ -245,7 +246,7 @@ class LPNW_Activator {
 			wp_schedule_event( time(), 'daily', 'lpnw_cron_landregistry' );
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_auctions' ) ) {
-			wp_schedule_event( time(), 'daily', 'lpnw_cron_auctions' );
+			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_portals' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_portals' );
@@ -259,5 +260,24 @@ class LPNW_Activator {
 		if ( ! wp_next_scheduled( 'lpnw_cron_data_retention' ) ) {
 			wp_schedule_event( time(), 'daily', 'lpnw_cron_data_retention' );
 		}
+	}
+
+	/**
+	 * Ensure auction cron uses 15-minute cadence (matches portals + dispatch).
+	 *
+	 * Previously we used an option flag only; if the schedule was wrong but the flag
+	 * was already set, production stayed on daily. We now verify wp_get_schedule().
+	 */
+	public static function maybe_reschedule_auction_cron(): void {
+		$schedule = wp_get_schedule( 'lpnw_cron_auctions' );
+		if ( 'lpnw_fifteen_min' === $schedule ) {
+			update_option( 'lpnw_auctions_cron_15m', '1', false );
+
+			return;
+		}
+
+		wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
+		wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
+		update_option( 'lpnw_auctions_cron_15m', '1', false );
 	}
 }

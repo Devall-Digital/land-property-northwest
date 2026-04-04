@@ -29,9 +29,9 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 * @var array<string, string>
 	 */
 	private const USER_AGENTS = array(
-		'chrome'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-		'firefox' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
-		'safari'  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+		'chrome'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+		'firefox' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
+		'safari'  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15',
 	);
 
 	/**
@@ -345,12 +345,18 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 */
 	private function zoopla_request_headers( string $user_agent ): array {
 		return array(
-			'User-Agent'      => $user_agent,
-			'Accept'          => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-			'Accept-Language' => 'en-GB,en;q=0.9',
-			'Accept-Encoding' => 'gzip, deflate',
-			'Connection'      => 'keep-alive',
-			'Cache-Control'   => 'no-cache',
+			'User-Agent'                => $user_agent,
+			'Accept'                    => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+			'Accept-Language'           => 'en-GB,en;q=0.9',
+			'Accept-Encoding'           => 'gzip, deflate',
+			'Connection'                => 'keep-alive',
+			'Cache-Control'             => 'no-cache',
+			'Upgrade-Insecure-Requests' => '1',
+			'DNT'                       => '1',
+			'Sec-Fetch-Dest'            => 'document',
+			'Sec-Fetch-Mode'            => 'navigate',
+			'Sec-Fetch-Site'            => 'none',
+			'Sec-Fetch-User'            => '?1',
 		);
 	}
 

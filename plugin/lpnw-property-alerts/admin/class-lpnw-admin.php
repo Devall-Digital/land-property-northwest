@@ -36,6 +36,14 @@ class LPNW_Admin {
 	);
 
 	public static function init(): void {
+		if ( class_exists( 'LPNW_Admin_Help' ) ) {
+			LPNW_Admin_Help::init();
+		}
+
+		if ( class_exists( 'LPNW_Admin_Subscribers' ) ) {
+			LPNW_Admin_Subscribers::init();
+		}
+
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu_pages' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'register_wp_dashboard_widget' ) );
@@ -373,7 +381,7 @@ class LPNW_Admin {
 	/**
 	 * Next run timestamps for each scheduled LPNW cron hook.
 	 *
-	 * @return array<string, array{label: string, next: int|false}>
+	 * @return array<string, array{label: string, next: int|false, interval: string}>
 	 */
 	public static function get_cron_schedule_summary(): array {
 		$hooks = array(
@@ -386,11 +394,22 @@ class LPNW_Admin {
 			'lpnw_cron_free_digest'     => __( 'Free digest email', 'lpnw-alerts' ),
 		);
 
-		$out = array();
+		$wp_schedules = wp_get_schedules();
+		$out          = array();
+
 		foreach ( $hooks as $hook => $label ) {
+			$slug = wp_get_schedule( $hook );
+			$int  = __( 'Not scheduled', 'lpnw-alerts' );
+			if ( is_string( $slug ) && '' !== $slug ) {
+				$int = isset( $wp_schedules[ $slug ]['display'] )
+					? (string) $wp_schedules[ $slug ]['display']
+					: $slug;
+			}
+
 			$out[ $hook ] = array(
-				'label' => $label,
-				'next'  => wp_next_scheduled( $hook ),
+				'label'    => $label,
+				'next'     => wp_next_scheduled( $hook ),
+				'interval' => $int,
 			);
 		}
 
@@ -747,6 +766,13 @@ class LPNW_Admin {
 		$alerts_sent_all = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'sent'" );
 
 		$lpnw_cron_ping_url = class_exists( 'LPNW_Cron_Request' ) ? LPNW_Cron_Request::get_external_ping_url() : '';
+
+		$lpnw_tier_pref_counts = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::count_pref_users_by_effective_tier() : array(
+			'free'  => 0,
+			'pro'   => 0,
+			'vip'   => 0,
+			'total' => 0,
+		);
 
 		include LPNW_PLUGIN_DIR . 'admin/views/dashboard.php';
 	}

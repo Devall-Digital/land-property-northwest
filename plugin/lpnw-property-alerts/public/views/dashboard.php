@@ -149,6 +149,13 @@ $type_bar_label  = $types_selected > 0
 		</div>
 	</section>
 
+	<?php if ( 'vip' === $tier_key ) : ?>
+		<section class="lpnw-dashboard-vip-off-market" aria-labelledby="lpnw-dashboard-vip-om-heading">
+			<h3 class="lpnw-dashboard-vip-off-market__title" id="lpnw-dashboard-vip-om-heading"><?php esc_html_e( 'Share an off-market opportunity', 'lpnw-alerts' ); ?></h3>
+			<?php echo do_shortcode( '[lpnw_submit_off_market]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcode HTML from trusted plugin templates. ?>
+		</section>
+	<?php endif; ?>
+
 	<p class="lpnw-dashboard-summary">
 		<?php
 		echo esc_html(

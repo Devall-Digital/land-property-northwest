@@ -3,7 +3,8 @@
  * Admin dashboard overview page.
  *
  * Variables supplied by LPNW_Admin::render_dashboard(): $snapshot, $feed_log,
- * $cron_rows, $mautic, $wp_cron_off, $alerts_queued, $alerts_sent_all.
+ * $cron_rows, $mautic, $wp_cron_off, $alerts_queued, $alerts_sent_all,
+ * $lpnw_tier_pref_counts (free, pro, vip, total).
  *
  * @package LPNW_Property_Alerts
  */
@@ -12,12 +13,13 @@ defined( 'ABSPATH' ) || exit;
 
 /** @var array<string, mixed> $snapshot */
 /** @var array<string, mixed> $feed_log */
-/** @var array<string, array{label: string, next: int|false}> $cron_rows */
+/** @var array<string, array{label: string, next: int|false, interval: string}> $cron_rows */
 /** @var array{ok: bool, message: string, code: int|null} $mautic */
 /** @var bool $wp_cron_off */
 /** @var int $alerts_queued */
 /** @var int $alerts_sent_all */
 /** @var string $lpnw_cron_ping_url */
+/** @var array{free: int, pro: int, vip: int, total: int} $lpnw_tier_pref_counts */
 
 $ob  = $feed_log['orderby'];
 $ord = $feed_log['order'];
@@ -71,6 +73,11 @@ if ( $total_pages > 1 ) {
 
 <div class="wrap lpnw-admin-dashboard">
 	<h1><?php esc_html_e( 'LPNW Property Alerts', 'lpnw-alerts' ); ?></h1>
+	<div class="notice notice-info inline" style="margin:12px 0;padding:8px 12px;max-width:1200px;">
+		<p style="margin:0;">
+			<?php esc_html_e( 'Use the Help tab in the top toolbar for explanations of these stats and the feed log. Subscriber tiers and WooCommerce are summarised under LPNW Alerts > Subscribers.', 'lpnw-alerts' ); ?>
+		</p>
+	</div>
 
 	<div class="metabox-holder" style="margin-top:18px;">
 		<div class="postbox" style="max-width:1200px;">
@@ -87,7 +94,40 @@ if ( $total_pages > 1 ) {
 					</div>
 					<div class="card" style="margin:0;padding:12px;">
 						<h3 style="margin:0 0 6px;font-size:1.6em;line-height:1.2;"><?php echo esc_html( number_format( (int) $snapshot['subscriber_count'] ) ); ?></h3>
-						<p style="margin:0;color:#646970;"><?php esc_html_e( 'Active subscribers', 'lpnw-alerts' ); ?></p>
+						<p style="margin:0;color:#646970;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+							<?php esc_html_e( 'Active subscribers', 'lpnw-alerts' ); ?>
+							<?php
+							LPNW_Admin_Help::tip_icon(
+								__( 'Preference rows with is_active = 1. Can include users who never paid.', 'lpnw-alerts' )
+							);
+							?>
+						</p>
+					</div>
+					<div class="card" style="margin:0;padding:12px;">
+						<h3 style="margin:0 0 6px;font-size:1.6em;line-height:1.2;"><?php echo esc_html( number_format( (int) $lpnw_tier_pref_counts['total'] ) ); ?></h3>
+						<p style="margin:0;color:#646970;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+							<?php esc_html_e( 'With saved preferences', 'lpnw-alerts' ); ?>
+							<?php
+							LPNW_Admin_Help::tip_icon(
+								__( 'Anyone who saved preferences at least once. Open Subscribers for the searchable list and tier columns.', 'lpnw-alerts' )
+							);
+							?>
+						</p>
+					</div>
+					<div class="card" style="margin:0;padding:12px;">
+						<ul style="margin:0;padding:0;list-style:none;line-height:1.5;">
+							<li><strong><?php echo esc_html( number_format( (int) $lpnw_tier_pref_counts['free'] ) ); ?></strong> <?php esc_html_e( 'free', 'lpnw-alerts' ); ?></li>
+							<li><strong><?php echo esc_html( number_format( (int) $lpnw_tier_pref_counts['pro'] ) ); ?></strong> <?php esc_html_e( 'pro', 'lpnw-alerts' ); ?></li>
+							<li><strong><?php echo esc_html( number_format( (int) $lpnw_tier_pref_counts['vip'] ) ); ?></strong> <?php esc_html_e( 'vip', 'lpnw-alerts' ); ?></li>
+						</ul>
+						<p style="margin:8px 0 0;color:#646970;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+							<?php esc_html_e( 'Effective tier (users with preferences)', 'lpnw-alerts' ); ?>
+							<?php
+							LPNW_Admin_Help::tip_icon(
+								__( 'WooCommerce Pro/VIP orders override profile comps. See Subscribers for per-user breakdown.', 'lpnw-alerts' )
+							);
+							?>
+						</p>
 					</div>
 					<div class="card" style="margin:0;padding:12px;">
 						<h3 style="margin:0 0 6px;font-size:1.6em;line-height:1.2;"><?php echo esc_html( number_format( (int) $snapshot['alerts_sent_today'] ) ); ?></h3>
@@ -180,10 +220,11 @@ if ( $total_pages > 1 ) {
 				</table>
 
 				<h3 style="margin:16px 0 8px;"><?php esc_html_e( 'Next scheduled cron runs', 'lpnw-alerts' ); ?></h3>
-				<table class="widefat striped" style="max-width:720px;">
+				<table class="widefat striped" style="max-width:900px;">
 					<thead>
 						<tr>
 							<th><?php esc_html_e( 'Job', 'lpnw-alerts' ); ?></th>
+							<th><?php esc_html_e( 'Interval', 'lpnw-alerts' ); ?></th>
 							<th><?php esc_html_e( 'Next run (site time)', 'lpnw-alerts' ); ?></th>
 						</tr>
 					</thead>
@@ -191,6 +232,7 @@ if ( $total_pages > 1 ) {
 						<?php foreach ( $cron_rows as $hook => $row ) : ?>
 							<tr>
 								<td><?php echo esc_html( $row['label'] ); ?></td>
+								<td><?php echo esc_html( $row['interval'] ?? '' ); ?></td>
 								<td>
 									<?php
 									if ( ! empty( $row['next'] ) && is_int( $row['next'] ) ) {

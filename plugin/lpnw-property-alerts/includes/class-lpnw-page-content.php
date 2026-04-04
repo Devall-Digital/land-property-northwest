@@ -29,27 +29,7 @@ class LPNW_Page_Content {
 		}
 
 		return <<<HTML
-<section class="lpnw-hero" aria-labelledby="lpnw-hero-heading">
-	<div class="lpnw-hero__bg" aria-hidden="true">
-		<div class="lpnw-hero__sky"></div>
-		<div class="lpnw-hero__cloud lpnw-hero__cloud--a"></div>
-		<div class="lpnw-hero__cloud lpnw-hero__cloud--b"></div>
-		<div class="lpnw-hero__cloud lpnw-hero__cloud--c"></div>
-		<div class="lpnw-hero__cityscape">
-			<span class="lpnw-hero__shape lpnw-hero__shape--1"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--2"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--3"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--4"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--5"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--6"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--7"></span>
-			<span class="lpnw-hero__shape lpnw-hero__shape--8"></span>
-		</div>
-		<div class="lpnw-hero__orb"></div>
-		<div class="lpnw-hero__particles"></div>
-		<div class="lpnw-hero__vignette"></div>
-	</div>
-	<div class="lpnw-hero__scene" aria-hidden="true"><svg class="lpnw-hero__illustration" viewBox="0 0 1600 500"></svg></div>
+<section class="lpnw-hero lpnw-hero--photos" aria-labelledby="lpnw-hero-heading">
 	<div class="lpnw-hero__content">
 		<h1 id="lpnw-hero-heading" class="lpnw-hero__title">Get NW property alerts before <em>anyone else</em></h1>
 		<p>We scan property listings across Northwest England and alert you the moment something matches your criteria. While others are still browsing Rightmove, you already have the details in your inbox.</p>

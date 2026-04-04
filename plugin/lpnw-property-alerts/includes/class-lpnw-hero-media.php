@@ -11,11 +11,11 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Outputs hero photo markup; replaces legacy SVG placeholder in front-page content.
+ * Outputs hero photo markup; injects into front-page content and strips legacy SVG/CSS layers.
  */
 class LPNW_Hero_Media {
 
-	public const VERSION = '7';
+	public const VERSION = '8';
 
 	/**
 	 * @var bool
@@ -33,6 +33,10 @@ class LPNW_Hero_Media {
 	 * @return string[]
 	 */
 	public static function filter_body_class( array $classes ): array {
+		if ( is_front_page() ) {
+			$classes[] = 'lpnw-home-photo-hero';
+		}
+
 		if ( is_front_page() && is_user_logged_in() ) {
 			$classes[] = 'lpnw-hero--logged-in';
 		}
@@ -92,56 +96,121 @@ class LPNW_Hero_Media {
 			return $content;
 		}
 
-		$has_scene = str_contains( $content, 'lpnw-hero__scene' );
-		$has_svg   = str_contains( $content, 'lpnw-hero__illustration' );
+		$work = self::strip_legacy_hero_visuals( $content );
 
-		if ( $has_svg ) {
-			$out = preg_replace(
-				'/<svg\b[^>]*\bclass="[^"]*\blpnw-hero__illustration\b[^"]*"[^>]*>[\s\S]*?<\/svg>/i',
-				$new,
-				$content,
-				1
-			);
-			if ( is_string( $out ) && $out !== $content ) {
-				$unwrapped = preg_replace(
-					'/<div\s+class="lpnw-hero__scene"(?:\s+aria-hidden="true")?>\s*(<div\s+class="lpnw-hero__parallax"[\s\S]*?<\/div>)\s*<\/div>/i',
-					'$1',
-					$out,
-					1
-				);
-				self::$replaced_hero = true;
-
-				return is_string( $unwrapped ) ? $unwrapped : $out;
-			}
-		}
-
-		if ( $has_scene ) {
-			$out = preg_replace(
-				'/<div\s+class="lpnw-hero__scene"[^>]*>[\s\S]*?<\/div>/i',
-				$new,
-				$content,
-				1
-			);
-			if ( is_string( $out ) && $out !== $content ) {
-				self::$replaced_hero = true;
-				return $out;
-			}
-		}
-
-		if ( str_contains( $content, 'lpnw-hero__content' ) ) {
+		if ( str_contains( $work, 'lpnw-hero__content' ) && ! str_contains( $work, 'lpnw-hero__photos' ) ) {
 			$out = preg_replace(
 				'/(<div\s+class="lpnw-hero__content")/i',
 				$new . '$1',
-				$content,
+				$work,
 				1
 			);
-			if ( is_string( $out ) && $out !== $content ) {
+			if ( is_string( $out ) && $out !== $work ) {
 				self::$replaced_hero = true;
-				return $out;
+
+				return self::ensure_photo_hero_section_class( $out );
 			}
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Remove legacy layered hero (CSS shapes, SVG scene, parallax stack) from stored HTML.
+	 *
+	 * @param string $content Full post content.
+	 * @return string
+	 */
+	private static function strip_legacy_hero_visuals( string $content ): string {
+		$work = $content;
+		$work = self::remove_first_div_with_class_token( $work, 'lpnw-hero__scene' );
+		$work = self::remove_first_div_with_class_token( $work, 'lpnw-hero__parallax' );
+		$work = self::remove_first_div_with_class_token( $work, 'lpnw-hero__bg' );
+
+		return $work;
+	}
+
+	/**
+	 * Ensure the first .lpnw-hero section includes layout modifier for photo-only heroes.
+	 *
+	 * @param string $content HTML.
+	 * @return string
+	 */
+	private static function ensure_photo_hero_section_class( string $content ): string {
+		if ( str_contains( $content, 'lpnw-hero--photos' ) ) {
+			return $content;
+		}
+
+		$out = preg_replace(
+			'/<section\s+class="([^"]*\blpnw-hero\b)([^"]*)"/i',
+			'<section class="$1 lpnw-hero--photos$2"',
+			$content,
+			1
+		);
+
+		return is_string( $out ) ? $out : $content;
+	}
+
+	/**
+	 * Remove the first opening <div> whose class attribute contains a token, through its closing </div> (nested-aware).
+	 *
+	 * @param string $html   HTML fragment.
+	 * @param string $token  Class substring (e.g. lpnw-hero__bg).
+	 * @return string
+	 */
+	private static function remove_first_div_with_class_token( string $html, string $token ): string {
+		$needle = 'class="';
+		$pos    = 0;
+		$len    = strlen( $html );
+
+		while ( $pos < $len ) {
+			$class_pos = stripos( $html, $needle, $pos );
+			if ( false === $class_pos ) {
+				break;
+			}
+			$attr_start = strrpos( substr( $html, 0, $class_pos ), '<div' );
+			if ( false === $attr_start ) {
+				$pos = $class_pos + strlen( $needle );
+				continue;
+			}
+
+			$quote_end = strpos( $html, '"', $class_pos + strlen( $needle ) );
+			if ( false === $quote_end ) {
+				break;
+			}
+			$class_val = substr( $html, $class_pos + strlen( $needle ), $quote_end - $class_pos - strlen( $needle ) );
+			if ( false === stripos( $class_val, $token ) ) {
+				$pos = $quote_end + 1;
+				continue;
+			}
+
+			$open_tag_end = strpos( $html, '>', $attr_start );
+			if ( false === $open_tag_end ) {
+				break;
+			}
+			$start = $attr_start;
+			$i     = $open_tag_end + 1;
+			$depth = 1;
+
+			while ( $i < $len && $depth > 0 ) {
+				$next_open  = stripos( $html, '<div', $i );
+				$next_close = stripos( $html, '</div>', $i );
+				if ( false === $next_close ) {
+					return $html;
+				}
+				if ( false !== $next_open && $next_open < $next_close ) {
+					++$depth;
+					$i = $next_open + 4;
+					continue;
+				}
+				--$depth;
+				$i = $next_close + strlen( '</div>' );
+			}
+
+			return substr( $html, 0, $start ) . substr( $html, $i );
+		}
+
+		return $html;
 	}
 
 	/**

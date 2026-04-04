@@ -13,6 +13,12 @@ defined( 'ABSPATH' ) || exit;
 class LPNW_Subscriber {
 
 	/**
+	 * User meta: admin-only tier adjustment when the user has no qualifying paid order.
+	 * Values: empty (use orders), free, pro, vip.
+	 */
+	public const USER_META_ADMIN_TIER_OVERRIDE = 'lpnw_admin_tier_override';
+
+	/**
 	 * Get preferences for a user.
 	 *
 	 * @param int $user_id WordPress user ID.
@@ -72,10 +78,15 @@ class LPNW_Subscriber {
 		) );
 
 		if ( $existing ) {
-			return (bool) $wpdb->update( $table, $row, array( 'id' => $existing ) );
+			// $wpdb->update returns int rows affected; 0 means "no change" but is still success.
+			$result = $wpdb->update( $table, $row, array( 'id' => $existing ) );
+
+			return false !== $result;
 		}
 
-		return (bool) $wpdb->insert( $table, $row );
+		$result = $wpdb->insert( $table, $row );
+
+		return false !== $result;
 	}
 
 	/**
@@ -101,14 +112,14 @@ class LPNW_Subscriber {
 	}
 
 	/**
-	 * Determine a user's tier from paid WooCommerce orders (completed or processing).
+	 * Tier from WooCommerce orders only (ignores admin override). For admin display and support.
 	 *
 	 * VIP wins over Pro if both appear in order history.
 	 *
 	 * @param int $user_id WordPress user ID.
 	 * @return string One of: free, pro, vip
 	 */
-	public static function get_tier( int $user_id ): string {
+	public static function get_tier_from_orders( int $user_id ): string {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return 'free';
 		}
@@ -144,8 +155,8 @@ class LPNW_Subscriber {
 			}
 
 			if ( method_exists( $order, 'get_total' ) && method_exists( $order, 'get_total_refunded' ) ) {
-				$total     = (float) $order->get_total();
-				$refunded  = (float) $order->get_total_refunded();
+				$total    = (float) $order->get_total();
+				$refunded = (float) $order->get_total_refunded();
 				if ( $total > 0 && $refunded >= $total - 0.01 ) {
 					continue;
 				}
@@ -179,5 +190,66 @@ class LPNW_Subscriber {
 		}
 
 		return 'free';
+	}
+
+	/**
+	 * Effective tier: paid WooCommerce orders always win; otherwise optional admin override applies.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return string One of: free, pro, vip
+	 */
+	public static function get_tier( int $user_id ): string {
+		$from_orders = self::get_tier_from_orders( $user_id );
+		if ( 'pro' === $from_orders || 'vip' === $from_orders ) {
+			return $from_orders;
+		}
+
+		$raw = get_user_meta( $user_id, self::USER_META_ADMIN_TIER_OVERRIDE, true );
+		$raw = is_string( $raw ) ? strtolower( trim( $raw ) ) : '';
+		if ( '' === $raw ) {
+			return 'free';
+		}
+		if ( in_array( $raw, array( 'free', 'pro', 'vip' ), true ) ) {
+			return $raw;
+		}
+
+		return 'free';
+	}
+
+	/**
+	 * Count users with a preferences row by effective tier (for admin metrics).
+	 *
+	 * @return array{free: int, pro: int, vip: int, total: int}
+	 */
+	public static function count_pref_users_by_effective_tier(): array {
+		global $wpdb;
+		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared
+		$ids = $wpdb->get_col( "SELECT DISTINCT user_id FROM {$table}" );
+		$out = array(
+			'free'  => 0,
+			'pro'   => 0,
+			'vip'   => 0,
+			'total' => 0,
+		);
+		if ( empty( $ids ) || ! is_array( $ids ) ) {
+			return $out;
+		}
+		$out['total'] = count( $ids );
+		foreach ( $ids as $uid ) {
+			$uid = (int) $uid;
+			if ( $uid <= 0 ) {
+				continue;
+			}
+			$tier = self::get_tier( $uid );
+			if ( 'vip' === $tier ) {
+				++$out['vip'];
+			} elseif ( 'pro' === $tier ) {
+				++$out['pro'];
+			} else {
+				++$out['free'];
+			}
+		}
+		return $out;
 	}
 }
