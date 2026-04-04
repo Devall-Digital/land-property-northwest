@@ -210,10 +210,36 @@
         });
     }
 
+    function initPropertySearchFilters() {
+        var root = document.querySelector('[data-lpnw-property-search]');
+        if (!root) {
+            return;
+        }
+        var shell = root.querySelector('.lpnw-property-search__filters-shell');
+        if (!shell || typeof window.matchMedia !== 'function') {
+            return;
+        }
+        var mq = window.matchMedia('(max-width: 639px)');
+        function apply() {
+            if (mq.matches) {
+                shell.removeAttribute('open');
+            } else {
+                shell.setAttribute('open', '');
+            }
+        }
+        apply();
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', apply);
+        } else if (typeof mq.addListener === 'function') {
+            mq.addListener(apply);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initPreferencesForm();
         initContactForm();
         initSaveButtons();
         initUnsaveButtons();
+        initPropertySearchFilters();
     });
 })();

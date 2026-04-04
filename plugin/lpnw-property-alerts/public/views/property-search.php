@@ -64,6 +64,11 @@ $signup_url = add_query_arg(
 );
 ?>
 <div class="lpnw-property-search" data-lpnw-property-search>
+	<details class="lpnw-property-search__filters-shell" id="lpnw-property-search-filters" open>
+		<summary class="lpnw-property-search__filters-toggle">
+			<span class="lpnw-property-search__filters-toggle-label"><?php esc_html_e( 'Filters', 'lpnw-alerts' ); ?></span>
+			<span class="lpnw-property-search__filters-toggle-hint" aria-hidden="true"><?php esc_html_e( 'Show or hide', 'lpnw-alerts' ); ?></span>
+		</summary>
 	<form class="lpnw-property-search__filters" method="get" action="<?php echo esc_url( $lpnw_search_base_url ); ?>">
 		<div class="lpnw-property-search__filters-row">
 			<div class="lpnw-property-search__field">
@@ -154,6 +159,7 @@ $signup_url = add_query_arg(
 			</div>
 		</div>
 	</form>
+	</details>
 
 	<?php if ( $lpnw_search_total > 0 ) : ?>
 		<p class="lpnw-property-search__count<?php echo $lpnw_search_gated ? ' lpnw-property-search__count--gated' : ''; ?>">
