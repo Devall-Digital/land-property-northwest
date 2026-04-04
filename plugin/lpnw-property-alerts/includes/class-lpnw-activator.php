@@ -264,10 +264,16 @@ class LPNW_Activator {
 	}
 
 	/**
-	 * One-time migration: auction feed was daily; align with portal cadence (15 min).
+	 * Ensure auction cron uses 15-minute cadence (matches portals + dispatch).
+	 *
+	 * Previously we used an option flag only; if the schedule was wrong but the flag
+	 * was already set, production stayed on daily. We now verify wp_get_schedule().
 	 */
 	public static function maybe_reschedule_auction_cron(): void {
-		if ( get_option( 'lpnw_auctions_cron_15m', '' ) === '1' ) {
+		$schedule = wp_get_schedule( 'lpnw_cron_auctions' );
+		if ( 'lpnw_fifteen_min' === $schedule ) {
+			update_option( 'lpnw_auctions_cron_15m', '1', false );
+
 			return;
 		}
 

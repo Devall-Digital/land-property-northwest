@@ -52,7 +52,7 @@ Keep **15 minutes** for what drives the **instant listing** USP: **portals + dis
 
 **Checks:**
 
-- [ ] **LPNW Alerts → Dashboard:** “Next scheduled cron runs” shows **Auction feeds** on the **15-minute** cadence alongside portals (after 1.0.29 deploy and one page load).
+- [ ] **LPNW Alerts → Dashboard:** “Next scheduled cron runs” lists **Interval** and **Next run**. Confirm **Auction feeds** shows **Every 15 Minutes** (plugin **1.0.31+** fixes a case where the job stayed on **daily** if an old migration flag was set). Portals and alert dispatch should also show **Every 15 Minutes**.
 - [ ] **Feed Status:** Recent rows **completed**, `properties_new` plausible per source (expect **Zoopla 0** if upstream blocks).
 - [ ] **Traffic / external cron:** If you rely on `?lpnw_cron=tick&key=…`, confirm the ping fires (runbook: 20i WAF may block bare `wp-cron.php`).
 

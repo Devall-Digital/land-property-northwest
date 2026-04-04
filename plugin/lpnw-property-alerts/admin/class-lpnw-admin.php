@@ -373,7 +373,7 @@ class LPNW_Admin {
 	/**
 	 * Next run timestamps for each scheduled LPNW cron hook.
 	 *
-	 * @return array<string, array{label: string, next: int|false}>
+	 * @return array<string, array{label: string, next: int|false, interval: string}>
 	 */
 	public static function get_cron_schedule_summary(): array {
 		$hooks = array(
@@ -386,11 +386,22 @@ class LPNW_Admin {
 			'lpnw_cron_free_digest'     => __( 'Free digest email', 'lpnw-alerts' ),
 		);
 
-		$out = array();
+		$wp_schedules = wp_get_schedules();
+		$out          = array();
+
 		foreach ( $hooks as $hook => $label ) {
+			$slug = wp_get_schedule( $hook );
+			$int  = __( 'Not scheduled', 'lpnw-alerts' );
+			if ( is_string( $slug ) && '' !== $slug ) {
+				$int = isset( $wp_schedules[ $slug ]['display'] )
+					? (string) $wp_schedules[ $slug ]['display']
+					: $slug;
+			}
+
 			$out[ $hook ] = array(
-				'label' => $label,
-				'next'  => wp_next_scheduled( $hook ),
+				'label'    => $label,
+				'next'     => wp_next_scheduled( $hook ),
+				'interval' => $int,
 			);
 		}
 

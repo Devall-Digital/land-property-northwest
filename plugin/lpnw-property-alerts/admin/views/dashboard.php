@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** @var array<string, mixed> $snapshot */
 /** @var array<string, mixed> $feed_log */
-/** @var array<string, array{label: string, next: int|false}> $cron_rows */
+/** @var array<string, array{label: string, next: int|false, interval: string}> $cron_rows */
 /** @var array{ok: bool, message: string, code: int|null} $mautic */
 /** @var bool $wp_cron_off */
 /** @var int $alerts_queued */
@@ -180,10 +180,11 @@ if ( $total_pages > 1 ) {
 				</table>
 
 				<h3 style="margin:16px 0 8px;"><?php esc_html_e( 'Next scheduled cron runs', 'lpnw-alerts' ); ?></h3>
-				<table class="widefat striped" style="max-width:720px;">
+				<table class="widefat striped" style="max-width:900px;">
 					<thead>
 						<tr>
 							<th><?php esc_html_e( 'Job', 'lpnw-alerts' ); ?></th>
+							<th><?php esc_html_e( 'Interval', 'lpnw-alerts' ); ?></th>
 							<th><?php esc_html_e( 'Next run (site time)', 'lpnw-alerts' ); ?></th>
 						</tr>
 					</thead>
@@ -191,6 +192,7 @@ if ( $total_pages > 1 ) {
 						<?php foreach ( $cron_rows as $hook => $row ) : ?>
 							<tr>
 								<td><?php echo esc_html( $row['label'] ); ?></td>
+								<td><?php echo esc_html( $row['interval'] ?? '' ); ?></td>
 								<td>
 									<?php
 									if ( ! empty( $row['next'] ) && is_int( $row['next'] ) ) {
