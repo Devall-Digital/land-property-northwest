@@ -76,22 +76,24 @@ If you skip the sync, live pages keep **old HTML** (e.g. pricing table without r
 
 If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
 
-### Emergency admin login (`LPNW_LOGIN_AS_SECRET`)
+### Emergency admin login (`lpnw-login-as.php`)
 
-`mu-plugins/lpnw-login-as.php` (and `tools/lpnw-autologin.php` when copied to mu-plugins) **does nothing** unless you define a secret in `wp-config.php` **above** the “That’s all, stop editing!” line:
+**During development:** the repo uses a **default key** in code (`lpnw2026setup`) so you can open:
+
+- `https://YOUR-DOMAIN/?lpnw_login_as=admin&key=lpnw2026setup` → wp-admin  
+- `https://YOUR-DOMAIN/?lpnw_login_as=test&key=lpnw2026setup` → test subscriber (`admin@codevall.co.uk` in the file)
+
+`tools/lpnw-autologin.php` (when placed in mu-plugins) uses the same rule: default key, or override below.
+
+**Before public launch:** define a long random secret in `wp-config.php` (it overrides the default):
 
 ```php
 define( 'LPNW_LOGIN_AS_SECRET', 'paste-a-long-random-string-here' );
 ```
 
-Then visit once:
+Then use `&key=` matching that value. **Remove** `lpnw-login-as.php` from the server when you no longer need it, or leave only the wp-config secret with no default (customise the mu-plugin for production-only builds).
 
-- `https://YOUR-DOMAIN/?lpnw_login_as=admin&key=YOUR_SECRET` → wp-admin  
-- `https://YOUR-DOMAIN/?lpnw_login_as=test&key=YOUR_SECRET` → test subscriber dashboard (email is set in the mu-plugin file)
-
-After a successful login, **`lpnw-login-as.php` deletes itself** on the server. Redeploy that file from the repo only if you need the workaround again. **Remove the constant** from `wp-config.php` when you no longer need the script, or delete the mu-plugin from the server so nothing can load it.
-
-**Deploy order:** add `LPNW_LOGIN_AS_SECRET` on production first, then upload the updated `lpnw-login-as.php`, so there is no window where an old build with a baked-in key is still active.
+**Note:** `lpnw-autologin.php` **deletes itself** after one successful admin login; `lpnw-login-as.php` does **not** (so agents and humans can reuse it during development).
 
 ## Quick Deploy Script (lftp)
 

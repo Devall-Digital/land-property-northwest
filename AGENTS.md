@@ -32,6 +32,14 @@ The repo contains no WordPress core files. To test the plugin/theme locally, a W
 
 WP admin login: `admin` / `admin` at `http://localhost:8080/wp-login.php`.
 
+### Following the agent’s browser (Cursor)
+
+Agent browser automation does **not** always open Chrome or Edge on your PC. Cursor runs a **built-in browser** for MCP browser tools.
+
+- **Watch alongside your code:** Ask the agent to use the browser in the **side panel** (e.g. “open the browser on the side so I can see it”). In Cursor, an editor tab or panel should show the live page while the agent navigates.
+- **If you see nothing:** Check the **View** menu for browser / simple browser options for your Cursor version, or focus the chat’s browser preview if your layout hides it.
+- **You can always mirror manually:** Open the same URL in your own browser (e.g. the site with `?nocache=1` or the `lpnw_login_as` URL from `docs/DEPLOYMENT.md`).
+
 ### Gotchas
 
 - The `mu-plugins/` directory may contain broken symlinks for files that were removed upstream (e.g. `lpnw-otm-price-backfill.php`, `lpnw-refresh-pages.php`). Only symlink files that actually exist in `/workspace/mu-plugins/`.

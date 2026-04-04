@@ -31,7 +31,7 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 
 - **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live `style.css` **6.12.1**); **LPNW Property Alerts plugin** **1.0.32** (repo + FTP deploy 4 Apr 2026).
 - **WP-Cron:** `DISABLE_WP_CRON` not set; **next scheduled jobs visible** in LPNW dashboard. Prefer **`?lpnw_cron=tick&key=...`** with **`LPNW_CRON_SECRET`** for external pingers; traffic-driven cron still applies.
-- **Must-use plugins on live:** includes `lpnw-cron-endpoint.php` and other helpers; **`lpnw-login-as.php`** now requires **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` and **self-deletes after one successful use** (see `docs/DEPLOYMENT.md`). Remove the mu-plugin from the server when you do not need it.
+- **Must-use plugins on live:** includes `lpnw-cron-endpoint.php` and other helpers; **`lpnw-login-as.php`** supports **development** login with default **`key=lpnw2026setup`** (override with **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` before launch; see `docs/DEPLOYMENT.md`).
 - **Mautic** base URL configured; **API check: connected (HTTP 200)**. **VIP / Pro / Free** Mautic email **IDs** were populated in settings (4 Apr 2026); reopen **Settings** after template changes.
 - **WooCommerce** with **Stripe** gateway; **three published products** in catalog; admin bar may show **Store coming soon** until you launch the shop publicly.
 - **Tier detection** from WooCommerce orders (completed/processing) is implemented; live tier mix varies (4 Apr: **2** active subscribers with preferences, **2 free / 0 pro / 0 vip** in the dashboard breakdown).
@@ -68,5 +68,5 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 2. **Alert delivery:** Watch **queued vs sent**; confirm Mautic templates and IDs match production sends.
 3. **External cron:** Prefer **`https://YOURSITE/?lpnw_cron=tick&key=SECRET`** on a fixed schedule with **`LPNW_CRON_SECRET`**; ask **20i** to allowlist a caller if the WAF blocks remote cron.
 4. **EPC:** Confirm **Feed Status** shows successful EPC runs now that settings are filled; rotate API key if it was ever exposed.
-5. **Security / ops:** Define **`LPNW_LOGIN_AS_SECRET`** before deploying `lpnw-login-as.php`; delete that mu-plugin from the server when not needed. Complete **Wordfence** onboarding; finish **Redirection** plugin setup (admin nag); consider **Wordfence Login Security** with WooCommerce (admin nag).
+5. **Security / ops:** Before public launch, rotate **`lpnw-login-as`** to **`LPNW_LOGIN_AS_SECRET`** or remove the mu-plugin; complete **Wordfence** onboarding; finish **Redirection** plugin setup (admin nag); consider **Wordfence Login Security** with WooCommerce (admin nag).
 6. **Operations:** monitor **LPNW Alerts → Feed Status** and **Alert Log**.

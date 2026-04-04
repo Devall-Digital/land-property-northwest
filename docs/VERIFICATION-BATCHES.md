@@ -12,17 +12,17 @@ Use this for periodic audits: **code defines intent**, these steps confirm **pro
 
 Agents **can** exercise the live subscriber UI the same way you do:
 
-1. **`mu-plugins/lpnw-login-as.php`** — requires **`LPNW_LOGIN_AS_SECRET`** in live **`wp-config.php`** (see `docs/DEPLOYMENT.md`). Upload to `wp-content/mu-plugins/` if not already there (or redeploy from the repo).  
-   - Visit once: `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=test&key=YOUR_SECRET`  
+1. **`mu-plugins/lpnw-login-as.php`** — **Development:** `key=lpnw2026setup` (unless **`LPNW_LOGIN_AS_SECRET`** is set in `wp-config.php`). Upload to `wp-content/mu-plugins/` if not already there (or redeploy from the repo).  
+   - Example: `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`  
    - Logs in as the **test** subscriber (`admin@codevall.co.uk` per file) and redirects to `/dashboard/`.  
    - **`admin`** target sends first administrator to wp-admin.  
-   - The file **deletes itself** after one successful login; redeploy from the repo only if you need it again.
+   - The file **does not self-delete**; remove manually before launch or harden per `docs/DEPLOYMENT.md`.
 
-2. **`tools/lpnw-autologin.php`** — same **`LPNW_LOGIN_AS_SECRET`**; one-shot **admin** login; file deletes itself after success. Upload to `mu-plugins`, hit `?lpnw_autologin=admin&key=YOUR_SECRET`, then confirm removal.
+2. **`tools/lpnw-autologin.php`** — same key rules; one-shot **admin** login; file **deletes itself** after success. Upload to `mu-plugins`, hit `?lpnw_autologin=admin&key=lpnw2026setup` (or your wp-config secret), then confirm removal.
 
 3. **`/?nocache`** — reduces stale HTML from 20i CDN while checking theme/plugin changes.
 
-**Security:** Treat **`LPNW_LOGIN_AS_SECRET`** like a password. Remove **`lpnw-login-as.php`** from the server when you do not need it; the next FTP deploy may upload it again from the repo.
+**Security:** Before public launch, use **`LPNW_LOGIN_AS_SECRET`** and/or remove **`lpnw-login-as.php`** from production.
 
 ---
 

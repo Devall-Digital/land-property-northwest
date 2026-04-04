@@ -1,14 +1,13 @@
 <?php
 /**
- * Emergency login when wp-login.php is difficult to reach (e.g. host WAF).
+ * Log in as admin or test subscriber when wp-login.php is awkward (e.g. host WAF).
  *
- * Requires LPNW_LOGIN_AS_SECRET in wp-config.php (long random string). Without it,
- * this file does nothing. After a successful login, this file deletes itself; redeploy
- * from the repo if you need it again.
+ * DEVELOPMENT: uses the fixed key below. Before public launch, switch to
+ * LPNW_LOGIN_AS_SECRET in wp-config.php (see docs/DEPLOYMENT.md) or remove this file.
  *
- * URL examples (replace SECRET):
- *   /?lpnw_login_as=admin&key=SECRET   → wp-admin
- *   /?lpnw_login_as=test&key=SECRET    → subscriber test user (email in code below)
+ * URL examples:
+ *   /?lpnw_login_as=admin&key=lpnw2026setup   → wp-admin
+ *   /?lpnw_login_as=test&key=lpnw2026setup   → test user dashboard
  *
  * @package LPNW
  */
@@ -17,14 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'LPNW_LOGIN_AS_SECRET' ) || '' === LPNW_LOGIN_AS_SECRET ) {
-	return;
-}
-
 add_action(
 	'init',
 	static function () {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- One-shot GET login bypass for host WAF; secret in wp-config.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Dev login bypass via GET; remove before launch or use LPNW_LOGIN_AS_SECRET.
 		if ( empty( $_GET['lpnw_login_as'] ) ) {
 			return;
 		}
@@ -33,11 +28,15 @@ add_action(
 		if ( isset( $_GET['key'] ) && is_string( $_GET['key'] ) ) {
 			$provided = sanitize_text_field( wp_unslash( $_GET['key'] ) );
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		if ( '' === $provided || ! hash_equals( (string) LPNW_LOGIN_AS_SECRET, $provided ) ) {
+		$secret = ( defined( 'LPNW_LOGIN_AS_SECRET' ) && '' !== LPNW_LOGIN_AS_SECRET )
+			? (string) LPNW_LOGIN_AS_SECRET
+			: 'lpnw2026setup';
+
+		if ( '' === $provided || ! hash_equals( $secret, $provided ) ) {
 			return;
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$target = sanitize_text_field( wp_unslash( $_GET['lpnw_login_as'] ) );
@@ -67,12 +66,6 @@ add_action(
 		do_action( 'wp_login', $user->user_login, $user );
 
 		$redirect = ( 'test' === $target ) ? home_url( '/dashboard/' ) : admin_url();
-
-		$self = __FILE__;
-		if ( is_string( $self ) && is_readable( $self ) && function_exists( 'wp_delete_file' ) ) {
-			wp_delete_file( $self );
-		}
-
 		wp_safe_redirect( $redirect );
 		exit;
 	},

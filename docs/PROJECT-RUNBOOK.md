@@ -46,7 +46,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **Shallow checks** (curl status codes, public REST) catch outages only. **Deep dives** need many probes in parallel: key URLs, forms, logged-in flows, WooCommerce paths, feed admin screens, mobile breakpoints, console errors, and cross-links. That is best done with **several agents or browser sessions at once**, each owning a slice (e.g. one on commerce, one on subscriber UX, one on plugin admin, one on SEO/schema). I will use that pattern whenever you want maximum coverage quickly.
 
-**Visual review (VM browser):** Agents can drive a **real browser**, log in with **`/?nocache=1&lpnw_login_as=test&key=...`** where **`key`** equals **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` (see `docs/DEPLOYMENT.md` and `mu-plugins/lpnw-login-as.php`). The script **self-deletes after one use**; redeploy the file if you need it again. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space.
+**Visual review (VM browser):** Agents can drive **Cursor’s built-in browser** (ask for **side panel** if you want to watch). Log in with **`/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`** during development, or **`key=`** matching **`LPNW_LOGIN_AS_SECRET`** if set in `wp-config.php` (see `docs/DEPLOYMENT.md`). **`lpnw-login-as.php` does not self-delete**; **`lpnw-autologin.php` does** after one use. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space.
 
 **GitHub vs live:** This repo is the **source of truth** for **plugin and theme code**. Pushing to GitHub means you can redeploy or rebuild the custom product after a host failure. A full site restore also needs **WordPress database, uploads, and wp-config** (use **UpdraftPlus** or 20i backups on a schedule). FTP deploy only replaces the two custom folders.
 
@@ -67,9 +67,9 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 | Script (in repo) | Purpose |
 |------------------|---------|
 | `tools/lpnw-autologin.php` | One-shot login as **first administrator** (by user ID), redirect to **wp-admin**, then **deletes itself**. |
-| `mu-plugins/lpnw-login-as.php` | One-shot login as **admin** or **test** subscriber (`admin@codevall.co.uk` → dashboard). Requires **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`; **`key`** on the URL must match. **Deletes itself** after one successful login. |
+| `mu-plugins/lpnw-login-as.php` | Login as **admin** or **test** subscriber (`admin@codevall.co.uk` → dashboard). **Dev default** `key=lpnw2026setup`; optional **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` overrides. **Does not self-delete** (reuse during development). |
 
-**Typical use:** Define **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`, upload the file to `wp-content/mu-plugins/` if it is not already there, hit the URL once with `lpnw_login_as` / `lpnw_autologin` and matching **`key`**, then confirm the file removed itself (or delete it manually). **Remove the mu-plugin from the server when you do not need it**; the next full deploy may upload it again from the repo.
+**Typical use:** Upload to `wp-content/mu-plugins/` if needed, hit the URL with `lpnw_login_as` / `lpnw_autologin` and matching **`key`**. Before launch, switch to **`LPNW_LOGIN_AS_SECRET`** or remove the file (see `docs/DEPLOYMENT.md`).
 
 Authenticated API checks (e.g. custom endpoints) are an alternative once a session or application password exists; the script path matches what you described for admin visibility under 20i.
 
@@ -102,7 +102,7 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 | **LPNW Overview** | **5,132** properties; **164** in last 24h; **2** active subscribers; **2** with preferences (**2** free / **0** pro / **0** vip); **0** sent today; **3,157** all-time sent; **141** queued |
 | **LPNW Settings** | **Mautic** URL + app user set; **VIP / Pro / Free** email ID fields filled; **EPC** email + API key fields **filled** |
 | **Admin nags** | **Redirection** setup; **Wordfence** prompts; **Cookie Notice** upsell; **Rank Math No Index**; Woo **coming soon** (as before) |
-| **Security (repo same day)** | **`lpnw-login-as.php`**: no hard-coded key; requires **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`; **`hash_equals`** for key; **self-deletes** after one successful login (`tools/lpnw-autologin.php` aligned). See `docs/DEPLOYMENT.md`. |
+| **Security (repo)** | **`lpnw-login-as.php`**: dev default key + optional **`LPNW_LOGIN_AS_SECRET`** override; **`hash_equals`** for key check. **`lpnw-autologin.php`** still self-deletes after one success. Harden before launch per `docs/DEPLOYMENT.md`. |
 
 ---
 
@@ -184,7 +184,8 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 | Date | Item |
 |------|------|
-| 2026-04-04 | **Security + docs:** `lpnw-login-as.php` / `lpnw-autologin.php` require **`LPNW_LOGIN_AS_SECRET`**, timing-safe compare, self-delete; DEPLOYMENT + secrets.mdc + STATUS + runbook + verification docs updated; wp-admin audit (numbers + settings) |
+| 2026-04-04 | **Dev-friendly login-as:** default `key=lpnw2026setup`, optional **`LPNW_LOGIN_AS_SECRET`** override; login-as does not self-delete; autologin still one-shot; AGENTS.md “follow the browser” note; DEPLOYMENT + docs aligned |
+| 2026-04-04 | **Security + docs:** stricter login-as experiment (wp-config-only); superseded by dev-default flow above |
 | 2026-04-04 | **FTP deploy** from repo main (plugin 1.0.32, theme 6.12.1, mu-plugins); public `?nocache` smoke + live theme header check; `composer.json` lint script uses `vendor/bin/phpcs`; STATUS + runbook versions aligned |
 | 2026-04-02 | **wp-admin read-only audit** (autologin script upload once, removed); STATUS + runbook updated with live numbers and notices |
 | 2026-04-02 | Runbook created; live smoke check home/properties/pricing/dashboard + REST index |
