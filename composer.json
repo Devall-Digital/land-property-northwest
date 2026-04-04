@@ -17,7 +17,7 @@
         }
     },
     "scripts": {
-        "lint": "phpcs --standard=WordPress plugin/ theme/ --extensions=php",
-        "lint:fix": "phpcbf --standard=WordPress plugin/ theme/ --extensions=php"
+        "lint": "@php vendor/bin/phpcs --standard=WordPress plugin/ theme/ --extensions=php",
+        "lint:fix": "@php vendor/bin/phpcbf --standard=WordPress plugin/ theme/ --extensions=php"
     }
 }

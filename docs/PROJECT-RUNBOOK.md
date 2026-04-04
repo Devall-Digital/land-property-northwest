@@ -77,16 +77,36 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 ## Last live verification
 
-**Checked:** 2 April 2026 — public smoke tests plus **wp-admin read-only** session (one-shot `tools/lpnw-autologin.php` uploaded to mu-plugins, used once, **confirmed removed** from server).
+### 4 April 2026 (repo parity: FTP + public smoke)
 
-### Public
+**Checked:** `tools/deploy-ftp.ps1` from repo **main** to 20i: **plugin** `lpnw-property-alerts` (**1.0.32** in repo header), **theme** `lpnw-theme` (**6.12.1**), **mu-plugins** (`lpnw-cron-endpoint.php`, `lpnw-login-as.php`, and other `mu-plugins/*.php` in repo). **Git:** `origin/main` only (stale `cursor/*` remote branches absent).
+
+| Check | Result |
+|--------|--------|
+| Homepage, `/properties/`, `/pricing/`, `/dashboard/` with `?nocache=1` | HTTP **200** |
+| `/wp-json/` | HTTP **200** |
+| Live theme header | `wp-content/themes/lpnw-theme/style.css` → **Version: 6.12.1** (matches repo) |
+| Live plugin header over HTTP | `lpnw-property-alerts.php` returns **200** with **empty body** (typical hardening); confirm **Plugins** screen on next wp-admin visit |
+| `?nocache=1&lpnw_update=pages` (anonymous) | **403** on `/pricing/` — use **logged-in admin** or `key` per `docs/DEPLOYMENT.md` |
+
+**Composer lint:** `composer lint` runs via **`@php vendor/bin/phpcs`** (see `composer.json`); PHPCS still reports many existing violations (exit code 2 is expected until cleaned up).
+
+**Not re-checked this pass:** Feed Status row counts, Mautic row, or full wp-admin screens (use 2 Apr snapshot below until next deep login).
+
+---
+
+### 2 April 2026 (public smoke + wp-admin read-only)
+
+**Checked:** Public smoke tests plus **wp-admin read-only** session (one-shot `tools/lpnw-autologin.php` uploaded to mu-plugins, used once, **confirmed removed** from server).
+
+#### Public
 
 | Check | Result |
 |--------|--------|
 | Homepage, `/properties/`, `/pricing/`, `/dashboard/` | HTTP 200 |
 | `/wp-json/` | OK; `Europe/London` |
 
-### wp-admin (verified)
+#### wp-admin (verified that day; versions superseded on disk by 4 Apr deploy)
 
 | Area | Finding |
 |------|---------|
@@ -96,12 +116,12 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 | **Feed Status** | All listed feeds **0 failed runs**; **Zoopla** cumulative new **0**; **Allsop** **0**; Rightmove / OTM / others show healthy activity |
 | **LPNW Settings** | EPC email + API key fields **empty**; Mautic URL set; **VIP/Pro/Free Mautic email IDs** auto-filled from API when templates named *LPNW Alert — VIP/Pro* and *LPNW Weekly Digest — Free* exist (plugin 1.0.13+) |
 | **Alert log** | **1,017** total rows (sample); many recent rows **Queued** for PRO |
-| **Plugins** | Active include **LPNW 1.0.0**, WooCommerce, Stripe gateway, Rank Math, Wordfence, WPForms Lite, Cookie Notice, Business Directory, Redirection, UpdraftPlus, etc. |
-| **Themes** | Active: **LPNW Theme 6.0.0** child of GeneratePress |
+| **Plugins** | At time of check, Plugins list showed **LPNW 1.0.0** (WordPress reads the plugin header; **4 Apr 2026** deploy pushed repo **1.0.32** — re-check list) |
+| **Themes** | At time of check: **LPNW Theme 6.0.0** — **4 Apr:** live `style.css` is **6.12.1** |
 | **Products** | **3** published WooCommerce products |
 | **Admin notices** | Rank Math: **No Index**; WooCommerce bar: **Store coming soon**; Redirection setup incomplete; Wordfence incomplete / Woo LS integration nag; Cookie Notice upsell |
 
-**Still not exercised this pass:** Checkout payment with a real card, subscriber-only pages as a non-admin test user, or reading raw server logs.
+**Still not exercised (either pass):** Checkout payment with a real card, subscriber-only pages as a non-admin test user, or reading raw server logs.
 
 ---
 
@@ -153,6 +173,7 @@ Authenticated API checks (e.g. custom endpoints) are an alternative once a sessi
 
 | Date | Item |
 |------|------|
+| 2026-04-04 | **FTP deploy** from repo main (plugin 1.0.32, theme 6.12.1, mu-plugins); public `?nocache` smoke + live theme header check; `composer.json` lint script uses `vendor/bin/phpcs`; STATUS + runbook versions aligned |
 | 2026-04-02 | **wp-admin read-only audit** (autologin script upload once, removed); STATUS + runbook updated with live numbers and notices |
 | 2026-04-02 | Runbook created; live smoke check home/properties/pricing/dashboard + REST index |
 | 2026-04-02 | `composer.lock` added on branch for reproducible PHPCS/WPCS installs (see git history) |
