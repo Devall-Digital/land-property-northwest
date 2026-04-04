@@ -25,6 +25,7 @@ foreach ( $tables as $table ) {
 
 delete_option( 'lpnw_settings' );
 delete_option( 'lpnw_version' );
+delete_option( 'lpnw_auctions_cron_15m' );
 delete_option( 'lpnw_mautic_api_url' );
 delete_option( 'lpnw_mautic_api_user' );
 delete_option( 'lpnw_mautic_api_password' );

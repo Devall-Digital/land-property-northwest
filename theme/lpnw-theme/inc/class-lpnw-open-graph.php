@@ -35,8 +35,37 @@ final class LPNW_Open_Graph {
 			return (string) $attachment_url;
 		}
 
-		$details = self::build_image_details( (string) $attachment_url );
+		$candidate = is_string( $attachment_url ) ? trim( $attachment_url ) : '';
+		if ( '' !== $candidate && ! self::is_acceptable_og_image_url( $candidate ) ) {
+			$candidate = '';
+		}
+
+		$details = self::build_image_details( $candidate );
 		return $details['url'];
+	}
+
+	/**
+	 * Social crawlers often reject SVG; Rank Math may still pass a site logo URL.
+	 *
+	 * @param string $url Absolute URL.
+	 * @return bool
+	 */
+	private static function is_acceptable_og_image_url( string $url ): bool {
+		if ( '' === $url ) {
+			return false;
+		}
+
+		$lower = strtolower( $url );
+		if ( str_contains( $lower, '.svg' ) ) {
+			return false;
+		}
+
+		$parsed = wp_parse_url( $url );
+		if ( ! is_array( $parsed ) || empty( $parsed['scheme'] ) || ! in_array( strtolower( (string) $parsed['scheme'] ), array( 'http', 'https' ), true ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -169,7 +198,7 @@ final class LPNW_Open_Graph {
 			return 'Pricing | ' . $site_name;
 		}
 
-		if ( is_page( 'properties' ) ) {
+		if ( is_page( 'properties' ) || is_page( 'browse-properties' ) ) {
 			return 'Browse Northwest Properties | ' . $site_name;
 		}
 
@@ -196,7 +225,7 @@ final class LPNW_Open_Graph {
 			return 'Free weekly digest or instant Pro alerts from £19.99/month. Priority access for Investor VIP.';
 		}
 
-		if ( is_page( 'properties' ) ) {
+		if ( is_page( 'properties' ) || is_page( 'browse-properties' ) ) {
 			return 'Search thousands of live property listings across Greater Manchester, Merseyside, Lancashire, Cheshire, and Cumbria.';
 		}
 
@@ -235,7 +264,12 @@ final class LPNW_Open_Graph {
 			return self::get_branded_static_image( 'home' );
 		}
 
-		if ( $rank_math_url !== '' ) {
+		// Key marketing pages: always use the branded message card, not a hero or inline photo.
+		if ( is_page( array( 'pricing', 'properties', 'browse-properties', 'about', 'contact' ) ) ) {
+			return self::get_branded_static_image( 'default' );
+		}
+
+		if ( $rank_math_url !== '' && self::is_acceptable_og_image_url( $rank_math_url ) ) {
 			return array(
 				'url' => $rank_math_url,
 			);
@@ -256,11 +290,44 @@ final class LPNW_Open_Graph {
 	 * @return array{url:string,width:int,height:int,alt:string}
 	 */
 	private static function get_branded_static_image( string $which ): array {
+		if ( self::can_use_dynamic_share_card() ) {
+			$alt = ( 'home' === $which )
+				/* translators: %s: site name. */
+				? sprintf( __( '%s — instant property alerts for Northwest England (listings, planning, auctions, and more)', 'lpnw-theme' ), get_bloginfo( 'name' ) )
+				/* translators: %s: site name. */
+				: sprintf( __( '%s — Northwest property intelligence and alerts', 'lpnw-theme' ), get_bloginfo( 'name' ) );
+
+			return array(
+				'url'    => LPNW_OG_Card::get_image_url( $which ),
+				'width'  => LPNW_OG_Card::WIDTH,
+				'height' => LPNW_OG_Card::HEIGHT,
+				'alt'    => $alt,
+			);
+		}
+
 		$file     = ( 'home' === $which ) ? 'og-home.png' : 'og-default.png';
 		$path     = get_stylesheet_directory() . '/assets/img/' . $file;
 		$base_uri = get_stylesheet_directory_uri() . '/assets/img/' . $file;
-		$ver      = is_readable( $path ) ? (string) filemtime( $path ) : '';
-		$url      = $ver !== '' ? add_query_arg( 'v', $ver, $base_uri ) : $base_uri;
+
+		// Legacy JPEG path (older deploys) if PNG is missing.
+		if ( ! is_readable( $path ) ) {
+			$jpg     = get_stylesheet_directory() . '/assets/img/og/og-default.jpg';
+			$jpg_uri = get_stylesheet_directory_uri() . '/assets/img/og/og-default.jpg';
+			if ( is_readable( $jpg ) ) {
+				$ver = (string) filemtime( $jpg );
+				$url = add_query_arg( 'v', $ver, $jpg_uri );
+
+				return array(
+					'url'    => $url,
+					'width'  => 1920,
+					'height' => 1080,
+					'alt'    => get_bloginfo( 'name' ),
+				);
+			}
+		}
+
+		$ver = is_readable( $path ) ? (string) filemtime( $path ) : '';
+		$url = $ver !== '' ? add_query_arg( 'v', $ver, $base_uri ) : $base_uri;
 
 		return array(
 			'url'    => $url,
@@ -268,6 +335,21 @@ final class LPNW_Open_Graph {
 			'height' => 630,
 			'alt'    => get_bloginfo( 'name' ),
 		);
+	}
+
+	/**
+	 * Dynamic PNG card (headline + value prop) when GD + bundled TTF are available.
+	 *
+	 * @return bool
+	 */
+	private static function can_use_dynamic_share_card(): bool {
+		if ( ! function_exists( 'imagecreatetruecolor' ) || ! function_exists( 'imagettftext' ) ) {
+			return false;
+		}
+
+		$font = get_stylesheet_directory() . '/assets/fonts/DejaVuSans-Bold.ttf';
+
+		return is_readable( $font );
 	}
 
 	/**

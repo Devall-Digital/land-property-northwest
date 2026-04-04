@@ -2,6 +2,9 @@
 vendor/
 node_modules/
 
+# One-shot browser automation (never commit)
+tools/.browser_wp_creds_tmp.txt
+
 # Environment & secrets
 .env
 .env.local
