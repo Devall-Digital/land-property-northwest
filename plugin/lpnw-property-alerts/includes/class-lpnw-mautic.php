@@ -243,6 +243,24 @@ class LPNW_Mautic {
 			return (int) $email_id;
 		}
 
+		// Mautic often returns HTTP 200 with success=false and errors in "failed" (see EmailApiController::sendLeadAction).
+		$detail = '';
+		if ( isset( $response['failed'] ) ) {
+			$detail = is_scalar( $response['failed'] ) ? (string) $response['failed'] : wp_json_encode( $response['failed'] );
+		} elseif ( is_array( $response ) ) {
+			$detail = wp_json_encode( $response );
+		}
+		if ( '' !== $detail ) {
+			error_log(
+				sprintf(
+					'LPNW Mautic: send failed for contact %d email template %d: %s',
+					(int) $contact_id,
+					(int) $email_id,
+					$detail
+				)
+			);
+		}
+
 		return null;
 	}
 

@@ -34,9 +34,11 @@ WP admin login: `admin` / `admin` at `http://localhost:8080/wp-login.php`.
 
 ### Following the agent’s browser (Cursor)
 
-Agent browser automation does **not** always open Chrome or Edge on your PC. Cursor runs a **built-in browser** for MCP browser tools.
+Agent browser automation does **not** open Chrome or Edge on your PC. Cursor runs a **built-in browser** for MCP browser tools.
 
-- **Watch alongside your code:** Ask the agent to use the browser in the **side panel** (e.g. “open the browser on the side so I can see it”). In Cursor, an editor tab or panel should show the live page while the agent navigates.
+**Rule for agents:** When the user wants to **follow along** (or they say they could not see the browser last time), use MCP **`browser_navigate`** with **`position`: `"side"`** so the browser opens **beside the editor** and stays visible. Do this on the **first** navigation of the session unless the user prefers full width.
+
+- **Director / user:** Say “open the browser on the side” if the tab does not appear; the agent should use **`position`: `"side"`** on `browser_navigate`.
 - **If you see nothing:** Check the **View** menu for browser / simple browser options for your Cursor version, or focus the chat’s browser preview if your layout hides it.
 - **You can always mirror manually:** Open the same URL in your own browser (e.g. the site with `?nocache=1` or the `lpnw_login_as` URL from `docs/DEPLOYMENT.md`).
 

@@ -147,6 +147,16 @@ class LPNW_Dispatcher {
 
 		$user = get_userdata( $user_id );
 		if ( ! $user ) {
+			$orphan_ids = array_map( static fn( $a ) => (int) $a->id, $alerts );
+			if ( ! empty( $orphan_ids ) ) {
+				$placeholders = implode( ',', array_fill( 0, count( $orphan_ids ), '%d' ) );
+				$wpdb->query( $wpdb->prepare(
+					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NULL WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'failed',
+					...$orphan_ids
+				) );
+			}
+			error_log( sprintf( 'LPNW Dispatcher: no WP user for user_id %d; marked %d queue row(s) failed.', $user_id, count( $orphan_ids ) ) );
 			return false;
 		}
 
@@ -194,6 +204,17 @@ class LPNW_Dispatcher {
 
 		if ( ! $sent ) {
 			$sent = $this->send_via_wp_mail( $user, $properties, $effective_frequency, $prefs );
+		}
+
+		if ( ! $sent ) {
+			error_log(
+				sprintf(
+					'LPNW Dispatcher: alert not sent for user_id %d tier %s (queue ids: %s). Check Mautic API logs above, wp_mail, and host mail.',
+					$user_id,
+					$tier,
+					implode( ',', array_map( static fn( $a ) => (string) (int) $a->id, $alerts ) )
+				)
+			);
 		}
 
 		$status = $sent ? 'sent' : 'failed';
