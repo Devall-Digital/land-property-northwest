@@ -2,9 +2,10 @@
 /**
  * Admin dashboard overview page.
  *
- * Variables supplied by LPNW_Admin::render_dashboard(): $snapshot, $feed_log,
- * $cron_rows, $mautic, $wp_cron_off, $alerts_queued, $alerts_sent_all,
- * $lpnw_tier_pref_counts (free, pro, vip, total).
+ * Variables supplied by LPNW_Admin::render_dashboard(): $snapshot (includes
+ * paid_customer_count), $feed_log, $cron_rows, $mautic, $wp_cron_off,
+ * $alerts_queued, $alerts_sent_all, $lpnw_cron_ping_url, $lpnw_tier_pref_counts
+ * (free, pro, vip, total among users with active preferences).
  *
  * @package LPNW_Property_Alerts
  */
@@ -95,21 +96,21 @@ if ( $total_pages > 1 ) {
 					<div class="card" style="margin:0;padding:12px;">
 						<h3 style="margin:0 0 6px;font-size:1.6em;line-height:1.2;"><?php echo esc_html( number_format( (int) $snapshot['subscriber_count'] ) ); ?></h3>
 						<p style="margin:0;color:#646970;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-							<?php esc_html_e( 'Active subscribers', 'lpnw-alerts' ); ?>
+							<?php esc_html_e( 'Users with alert preferences on', 'lpnw-alerts' ); ?>
 							<?php
 							LPNW_Admin_Help::tip_icon(
-								__( 'Preference rows with is_active = 1. Can include users who never paid.', 'lpnw-alerts' )
+								__( 'Distinct WordPress users with a preferences row and alerts left on. Does not include paying customers who have not saved preferences yet.', 'lpnw-alerts' )
 							);
 							?>
 						</p>
 					</div>
 					<div class="card" style="margin:0;padding:12px;">
-						<h3 style="margin:0 0 6px;font-size:1.6em;line-height:1.2;"><?php echo esc_html( number_format( (int) $lpnw_tier_pref_counts['total'] ) ); ?></h3>
+						<h3 style="margin:0 0 6px;font-size:1.6em;line-height:1.2;"><?php echo esc_html( number_format( (int) $snapshot['paid_customer_count'] ) ); ?></h3>
 						<p style="margin:0;color:#646970;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-							<?php esc_html_e( 'With saved preferences', 'lpnw-alerts' ); ?>
+							<?php esc_html_e( 'Paid Pro/VIP (WooCommerce)', 'lpnw-alerts' ); ?>
 							<?php
 							LPNW_Admin_Help::tip_icon(
-								__( 'Anyone who saved preferences at least once. Open Subscribers for the searchable list and tier columns.', 'lpnw-alerts' )
+								__( 'Customers linked to a WordPress user account with at least one completed or processing order containing a Pro or VIP subscription product. Guest checkout is not counted.', 'lpnw-alerts' )
 							);
 							?>
 						</p>
@@ -121,10 +122,10 @@ if ( $total_pages > 1 ) {
 							<li><strong><?php echo esc_html( number_format( (int) $lpnw_tier_pref_counts['vip'] ) ); ?></strong> <?php esc_html_e( 'vip', 'lpnw-alerts' ); ?></li>
 						</ul>
 						<p style="margin:8px 0 0;color:#646970;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-							<?php esc_html_e( 'Effective tier (users with preferences)', 'lpnw-alerts' ); ?>
+							<?php esc_html_e( 'Effective tier (active preferences only)', 'lpnw-alerts' ); ?>
 							<?php
 							LPNW_Admin_Help::tip_icon(
-								__( 'WooCommerce Pro/VIP orders override profile comps. See Subscribers for per-user breakdown.', 'lpnw-alerts' )
+								__( 'Among users with active alert preferences only. WooCommerce Pro/VIP orders override admin comps. See Subscribers for the full list.', 'lpnw-alerts' )
 							);
 							?>
 						</p>

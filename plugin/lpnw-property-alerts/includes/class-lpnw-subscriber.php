@@ -112,6 +112,64 @@ class LPNW_Subscriber {
 	}
 
 	/**
+	 * Highest LPNW tier indicated by line items on one order (slug match, same rules as get_tier_from_orders).
+	 *
+	 * @param object $order WooCommerce order object.
+	 * @return string One of: free, pro, vip
+	 */
+	private static function lpnw_tier_signal_from_order( object $order ): string {
+		if ( ! method_exists( $order, 'get_items' ) ) {
+			return 'free';
+		}
+
+		if ( method_exists( $order, 'get_status' ) ) {
+			$st = $order->get_status();
+			if ( in_array( $st, array( 'refunded', 'cancelled', 'failed', 'trash' ), true ) ) {
+				return 'free';
+			}
+		}
+
+		if ( method_exists( $order, 'get_total' ) && method_exists( $order, 'get_total_refunded' ) ) {
+			$total    = (float) $order->get_total();
+			$refunded = (float) $order->get_total_refunded();
+			if ( $total > 0 && $refunded >= $total - 0.01 ) {
+				return 'free';
+			}
+		}
+
+		$has_vip = false;
+		$has_pro = false;
+
+		foreach ( $order->get_items() as $item ) {
+			if ( ! is_object( $item ) || ! method_exists( $item, 'get_product' ) ) {
+				continue;
+			}
+
+			$product = $item->get_product();
+			if ( ! $product || ! is_object( $product ) || ! method_exists( $product, 'get_slug' ) ) {
+				continue;
+			}
+
+			$slug = $product->get_slug();
+			if ( str_contains( $slug, 'vip' ) ) {
+				$has_vip = true;
+			}
+			if ( str_contains( $slug, 'pro' ) ) {
+				$has_pro = true;
+			}
+		}
+
+		if ( $has_vip ) {
+			return 'vip';
+		}
+		if ( $has_pro ) {
+			return 'pro';
+		}
+
+		return 'free';
+	}
+
+	/**
 	 * Tier from WooCommerce orders only (ignores admin override). For admin display and support.
 	 *
 	 * VIP wins over Pro if both appear in order history.
@@ -143,42 +201,15 @@ class LPNW_Subscriber {
 		$has_pro = false;
 
 		foreach ( $orders as $order ) {
-			if ( ! is_object( $order ) || ! method_exists( $order, 'get_items' ) ) {
+			if ( ! is_object( $order ) ) {
 				continue;
 			}
 
-			if ( method_exists( $order, 'get_status' ) ) {
-				$st = $order->get_status();
-				if ( in_array( $st, array( 'refunded', 'cancelled', 'failed', 'trash' ), true ) ) {
-					continue;
-				}
-			}
-
-			if ( method_exists( $order, 'get_total' ) && method_exists( $order, 'get_total_refunded' ) ) {
-				$total    = (float) $order->get_total();
-				$refunded = (float) $order->get_total_refunded();
-				if ( $total > 0 && $refunded >= $total - 0.01 ) {
-					continue;
-				}
-			}
-
-			foreach ( $order->get_items() as $item ) {
-				if ( ! is_object( $item ) || ! method_exists( $item, 'get_product' ) ) {
-					continue;
-				}
-
-				$product = $item->get_product();
-				if ( ! $product || ! is_object( $product ) || ! method_exists( $product, 'get_slug' ) ) {
-					continue;
-				}
-
-				$slug = $product->get_slug();
-				if ( str_contains( $slug, 'vip' ) ) {
-					$has_vip = true;
-				}
-				if ( str_contains( $slug, 'pro' ) ) {
-					$has_pro = true;
-				}
+			$sig = self::lpnw_tier_signal_from_order( $order );
+			if ( 'vip' === $sig ) {
+				$has_vip = true;
+			} elseif ( 'pro' === $sig ) {
+				$has_pro = true;
 			}
 		}
 
@@ -190,6 +221,62 @@ class LPNW_Subscriber {
 		}
 
 		return 'free';
+	}
+
+	/**
+	 * Distinct WordPress user IDs with a qualifying Pro/VIP line item on at least one completed or processing order.
+	 *
+	 * Guest orders (no linked customer ID) are excluded. Paginates through orders for large shops.
+	 *
+	 * @return int
+	 */
+	public static function count_customers_with_paid_tier_order(): int {
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return 0;
+		}
+
+		$seen = array();
+		$page = 1;
+		$per  = 100;
+
+		do {
+			$orders = wc_get_orders(
+				array(
+					'status'  => array( 'completed', 'processing' ),
+					'limit'   => $per,
+					'page'    => $page,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+					'return'  => 'objects',
+				)
+			);
+
+			$batch_count = is_array( $orders ) ? count( $orders ) : 0;
+
+			if ( $batch_count < 1 ) {
+				break;
+			}
+
+			foreach ( $orders as $order ) {
+				if ( ! is_object( $order ) || ! method_exists( $order, 'get_customer_id' ) ) {
+					continue;
+				}
+
+				$cid = (int) $order->get_customer_id();
+				if ( $cid <= 0 ) {
+					continue;
+				}
+
+				$sig = self::lpnw_tier_signal_from_order( $order );
+				if ( 'pro' === $sig || 'vip' === $sig ) {
+					$seen[ $cid ] = true;
+				}
+			}
+
+			++$page;
+		} while ( $batch_count >= $per );
+
+		return count( $seen );
 	}
 
 	/**
@@ -225,7 +312,7 @@ class LPNW_Subscriber {
 		global $wpdb;
 		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared
-		$ids = $wpdb->get_col( "SELECT DISTINCT user_id FROM {$table}" );
+		$ids = $wpdb->get_col( "SELECT DISTINCT user_id FROM {$table} WHERE is_active = 1" );
 		$out = array(
 			'free'  => 0,
 			'pro'   => 0,

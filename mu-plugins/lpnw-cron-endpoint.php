@@ -6,9 +6,9 @@
  * https://example.com/?lpnw_cron=tick
  * Optional: &key=SECRET when LPNW_CRON_SECRET is defined in wp-config.php.
  *
- * This triggers WordPress's built-in cron scheduler exactly like
- * wp-cron.php would, but through a normal page request that 20i
- * doesn't block.
+ * Runs the same worker logic as wp-cron.php (scheduled hooks), but via a normal
+ * front URL 20i does not block. Do not call wp_cron() from init then exit: since
+ * WP 5.7, wp_cron() defers to wp_loaded, so an early exit never runs jobs.
  *
  * This file lives permanently in mu-plugins. Do not delete it.
  *
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action(
-	'init',
+	'wp_loaded',
 	function () {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Cron ping uses optional shared secret, not a form nonce.
 		if ( ! isset( $_GET['lpnw_cron'] ) || 'tick' !== $_GET['lpnw_cron'] ) {
@@ -48,15 +48,15 @@ add_action(
 			exit;
 		}
 
-		if ( ! defined( 'DOING_CRON' ) ) {
-			define( 'DOING_CRON', true );
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Core entry script; defines DOING_CRON after its own guard.
+		require_once ABSPATH . 'wp-cron.php';
+
+		// wp-cron.php uses return when another process holds the lock (included from this scope).
+		if ( ! headers_sent() ) {
+			header( 'Content-Type: text/plain; charset=utf-8' );
 		}
-
-		wp_cron();
-
-		header( 'Content-Type: text/plain; charset=utf-8' );
-		echo esc_html( 'ok ' . gmdate( 'Y-m-d H:i:s' ) . "\n" );
+		echo esc_html( "cron_lock_busy\n" );
 		exit;
 	},
-	0
+	999
 );

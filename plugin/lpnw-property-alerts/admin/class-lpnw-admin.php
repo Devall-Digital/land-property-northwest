@@ -154,8 +154,12 @@ class LPNW_Admin {
 					</span>
 				</li>
 				<li style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #f0f0f1;">
-					<span><?php esc_html_e( 'Active subscribers', 'lpnw-alerts' ); ?></span>
+					<span><?php esc_html_e( 'Users with alert prefs on', 'lpnw-alerts' ); ?></span>
 					<strong><?php echo esc_html( number_format( $snapshot['subscriber_count'] ) ); ?></strong>
+				</li>
+				<li style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #f0f0f1;">
+					<span><?php esc_html_e( 'Paid Pro/VIP (Woo)', 'lpnw-alerts' ); ?></span>
+					<strong><?php echo esc_html( number_format( (int) $snapshot['paid_customer_count'] ) ); ?></strong>
 				</li>
 				<li style="display:flex; justify-content:space-between; padding:4px 0;">
 					<span><?php esc_html_e( 'Alerts sent today', 'lpnw-alerts' ); ?></span>
@@ -316,8 +320,12 @@ class LPNW_Admin {
 		);
 
 		$subscriber_count = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_subscriber_preferences WHERE is_active = 1"
+			"SELECT COUNT(DISTINCT user_id) FROM {$wpdb->prefix}lpnw_subscriber_preferences WHERE is_active = 1"
 		);
+
+		$paid_customer_count = ( class_exists( 'LPNW_Subscriber' ) && function_exists( 'wc_get_orders' ) )
+			? LPNW_Subscriber::count_customers_with_paid_tier_order()
+			: 0;
 
 		$today_start = date( 'Y-m-d 00:00:00', (int) current_time( 'timestamp' ) );
 		$alerts_sent_today = (int) $wpdb->get_var(
@@ -347,11 +355,12 @@ class LPNW_Admin {
 		}
 
 		return array(
-			'property_count'      => $property_count,
-			'properties_24h'      => $properties_24h,
-			'subscriber_count'    => $subscriber_count,
-			'alerts_sent_today'   => $alerts_sent_today,
-			'last_feed'           => $last_feed,
+			'property_count'        => $property_count,
+			'properties_24h'        => $properties_24h,
+			'subscriber_count'      => $subscriber_count,
+			'paid_customer_count'   => $paid_customer_count,
+			'alerts_sent_today'     => $alerts_sent_today,
+			'last_feed'             => $last_feed,
 		);
 	}
 

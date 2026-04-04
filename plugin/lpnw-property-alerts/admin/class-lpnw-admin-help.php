@@ -102,7 +102,7 @@ final class LPNW_Admin_Help {
 			'lpnw_dashboard_overview',
 			__( 'Overview', 'lpnw-alerts' ),
 			'<p>' . esc_html__( 'This page is your operations centre: property volume, how many subscribers have active alert preferences, alert queue health, feed run history, and when crons will run next.', 'lpnw-alerts' ) . '</p>' .
-			'<p>' . esc_html__( 'Active subscribers counts rows in alert preferences with is_active = 1. Users with saved preferences (any row) appear on LPNW Alerts > Subscribers with a free / pro / vip split based on effective tier.', 'lpnw-alerts' ) . '</p>'
+			'<p>' . esc_html__( 'Users with alert preferences on counts distinct WordPress users who saved preferences and left alerts switched on. Paid Pro/VIP (WooCommerce) counts customers with a qualifying order; they can appear here even if they have not saved alert preferences yet. The free / pro / vip split applies only to users with active preferences. LPNW Alerts > Subscribers lists everyone with a preferences row.', 'lpnw-alerts' ) . '</p>'
 		);
 		self::add_tab(
 			$screen,
