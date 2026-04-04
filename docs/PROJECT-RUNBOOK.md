@@ -12,6 +12,10 @@ This is the **working checklist** for day-to-day delivery: what is done, what is
 
 Ship and grow a **paid** property-and-land alert service for Northwest England where **speed and relevance** justify Pro and VIP. Every change should answer: *does this get us closer to reliable alerts and paying subscribers?*
 
+**v1 launch focus:** **Portals + auctions + alert pipeline + subscriber UX + billing** are in scope first. **Planning / EPC / Land Registry** are positioned as a **later intelligence product** (Land Insight-style); **new plugin installs** default those feeds **off** in `lpnw_settings` until you turn them on in **LPNW Alerts → Settings**. Existing live sites are **not** auto-changed.
+
+**Parallel work:** Keep **functionality QA** (see `docs/VERIFICATION-BATCHES.md`) separate from **visual / mobile-first** theme work so two agents do not fight the same files.
+
 ---
 
 ## Canonical references

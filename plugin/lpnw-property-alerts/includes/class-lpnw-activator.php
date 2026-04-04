@@ -208,13 +208,15 @@ class LPNW_Activator {
 	}
 
 	private static function set_default_options(): void {
+		// Launch focus: portals + auctions + alerts. Planning / EPC / Land Registry are optional
+		// "intelligence" feeds; enable in LPNW Settings when running a Land Insight-style product tier.
 		$defaults = array(
-			'planning_enabled'     => true,
+			'planning_enabled'     => false,
 			'portals_enabled'      => true,
-			'epc_enabled'          => true,
+			'epc_enabled'          => false,
 			'epc_api_email'        => '',
 			'epc_api_key'          => '',
-			'landregistry_enabled' => true,
+			'landregistry_enabled' => false,
 			'auctions_enabled'     => true,
 			'mautic_api_url'       => '',
 			'mautic_api_user'      => '',

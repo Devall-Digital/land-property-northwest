@@ -2,6 +2,12 @@
 
 Use this for periodic audits: **code defines intent**, these steps confirm **production behaviour**. Run after deploys or when marketing claims drift from reality.
 
+## Launch scope (v1 product)
+
+**Priority for go-live:** listing speed and reliability (**portals**, **auctions**, **dispatch**, **prefs**, **Woo/tier**, **subscriber UI**). Treat **planning / EPC / Land Registry** as a **later intelligence product** (e.g. Land Insight-style); on **fresh installs** they default **off** in plugin settings (existing sites keep their current toggles). Re-enable per feed in **LPNW Alerts → Settings** when you ship that tier.
+
+**Agent split:** one track runs these **functionality batches** (no theme/CSS work). Another track can own **visuals and mobile-first** without touching plugin behaviour to avoid merge conflicts.
+
 ## Browser / VM access (agents and humans)
 
 Agents **can** exercise the live subscriber UI the same way you do:
