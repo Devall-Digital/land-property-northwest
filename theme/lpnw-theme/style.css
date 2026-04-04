@@ -5,7 +5,7 @@ Description: GeneratePress child theme for Land & Property Northwest. Property i
 Author: Land & Property Northwest
 Author URI: https://land-property-northwest.co.uk
 Template: generatepress
-Version: 6.11.0
+Version: 6.12.0
 License: Proprietary
 Text Domain: lpnw-theme
 */
@@ -837,6 +837,64 @@ body.no-sidebar .site-main {
 	--lpnw-parallax-p: 0;
 	--lpnw-hero-mx: 0;
 	--lpnw-hero-my: 0;
+}
+
+/* Photo-only homepage hero (Unsplash slides from LPNW_Hero_Media; no SVG layers). */
+.lpnw-hero.lpnw-hero--photos {
+	padding-top: clamp(5rem, 18vw, 9rem);
+	padding-bottom: clamp(4rem, 12vw, 7rem);
+	min-height: min(72vh, 620px);
+	display: flex;
+	align-items: center;
+}
+
+.lpnw-hero.lpnw-hero--photos .lpnw-hero__photos {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.lpnw-hero.lpnw-hero--photos .lpnw-hero__photos::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+	background: linear-gradient(
+		180deg,
+		rgba(4, 8, 16, 0.45) 0%,
+		rgba(15, 29, 53, 0.72) 42%,
+		rgba(4, 8, 16, 0.88) 100%
+	);
+}
+
+.lpnw-hero__photo {
+	position: absolute;
+	inset: 0;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	opacity: 0;
+	transition: opacity 1.1s ease-in-out;
+	z-index: 0;
+}
+
+.lpnw-hero__photo.is-active {
+	opacity: 1;
+}
+
+.lpnw-hero.lpnw-hero--photos .lpnw-hero__content {
+	position: relative;
+	z-index: 2;
+}
+
+@media (max-width: 768px) {
+	.lpnw-hero.lpnw-hero--photos {
+		min-height: min(62vh, 520px);
+		padding-top: clamp(4.5rem, 14vw, 6rem);
+	}
 }
 
 /* Three-layer procedural city (plugin replaces inline SVG). */

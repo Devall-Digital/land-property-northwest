@@ -210,6 +210,27 @@
         });
     }
 
+    function initHeroPhotos() {
+        var root = document.querySelector('.lpnw-hero__photos[data-lpnw-hero-photos]');
+        if (!root) {
+            return;
+        }
+        var slides = root.querySelectorAll('.lpnw-hero__photo');
+        if (slides.length < 2) {
+            return;
+        }
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+        var i = 0;
+        var period = 7000;
+        window.setInterval(function () {
+            slides[i].classList.remove('is-active');
+            i = (i + 1) % slides.length;
+            slides[i].classList.add('is-active');
+        }, period);
+    }
+
     function initPropertySearchFilters() {
         var root = document.querySelector('[data-lpnw-property-search]');
         if (!root) {
@@ -241,5 +262,6 @@
         initSaveButtons();
         initUnsaveButtons();
         initPropertySearchFilters();
+        initHeroPhotos();
     });
 })();
