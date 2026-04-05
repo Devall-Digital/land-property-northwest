@@ -21,6 +21,10 @@ class LPNW_Admin {
 
 	public const TRANSIENT_ADD_OFF_MARKET_NOTICE = 'lpnw_add_off_market_notice';
 
+	public const SKIP_QUEUED_NONCE_ACTION = 'lpnw_skip_queued_alerts';
+
+	public const TRANSIENT_SKIPPED_QUEUE_PREFIX = 'lpnw_skipped_queue_notice_';
+
 	/** @var array<string, string> */
 	private static array $manual_feed_class_map = array(
 		'rightmove'       => LPNW_Feed_Portal_Rightmove::class,
@@ -49,7 +53,9 @@ class LPNW_Admin {
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'register_wp_dashboard_widget' ) );
 		add_action( 'admin_post_lpnw_run_feed', array( __CLASS__, 'handle_manual_feed_run' ) );
 		add_action( 'admin_post_lpnw_add_off_market', array( __CLASS__, 'handle_add_off_market' ) );
+		add_action( 'admin_post_lpnw_skip_queued_alerts', array( __CLASS__, 'handle_skip_queued_alerts' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'render_feed_run_admin_notice' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'render_skip_queue_admin_notice' ) );
 	}
 
 	public static function add_menu_pages(): void {
@@ -299,6 +305,76 @@ class LPNW_Admin {
 				)
 			)
 		);
+	}
+
+	/**
+	 * After bulk-skipping queued alerts, show a one-time notice on Alert Log.
+	 */
+	public static function render_skip_queue_admin_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'lpnw-alerts_page_lpnw-alert-log' !== $screen->id ) {
+			return;
+		}
+
+		if ( empty( $_GET['lpnw_queue_skipped'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$key = self::TRANSIENT_SKIPPED_QUEUE_PREFIX . get_current_user_id();
+		$n   = get_transient( $key );
+		delete_transient( $key );
+
+		if ( ! is_numeric( $n ) ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-warning is-dismissible"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: %d: number of queue rows marked skipped */
+					_n(
+						'Marked %d queued alert as skipped (no email will be sent for those rows). New matches will queue as normal.',
+						'Marked %d queued alerts as skipped (no email will be sent for those rows). New matches will queue as normal.',
+						(int) $n,
+						'lpnw-alerts'
+					),
+					(int) $n
+				)
+			)
+		);
+	}
+
+	/**
+	 * Mark every queued alert row as skipped (admin maintenance).
+	 */
+	public static function handle_skip_queued_alerts(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to change the alert queue.', 'lpnw-alerts' ) );
+		}
+
+		check_admin_referer( self::SKIP_QUEUED_NONCE_ACTION );
+
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_alert_queue';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE status = 'queued'" );
+
+		if ( $count > 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "UPDATE {$table} SET status = 'skipped', sent_at = NULL WHERE status = 'queued'" );
+		}
+
+		set_transient( self::TRANSIENT_SKIPPED_QUEUE_PREFIX . get_current_user_id(), $count, 120 );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=lpnw-alert-log&lpnw_queue_skipped=1' ) );
+		exit;
 	}
 
 	/**

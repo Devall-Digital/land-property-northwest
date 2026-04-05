@@ -28,10 +28,39 @@ $alerts = $wpdb->get_results( $wpdb->prepare(
 ) );
 
 $total_pages = ceil( $total / $per_page );
+
+$queued_total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'queued'" );
 ?>
 
 <div class="wrap">
 	<h1><?php esc_html_e( 'Alert Delivery Log', 'lpnw-alerts' ); ?></h1>
+
+	<?php if ( $queued_total > 0 ) : ?>
+		<div class="notice notice-info inline" style="margin:12px 0;padding:10px 12px;max-width:960px;">
+			<p style="margin:0 0 8px;">
+				<?php
+				printf(
+					/* translators: %d: number of rows still queued */
+					esc_html__( 'There are %d row(s) still queued. The dispatcher sends in small batches on the alert cron. To abandon the backlog without emailing (for example after testing), you can mark all queued rows as skipped.', 'lpnw-alerts' ),
+					$queued_total
+				);
+				?>
+			</p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:0;" onsubmit="return confirm(<?php echo wp_json_encode( __( 'Skip all queued alerts? No emails will be sent for those rows.', 'lpnw-alerts' ) ); ?>);">
+				<?php wp_nonce_field( LPNW_Admin::SKIP_QUEUED_NONCE_ACTION ); ?>
+				<input type="hidden" name="action" value="lpnw_skip_queued_alerts" />
+				<?php
+				submit_button(
+					__( 'Mark all queued alerts as skipped', 'lpnw-alerts' ),
+					'secondary',
+					'submit',
+					false,
+					array( 'id' => 'lpnw-skip-queued' )
+				);
+				?>
+			</form>
+		</div>
+	<?php endif; ?>
 
 	<p>
 		<?php
