@@ -56,6 +56,10 @@ class LPNW_Subscriber {
 		global $wpdb;
 		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
 
+		$is_active = array_key_exists( 'is_active', $prefs )
+			? ( ! empty( $prefs['is_active'] ) ? 1 : 0 )
+			: 1;
+
 		$row = array(
 			'user_id'        => $user_id,
 			'areas'          => wp_json_encode( $prefs['areas'] ?? array() ),
@@ -69,7 +73,7 @@ class LPNW_Subscriber {
 			'property_types'     => wp_json_encode( $prefs['property_types'] ?? array() ),
 			'alert_types'    => wp_json_encode( $prefs['alert_types'] ?? array() ),
 			'frequency'      => sanitize_text_field( $prefs['frequency'] ?? 'weekly' ),
-			'is_active'      => 1,
+			'is_active'      => $is_active,
 		);
 
 		$existing = $wpdb->get_var( $wpdb->prepare(

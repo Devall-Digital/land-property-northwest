@@ -70,6 +70,8 @@ $total_pages = ceil( $total / $per_page );
 								<span style="color:#059669;">Sent</span>
 							<?php elseif ( 'queued' === $alert->status ) : ?>
 								<span style="color:#D97706;">Queued</span>
+							<?php elseif ( 'skipped' === $alert->status ) : ?>
+								<span style="color:#6B7280;"><?php esc_html_e( 'Skipped (alerts off)', 'lpnw-alerts' ); ?></span>
 							<?php else : ?>
 								<span style="color:#DC2626;">Failed</span>
 							<?php endif; ?>

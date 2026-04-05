@@ -22,6 +22,7 @@ if ( is_user_logged_in() && isset( $_GET['lpnw_reset_prefs'], $_GET['_wpnonce'] 
 				'tenure_preferences' => array(),
 				'required_features'  => array(),
 				'frequency'          => 'weekly',
+				'is_active'          => 1,
 			)
 		);
 		wp_safe_redirect( home_url( '/preferences/' ) );
@@ -60,6 +61,7 @@ if ( $prefs ) {
 $listing_channels   = ( $prefs && is_array( $prefs->listing_channels ) ) ? $prefs->listing_channels : array();
 $tenure_preferences = ( $prefs && is_array( $prefs->tenure_preferences ) ) ? $prefs->tenure_preferences : array();
 $required_features  = ( $prefs && is_array( $prefs->required_features ) ) ? $prefs->required_features : array();
+$lpnw_alerts_active = ! $prefs || ! empty( $prefs->is_active );
 
 $lpnw_coverage_count     = null;
 $lpnw_coverage_sample_cap = 2500;
@@ -381,6 +383,17 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 				<span class="lpnw-prefs-section__hint"><?php esc_html_e( 'Sources and email frequency', 'lpnw-alerts' ); ?></span>
 			</summary>
 			<div class="lpnw-prefs-section__body">
+				<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-alerts-master">
+					<legend class="lpnw-fieldset__legend"><?php esc_html_e( 'Email alerts', 'lpnw-alerts' ); ?></legend>
+					<p class="lpnw-field__help" id="lpnw-help-alerts-master">
+						<?php esc_html_e( 'Turn this off to stop all property alert emails. Your saved filters stay in place so you can switch back on anytime.', 'lpnw-alerts' ); ?>
+					</p>
+					<label class="lpnw-checkbox-group__item">
+						<input type="checkbox" name="lpnw_alerts_active" value="1" <?php checked( $lpnw_alerts_active ); ?> />
+						<span><?php esc_html_e( 'Send me email alerts', 'lpnw-alerts' ); ?></span>
+					</label>
+				</fieldset>
+
 				<fieldset class="lpnw-fieldset" aria-describedby="lpnw-help-alert-types">
 					<legend class="lpnw-fieldset__legend"><?php esc_html_e( 'Alert types', 'lpnw-alerts' ); ?></legend>
 					<p class="lpnw-field__help" id="lpnw-help-alert-types">

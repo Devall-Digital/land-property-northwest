@@ -548,6 +548,9 @@ class LPNW_Public {
 			isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array()
 		);
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked at start of handler.
+		$alerts_on = isset( $_POST['lpnw_alerts_active'] ) && '1' === (string) wp_unslash( $_POST['lpnw_alerts_active'] );
+
 		$prefs = array(
 			'areas'                => $areas_sanitized,
 			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
@@ -561,6 +564,7 @@ class LPNW_Public {
 				sanitize_text_field( wp_unslash( $_POST['frequency'] ?? 'weekly' ) ),
 				$tier
 			),
+			'is_active'            => $alerts_on ? 1 : 0,
 		);
 
 		$min_bedrooms_raw = isset( $_POST['min_bedrooms'] ) ? sanitize_text_field( wp_unslash( $_POST['min_bedrooms'] ) ) : '';

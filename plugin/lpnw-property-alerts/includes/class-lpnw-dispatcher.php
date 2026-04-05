@@ -23,9 +23,28 @@ class LPNW_Dispatcher {
 	 * Process queued alerts in tier priority order.
 	 */
 	public function process_queue(): void {
+		$this->skip_queued_for_paused_subscribers();
 		$this->process_tier( 'vip' );
 		$this->process_tier( 'pro' );
 		$this->process_free_instant_batch();
+	}
+
+	/**
+	 * Mark queued rows as skipped when the subscriber turned off email alerts (is_active = 0).
+	 */
+	private function skip_queued_for_paused_subscribers(): void {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_alert_queue';
+		$prefs = $wpdb->prefix . 'lpnw_subscriber_preferences';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			"UPDATE {$table} aq
+			INNER JOIN {$prefs} sp ON sp.id = aq.subscriber_id
+			SET aq.status = 'skipped', aq.sent_at = NULL
+			WHERE aq.status = 'queued' AND sp.is_active = 0"
+		);
 	}
 
 	/**
@@ -33,6 +52,7 @@ class LPNW_Dispatcher {
 	 * Called by a separate weekly cron hook.
 	 */
 	public function send_free_digest(): void {
+		$this->skip_queued_for_paused_subscribers();
 		$this->process_tier( 'free' );
 	}
 
