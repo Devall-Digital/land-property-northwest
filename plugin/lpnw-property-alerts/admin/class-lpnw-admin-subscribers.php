@@ -73,7 +73,7 @@ final class LPNW_Admin_Subscribers {
 			$total = (int) $wpdb->get_var( $count_sql );
 		}
 
-		$order_sql = "SELECT sp.user_id, sp.frequency, sp.is_active, sp.updated_at, u.user_email, u.display_name
+		$order_sql = "SELECT sp.user_id, sp.frequency, sp.is_active, sp.updated_at, sp.created_at, u.user_email, u.display_name
 			FROM {$prefs} sp
 			INNER JOIN {$users} u ON u.ID = sp.user_id
 			WHERE {$where}
@@ -113,29 +113,60 @@ final class LPNW_Admin_Subscribers {
 					);
 				}
 
+				$setup_done = class_exists( 'LPNW_Onboarding' ) && LPNW_Onboarding::has_completed_setup( $uid );
+				$pending    = '1' === (string) get_user_meta( $uid, LPNW_Onboarding::USER_META_REDIRECT_PENDING, true );
+
 				$items[] = array(
-					'user_id'      => $uid,
-					'email'        => (string) $row->user_email,
-					'display_name' => (string) $row->display_name,
-					'frequency'    => (string) $row->frequency,
-					'is_active'    => (int) $row->is_active,
-					'updated_at'   => (string) $row->updated_at,
-					'tier'         => $effective,
-					'from_orders'  => $from_orders,
-					'override'     => $override,
-					'orders_url'   => $orders_url,
-					'edit_url'     => get_edit_user_link( $uid ),
+					'user_id'        => $uid,
+					'email'          => (string) $row->user_email,
+					'display_name'   => (string) $row->display_name,
+					'frequency'      => (string) $row->frequency,
+					'is_active'      => (int) $row->is_active,
+					'updated_at'     => (string) $row->updated_at,
+					'created_at'     => isset( $row->created_at ) ? (string) $row->created_at : '',
+					'setup_complete' => $setup_done,
+					'redirect_pending' => $pending,
+					'tier'           => $effective,
+					'from_orders'    => $from_orders,
+					'override'       => $override,
+					'orders_url'     => $orders_url,
+					'edit_url'       => get_edit_user_link( $uid ),
 				);
 			}
 		}
 
+		$no_profile = 0;
+		$no_profile_users = array();
+		if ( '' === $search ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared
+			$no_profile = (int) $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$users} u LEFT JOIN {$prefs} sp ON sp.user_id = u.ID WHERE sp.id IS NULL"
+			);
+			if ( $no_profile > 0 ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared
+				$no_profile_users = $wpdb->get_results(
+					"SELECT u.ID, u.user_email, u.display_name, u.user_registered
+					FROM {$users} u
+					LEFT JOIN {$prefs} sp ON sp.user_id = u.ID
+					WHERE sp.id IS NULL
+					ORDER BY u.user_registered DESC
+					LIMIT 15"
+				);
+				if ( ! is_array( $no_profile_users ) ) {
+					$no_profile_users = array();
+				}
+			}
+		}
+
 		return array(
-			'items'       => $items,
-			'total'       => $total,
-			'paged'       => $paged,
-			'per_page'    => self::PER_PAGE,
-			'search'      => $search,
-			'tier_counts' => LPNW_Subscriber::count_pref_users_by_effective_tier(),
+			'items'             => $items,
+			'total'             => $total,
+			'paged'             => $paged,
+			'per_page'          => self::PER_PAGE,
+			'search'            => $search,
+			'tier_counts'       => LPNW_Subscriber::count_pref_users_by_effective_tier(),
+			'no_profile_count'  => $no_profile,
+			'no_profile_sample' => $no_profile_users,
 		);
 	}
 }

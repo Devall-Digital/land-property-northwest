@@ -580,6 +580,9 @@ class LPNW_Public {
 		$saved = LPNW_Subscriber::save_preferences( $user_id, $prefs );
 
 		if ( $saved ) {
+			if ( class_exists( 'LPNW_Onboarding' ) ) {
+				LPNW_Onboarding::mark_setup_complete( $user_id );
+			}
 			wp_send_json_success( 'Preferences saved.' );
 		} else {
 			wp_send_json_error( 'Could not save preferences.' );

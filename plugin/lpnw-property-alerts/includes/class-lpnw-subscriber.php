@@ -85,12 +85,22 @@ class LPNW_Subscriber {
 			// $wpdb->update returns int rows affected; 0 means "no change" but is still success.
 			$result = $wpdb->update( $table, $row, array( 'id' => $existing ) );
 
-			return false !== $result;
+			$ok = false !== $result;
+			if ( $ok && ! empty( $prefs['mark_setup_incomplete'] ) && class_exists( 'LPNW_Onboarding' ) ) {
+				delete_user_meta( $user_id, LPNW_Onboarding::USER_META_SETUP_COMPLETE );
+			}
+
+			return $ok;
 		}
 
 		$result = $wpdb->insert( $table, $row );
 
-		return false !== $result;
+		$ok = false !== $result;
+		if ( $ok && ! empty( $prefs['mark_setup_incomplete'] ) && class_exists( 'LPNW_Onboarding' ) ) {
+			delete_user_meta( $user_id, LPNW_Onboarding::USER_META_SETUP_COMPLETE );
+		}
+
+		return $ok;
 	}
 
 	/**

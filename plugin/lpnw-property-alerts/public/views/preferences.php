@@ -25,6 +25,9 @@ if ( is_user_logged_in() && isset( $_GET['lpnw_reset_prefs'], $_GET['_wpnonce'] 
 				'is_active'          => 1,
 			)
 		);
+		if ( class_exists( 'LPNW_Onboarding' ) ) {
+			delete_user_meta( $lpnw_reset_uid, LPNW_Onboarding::USER_META_SETUP_COMPLETE );
+		}
 		wp_safe_redirect( home_url( '/preferences/' ) );
 		exit;
 	}
@@ -62,6 +65,8 @@ $listing_channels   = ( $prefs && is_array( $prefs->listing_channels ) ) ? $pref
 $tenure_preferences = ( $prefs && is_array( $prefs->tenure_preferences ) ) ? $prefs->tenure_preferences : array();
 $required_features  = ( $prefs && is_array( $prefs->required_features ) ) ? $prefs->required_features : array();
 $lpnw_alerts_active = ! $prefs || ! empty( $prefs->is_active );
+$lpnw_show_welcome   = isset( $_GET['lpnw_welcome'] ) && '1' === (string) $_GET['lpnw_welcome']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$lpnw_setup_needed   = class_exists( 'LPNW_Onboarding' ) && ! LPNW_Onboarding::has_completed_setup( get_current_user_id() );
 
 $lpnw_coverage_count     = null;
 $lpnw_coverage_sample_cap = 2500;
@@ -162,6 +167,19 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 ?>
 
 <div class="lpnw-preferences-form lpnw-subscriber-area">
+	<?php if ( $lpnw_show_welcome || $lpnw_setup_needed ) : ?>
+		<div class="lpnw-dashboard-notice lpnw-dashboard-notice--info" role="status" style="margin-bottom:20px;max-width:720px;">
+			<p class="lpnw-dashboard-notice__title"><?php esc_html_e( 'Finish your alert setup', 'lpnw-alerts' ); ?></p>
+			<p class="lpnw-dashboard-notice__text">
+				<?php
+				esc_html_e(
+					'We have started you on Northwest-wide listing alerts. Narrow areas and filters below, then click Save preferences. Until you save, this page counts as onboarding: you will see a reminder on your dashboard.',
+					'lpnw-alerts'
+				);
+				?>
+			</p>
+		</div>
+	<?php endif; ?>
 	<div class="lpnw-preferences-coverage" role="region" aria-labelledby="lpnw-prefs-coverage-heading">
 		<h2 class="lpnw-preferences-coverage__title" id="lpnw-prefs-coverage-heading"><?php esc_html_e( 'Coverage preview', 'lpnw-alerts' ); ?></h2>
 		<?php if ( null !== $lpnw_coverage_count ) : ?>
