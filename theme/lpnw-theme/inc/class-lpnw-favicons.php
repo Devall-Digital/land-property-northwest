@@ -49,12 +49,16 @@ final class LPNW_Favicons {
 		$ver = (string) filemtime( $ico_path );
 		$q   = '' !== $ver ? '?ver=' . rawurlencode( $ver ) : '';
 
+		$svg      = esc_url( $uri . '/favicon.svg' . $q );
 		$ico      = esc_url( $uri . '/favicon.ico' . $q );
 		$i32      = esc_url( $uri . '/favicon-32x32.png' . $q );
 		$i16      = esc_url( $uri . '/favicon-16x16.png' . $q );
 		$apple    = esc_url( $uri . '/apple-touch-icon.png' . $q );
 		$manifest = esc_url( $uri . '/site.webmanifest' . $q );
 
+		if ( is_readable( $dir . '/favicon.svg' ) ) {
+			echo '<link rel="icon" href="' . $svg . '" type="image/svg+xml" />' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_url above.
+		}
 		echo '<link rel="icon" href="' . $ico . '" sizes="any" />' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_url above.
 		echo '<link rel="icon" type="image/png" sizes="32x32" href="' . $i32 . '" />' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_url above.
 		echo '<link rel="icon" type="image/png" sizes="16x16" href="' . $i16 . '" />' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_url above.

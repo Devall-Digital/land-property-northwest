@@ -58,8 +58,11 @@ add_action( 'admin_init', function() {
 		$out[] = "Logo SVG not found at {$logo_svg_path}.";
 	}
 
-	// 2. Upload favicon
-	$icon_svg_path = get_stylesheet_directory() . '/assets/img/logo-icon.svg';
+	// 2. Upload site icon (simplified favicon SVG if present, else full logo mark)
+	$icon_svg_path = get_stylesheet_directory() . '/assets/img/favicons/favicon-source.svg';
+	if ( ! file_exists( $icon_svg_path ) ) {
+		$icon_svg_path = get_stylesheet_directory() . '/assets/img/logo-icon.svg';
+	}
 	if ( file_exists( $icon_svg_path ) ) {
 		$upload_dir = wp_upload_dir();
 		$icon_target = $upload_dir['path'] . '/lpnw-icon.svg';
