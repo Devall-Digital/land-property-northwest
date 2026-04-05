@@ -23,7 +23,7 @@ final class LPNW_User_Tier_Profile {
 	 * @param WP_User $user User being edited.
 	 */
 	public static function render_fields( WP_User $user ): void {
-		if ( ! current_user_can( 'edit_users' ) ) {
+		if ( ! current_user_can( 'edit_user', $user->ID ) ) {
 			return;
 		}
 
@@ -38,6 +38,7 @@ final class LPNW_User_Tier_Profile {
 
 		wp_nonce_field( 'lpnw_save_tier_override', 'lpnw_tier_override_nonce' );
 		?>
+		<input type="hidden" name="lpnw_tier_override_present" value="1" />
 		<h2 id="lpnw-tier-override"><?php esc_html_e( 'LPNW alert tier (support)', 'lpnw-alerts' ); ?></h2>
 		<p class="description" style="margin:0 0 12px;max-width:720px;">
 			<?php esc_html_e( 'Paid access is driven by WooCommerce orders (Pro/VIP products). Use this section for trials and comps when there is no qualifying paid order. More detail: open the Help tab while editing this user.', 'lpnw-alerts' ); ?>
@@ -76,7 +77,7 @@ final class LPNW_User_Tier_Profile {
 	 * @param int $user_id User ID.
 	 */
 	public static function save_fields( int $user_id ): void {
-		if ( ! current_user_can( 'edit_users' ) ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
 		}
 
@@ -85,12 +86,23 @@ final class LPNW_User_Tier_Profile {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above.
-		$raw = isset( $_POST['lpnw_admin_tier_override'] ) ? sanitize_key( wp_unslash( $_POST['lpnw_admin_tier_override'] ) ) : '';
+		if ( empty( $_POST['lpnw_tier_override_present'] ) ) {
+			return;
+		}
 
 		$from_orders = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier_from_orders( $user_id ) : 'free';
 		if ( in_array( $from_orders, array( 'pro', 'vip' ), true ) ) {
 			return;
 		}
+
+		// Disabled <select> is not submitted; do not treat as "clear override".
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above.
+		if ( ! array_key_exists( 'lpnw_admin_tier_override', $_POST ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified above.
+		$raw = sanitize_key( wp_unslash( (string) $_POST['lpnw_admin_tier_override'] ) );
 
 		if ( '' === $raw ) {
 			delete_user_meta( $user_id, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE );
