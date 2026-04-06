@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: LPNW Postcode Diagnostic (one-shot)
- * Description: Drop into wp-content/mu-plugins/. Open any front URL with ?lpnw_pc=stats&key=lpnw2026setup. Removes itself after the run.
+ * Description: Drop into wp-content/mu-plugins/. Open any front URL with ?lpnw_pc=stats&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md). Removes itself after the run.
  *
  * @package LPNW_Postcode_Stats_MU
  */
@@ -9,6 +9,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 /**
  * Normalise a UK postcode like LPNW_Property::clean_postcode (private).
@@ -252,7 +253,7 @@ add_action(
 		$pc = sanitize_text_field( wp_unslash( $_GET['lpnw_pc'] ) );
 		$key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
 
-		if ( 'stats' !== $pc || 'lpnw2026setup' !== $key ) {
+		if ( 'stats' !== $pc || ! lpnw_tool_query_key_ok( $key ) ) {
 			return;
 		}
 

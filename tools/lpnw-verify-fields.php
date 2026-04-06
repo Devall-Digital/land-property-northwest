@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name: LPNW Verify Property Fields
- * Description: One-shot diagnostic. Upload to wp-content/mu-plugins/, open ?lpnw_verify=fields&key=lpnw2026setup, then the file removes itself.
+ * Description: One-shot diagnostic. Upload to wp-content/mu-plugins/, open ?lpnw_verify=fields&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md), then the file removes itself.
  *
  * @package LPNW_Property_Alerts
  */
 
 defined( 'ABSPATH' ) || exit;
 
-const LPNW_VERIFY_FIELDS_KEY = 'lpnw2026setup';
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 /**
  * Email used to resolve the test user (same as lpnw-test-subscriber.php).
@@ -30,7 +30,7 @@ function lpnw_verify_fields_maybe_run(): void {
 		return;
 	}
 
-	if ( ! hash_equals( LPNW_VERIFY_FIELDS_KEY, sanitize_text_field( wp_unslash( $_GET['key'] ) ) ) ) {
+	if ( ! lpnw_tool_query_key_ok( sanitize_text_field( wp_unslash( $_GET['key'] ) ) ) ) {
 		return;
 	}
 	// phpcs:enable WordPress.Security.NonceVerification.Recommended

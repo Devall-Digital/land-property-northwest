@@ -1,8 +1,12 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) { return; }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 add_action( 'wp_loaded', function() {
 	if ( empty( $_GET['lpnw_tier'] ) ) { return; }
-	if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) { return; }
+	$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+	if ( ! lpnw_tool_query_key_ok( $key ) ) {
+		return;
+	}
 	$target = sanitize_text_field( $_GET['lpnw_tier'] );
 	if ( ! in_array( $target, array( 'free', 'pro', 'vip' ), true ) ) { return; }
 	header( 'Content-Type: text/plain; charset=utf-8' );

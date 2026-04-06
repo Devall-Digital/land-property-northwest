@@ -3,9 +3,9 @@
  * Diagnostic: OnTheMarket rental price parsing vs raw_data.
  *
  * Drop into wp-content/mu-plugins/ then open:
- *   ?lpnw_otm_prices=check&key=lpnw2026setup
+ *   ?lpnw_otm_prices=check&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  * Re-apply corrected parsing (rentals with price > 10000 only):
- *   ?lpnw_otm_prices=fix&key=lpnw2026setup
+ *   ?lpnw_otm_prices=fix&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * Deletes itself after a successful run.
  *
@@ -15,6 +15,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 /**
  * Parse OTM human-readable price strings (with commas, pcm, optional sq ft in parentheses).
@@ -135,7 +136,7 @@ add_action(
 			return;
 		}
 		$key = isset( $_GET['key'] ) ? wp_unslash( (string) $_GET['key'] ) : '';
-		if ( 'lpnw2026setup' !== $key ) {
+		if ( ! lpnw_tool_query_key_ok( $key ) ) {
 			return;
 		}
 
@@ -273,7 +274,7 @@ add_action(
 		if ( $suspect_count > 0 ) {
 			$home = home_url( '/' );
 			echo "To re-extract price from raw_data for those rows (price > 10000, rent), run once:\n";
-			echo "{$home}?lpnw_otm_prices=fix&key=lpnw2026setup\n";
+			echo "{$home}?lpnw_otm_prices=fix&key=(same as LPNW_CRON_SECRET, LPNW_PAGE_SYNC_SECRET, or LPNW_LOGIN_AS_SECRET)\n";
 		}
 
 		@unlink( __FILE__ );

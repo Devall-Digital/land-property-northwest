@@ -4,20 +4,25 @@
  *
  * Upload to the WordPress site root (same directory as wp-load.php).
  * Run once in a browser:
- *   https://example.com/lpnw-test-features.php?lpnw_test_features=run&key=lpnw2026setup
+ *   https://example.com/lpnw-test-features.php?lpnw_test_features=run&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * The script deletes itself after execution.
  *
  * @package LPNW_Property_Alerts
  */
 
+require_once __DIR__ . '/wp-load.php';
+
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
+
 if ( ! isset( $_GET['lpnw_test_features'], $_GET['key'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	|| 'run' !== $_GET['lpnw_test_features']
-	|| 'lpnw2026setup' !== $_GET['key'] ) {
+	|| 'run' !== $_GET['lpnw_test_features'] ) {
 	exit;
 }
-
-require_once __DIR__ . '/wp-load.php';
+$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+if ( ! lpnw_tool_query_key_ok( $key ) ) {
+	exit;
+}
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
