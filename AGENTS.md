@@ -12,12 +12,12 @@ Cloud agents and browser automation should **not** guess wp-admin passwords. On 
 
 1. Include **`?nocache=1`** so 20i CDN does not return stale HTML.
 2. Add **`&lpnw_login_as=test`** (subscriber / dashboard) or **`&lpnw_login_as=admin`** (wp-admin).
-3. Add **`&key=`** — during development the default is **`lpnw2026setup`**. If the server defines **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php`, use that value instead of the default (see `docs/DEPLOYMENT.md`).
+3. Add **`&key=`** — must match **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` on production. Cursor cloud agents: read the same value from **environment secrets** (e.g. `LPNW_LOGIN_AS_SECRET`). Local dev without that constant still accepts the fallback **`lpnw2026setup`** (see `docs/DEPLOYMENT.md`).
 
-**Ready-to-use URLs (default dev key):**
+**Ready-to-use URL shape (replace `YOUR_LOGIN_SECRET`):**
 
-- Subscriber (test user): `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`
-- Admin: `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=admin&key=lpnw2026setup`
+- Subscriber (test user): `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=test&key=YOUR_LOGIN_SECRET`
+- Admin: `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=admin&key=YOUR_LOGIN_SECRET`
 
 **Alternative:** one-shot admin login via `tools/lpnw-autologin.php` copied to mu-plugins and `?lpnw_autologin=admin&key=...` — the file **removes itself** after one success. Full security notes: `docs/DEPLOYMENT.md`; batched checks and variants: `docs/VERIFICATION-BATCHES.md`, `docs/PROJECT-RUNBOOK.md`.
 

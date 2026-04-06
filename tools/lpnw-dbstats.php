@@ -2,7 +2,8 @@
 if (!defined('ABSPATH')) return;
 add_action('wp_loaded', function() {
     if (empty($_GET['lpnw_dbstats']) || 'run' !== $_GET['lpnw_dbstats']) return;
-    if (empty($_GET['key']) || 'lpnw2026setup' !== $_GET['key']) return;
+    $key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+    if ( ! lpnw_tool_query_key_ok( $key ) ) return;
     header('Content-Type: text/plain; charset=utf-8');
     global $wpdb;
     $t = $wpdb->prefix . 'lpnw_properties';

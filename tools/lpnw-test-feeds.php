@@ -3,19 +3,21 @@
  * LPNW end-to-end feed test.
  *
  * Tests the full pipeline: portal feed pull -> DB storage -> matching.
- * Upload to wp-content/mu-plugins/ and visit any page with ?lpnw_test=feeds&key=lpnw2026setup
+ * Upload to wp-content/mu-plugins/ and visit any page with ?lpnw_test=feeds&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  * Self-deletes after running.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 add_action( 'init', function() {
 	if ( empty( $_GET['lpnw_test'] ) || 'feeds' !== $_GET['lpnw_test'] ) {
 		return;
 	}
-	if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) {
+	$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+	if ( ! lpnw_tool_query_key_ok( $key ) ) {
 		return;
 	}
 

@@ -1,21 +1,23 @@
 <?php
 /**
  * Plugin Name: LPNW Diagnostic (remove after use)
- * Description: One-shot DB check and LPNW_Property::query test. Upload to wp-content/mu-plugins/, then open any front URL with ?lpnw_diag=run&key=lpnw2026setup. Deletes itself after output.
+ * Description: One-shot DB check and LPNW_Property::query test. Upload to wp-content/mu-plugins/, then open any front URL with ?lpnw_diag=run&key=YOUR_SECRET (wp-config LPNW_* or dev lpnw2026setup). Deletes itself after output.
  *
  * @package LPNW_Diagnostic
  */
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! isset( $_GET['lpnw_diag'], $_GET['key'] ) || 'run' !== $_GET['lpnw_diag'] || 'lpnw2026setup' !== $_GET['key'] ) {
-	return;
-}
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 add_action(
 	'init',
 	static function () {
-		if ( ! isset( $_GET['lpnw_diag'], $_GET['key'] ) || 'run' !== $_GET['lpnw_diag'] || 'lpnw2026setup' !== $_GET['key'] ) {
+		if ( ! isset( $_GET['lpnw_diag'], $_GET['key'] ) || 'run' !== $_GET['lpnw_diag'] ) {
+			return;
+		}
+		$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+		if ( ! lpnw_tool_query_key_ok( $key ) ) {
 			return;
 		}
 

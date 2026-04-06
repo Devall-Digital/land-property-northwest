@@ -3,7 +3,7 @@
  * One-time auto-login for wp-admin (copy to mu-plugins when needed).
  * Bypasses wp-login.php by setting auth cookies directly.
  *
- * DEVELOPMENT: default key lpnw2026setup, or set LPNW_LOGIN_AS_SECRET in wp-config.php.
+ * Production: set LPNW_LOGIN_AS_SECRET in wp-config.php. Dev without it: fallback lpnw2026setup.
  * Self-deletes after successful login.
  *
  * @package LPNW

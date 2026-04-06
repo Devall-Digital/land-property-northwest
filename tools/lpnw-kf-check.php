@@ -2,7 +2,8 @@
 if (!defined('ABSPATH')) return;
 add_action('init', function() {
     if (empty($_GET['lpnw_kf']) || 'check' !== $_GET['lpnw_kf']) return;
-    if (empty($_GET['key']) || 'lpnw2026setup' !== $_GET['key']) return;
+    $key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+    if ( ! lpnw_tool_query_key_ok( $key ) ) return;
     header('Content-Type: text/plain; charset=utf-8');
     global $wpdb;
     $rows = $wpdb->get_results("SELECT id, raw_data FROM {$wpdb->prefix}lpnw_properties WHERE raw_data IS NOT NULL LIMIT 3");

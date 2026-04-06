@@ -46,7 +46,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 
 **Shallow checks** (curl status codes, public REST) catch outages only. **Deep dives** need many probes in parallel: key URLs, forms, logged-in flows, WooCommerce paths, feed admin screens, mobile breakpoints, console errors, and cross-links. That is best done with **several agents or browser sessions at once**, each owning a slice (e.g. one on commerce, one on subscriber UX, one on plugin admin, one on SEO/schema). I will use that pattern whenever you want maximum coverage quickly.
 
-**Visual review (VM browser):** Agents can drive **Cursor’s built-in browser** (ask for **side panel** if you want to watch). Log in with **`/?nocache=1&lpnw_login_as=test&key=lpnw2026setup`** during development, or **`key=`** matching **`LPNW_LOGIN_AS_SECRET`** if set in `wp-config.php` (see `docs/DEPLOYMENT.md`). **`lpnw-login-as.php` does not self-delete**; **`lpnw-autologin.php` does** after one use. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space.
+**Visual review (VM browser):** Agents can drive **Cursor’s built-in browser** (ask for **side panel** if you want to watch). Log in with **`/?nocache=1&lpnw_login_as=test&key=`** plus **`LPNW_LOGIN_AS_SECRET`** from env / `wp-config.php` (see `docs/DEPLOYMENT.md`). Local dev without that constant: **`lpnw2026setup`**. **`lpnw-login-as.php` does not self-delete**; **`lpnw-autologin.php` does** after one use. **Recordings** (`RecordScreen`) are optional; **delete the `.mp4` after** writing findings to **`docs/VISUAL-AUDIT.md`** to save disk space.
 
 **GitHub vs live:** This repo is the **source of truth** for **plugin and theme code**. Pushing to GitHub means you can redeploy or rebuild the custom product after a host failure. A full site restore also needs **WordPress database, uploads, and wp-config** (use **UpdraftPlus** or 20i backups on a schedule). FTP deploy only replaces the two custom folders.
 
@@ -67,7 +67,7 @@ Ship and grow a **paid** property-and-land alert service for Northwest England w
 | Script (in repo) | Purpose |
 |------------------|---------|
 | `tools/lpnw-autologin.php` | One-shot login as **first administrator** (by user ID), redirect to **wp-admin**, then **deletes itself**. |
-| `mu-plugins/lpnw-login-as.php` | Login as **admin** or **test** subscriber (`admin@codevall.co.uk` → dashboard). **Dev default** `key=lpnw2026setup`; optional **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` overrides. **Does not self-delete** (reuse during development). |
+| `mu-plugins/lpnw-login-as.php` | Login as **admin** or **test** subscriber (`admin@codevall.co.uk` → dashboard). **`&key=`** = **`LPNW_LOGIN_AS_SECRET`** (production); dev fallback **`lpnw2026setup`** if unset. **Does not self-delete** (reuse during development). |
 
 **Typical use:** Upload to `wp-content/mu-plugins/` if needed, hit the URL with `lpnw_login_as` / `lpnw_autologin` and matching **`key`**. Before launch, switch to **`LPNW_LOGIN_AS_SECRET`** or remove the file (see `docs/DEPLOYMENT.md`).
 

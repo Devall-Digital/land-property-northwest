@@ -3,18 +3,20 @@
  * LPNW end-to-end pipeline test.
  *
  * Tests: Rightmove feed -> DB -> matcher -> queue.
- * Upload to wp-content/mu-plugins/ and visit ?lpnw_e2e=run&key=lpnw2026setup
+ * Upload to wp-content/mu-plugins/ and visit ?lpnw_e2e=run&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 add_action( 'init', function() {
 	if ( empty( $_GET['lpnw_e2e'] ) || 'run' !== $_GET['lpnw_e2e'] ) {
 		return;
 	}
-	if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) {
+	$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+	if ( ! lpnw_tool_query_key_ok( $key ) ) {
 		return;
 	}
 

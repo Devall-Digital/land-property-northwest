@@ -78,22 +78,22 @@ Define `LPNW_CRON_SECRET` in `wp-config.php` as a long random string. The custom
 
 ### Emergency admin login (`lpnw-login-as.php`)
 
-**During development:** the repo uses a **default key** in code (`lpnw2026setup`) so you can open:
+**Production:** define **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` and use **`&key=`** with that value:
 
-- `https://YOUR-DOMAIN/?lpnw_login_as=admin&key=lpnw2026setup` → wp-admin  
-- `https://YOUR-DOMAIN/?lpnw_login_as=test&key=lpnw2026setup` → test subscriber (`admin@codevall.co.uk` in the file)
+- `https://YOUR-DOMAIN/?nocache=1&lpnw_login_as=admin&key=YOUR_SECRET` → wp-admin  
+- `https://YOUR-DOMAIN/?nocache=1&lpnw_login_as=test&key=YOUR_SECRET` → test subscriber (`admin@codevall.co.uk` in the file)
 
-`tools/lpnw-autologin.php` (when placed in mu-plugins) uses the same rule: default key, or override below.
+**Local dev:** if `LPNW_LOGIN_AS_SECRET` is not set, the mu-plugin still accepts the fallback **`lpnw2026setup`** (do not rely on that on a public site).
 
-**Before public launch:** define a long random secret in `wp-config.php` (it overrides the default):
+`tools/lpnw-autologin.php` (when placed in mu-plugins) uses the same rule.
 
-```php
-define( 'LPNW_LOGIN_AS_SECRET', 'paste-a-long-random-string-here' );
-```
-
-Then use `&key=` matching that value. **Remove** `lpnw-login-as.php` from the server when you no longer need it, or leave only the wp-config secret with no default (customise the mu-plugin for production-only builds).
+**Remove** `lpnw-login-as.php` from the server when you no longer need it.
 
 **Cursor / cloud agents:** add the same `LPNW_LOGIN_AS_SECRET` value to the agent **environment secrets** (or your runbook) so automated browsers can build the login URL with `&key=...`. The secret lives in **two places**: `wp-config.php` on the server (authorises the request) and the agent env (supplies the key on the URL). It is **not** “stored only in the cloud agent”; the server must define it too.
+
+### One-shot `tools/*.php` URLs (`&key=`)
+
+Scripts copied to `mu-plugins/` (or run from the site root) accept **`&key=`** when it matches **`LPNW_CRON_SECRET`**, **`LPNW_PAGE_SYNC_SECRET`**, or **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php`, in that order. If none of those constants are set, the dev fallback **`lpnw2026setup`** still works. **`mu-plugins/lpnw-tool-auth-loader.php`** loads `lpnw_tool_query_key_ok()` for mu-plugins; keep it deployed alongside other mu-plugins.
 
 **Note:** `lpnw-autologin.php` **deletes itself** after one successful admin login; `lpnw-login-as.php` does **not** (so agents and humans can reuse it during development).
 

@@ -3,7 +3,7 @@
  * OnTheMarket backfill: postcodes (reverse geocode), structured fields and application_type from raw_data.
  *
  * Upload to wp-content/mu-plugins/ (or load from a bootstrap that defines ABSPATH), then open:
- * ?lpnw_backfill_otm=run&key=lpnw2026setup
+ * ?lpnw_backfill_otm=run&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * Processes up to 200 rows per run. Does not delete itself.
  *
@@ -13,6 +13,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 /**
  * Infer sale vs rent from OnTheMarket raw JSON.
@@ -192,7 +193,8 @@ add_action(
 		if ( empty( $_GET['lpnw_backfill_otm'] ) || 'run' !== $_GET['lpnw_backfill_otm'] ) {
 			return;
 		}
-		if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) {
+		$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+		if ( ! lpnw_tool_query_key_ok( $key ) ) {
 			return;
 		}
 

@@ -5,9 +5,9 @@
  * DEVELOPMENT: uses the fixed key below. Before public launch, switch to
  * LPNW_LOGIN_AS_SECRET in wp-config.php (see docs/DEPLOYMENT.md) or remove this file.
  *
- * URL examples:
- *   /?lpnw_login_as=admin&key=lpnw2026setup   → wp-admin
- *   /?lpnw_login_as=test&key=lpnw2026setup   → test user dashboard
+ * URL examples (use LPNW_LOGIN_AS_SECRET from wp-config, or dev fallback lpnw2026setup):
+ *   /?lpnw_login_as=admin&key=SECRET   → wp-admin
+ *   /?lpnw_login_as=test&key=SECRET   → test user dashboard
  *
  * @package LPNW
  */

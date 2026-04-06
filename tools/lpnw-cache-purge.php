@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: LPNW Cache Purge
- * Description: One-shot full cache purge. Upload to wp-content/mu-plugins/. Trigger: ?lpnw_cache=purge&key=lpnw2026setup
+ * Description: One-shot full cache purge. Upload to wp-content/mu-plugins/. Trigger: ?lpnw_cache=purge&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * @package LPNW
  */
@@ -9,6 +9,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 if ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
 	return;
@@ -21,7 +22,7 @@ if ( ! isset( $_GET['lpnw_cache'], $_GET['key'] ) ) {
 $lpnw_cache_param = sanitize_text_field( wp_unslash( $_GET['lpnw_cache'] ) );
 $lpnw_key_param   = sanitize_text_field( wp_unslash( $_GET['key'] ) );
 
-if ( 'purge' !== $lpnw_cache_param || 'lpnw2026setup' !== $lpnw_key_param ) {
+if ( 'purge' !== $lpnw_cache_param || ! lpnw_tool_query_key_ok( $lpnw_key_param ) ) {
 	return;
 }
 

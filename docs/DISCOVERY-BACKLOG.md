@@ -85,7 +85,7 @@
 ### Tools / mu-plugins truth
 
 31. **`lpnw-login-as.php`** — Header/runbook say **self-delete**; **no `unlink`** in file.
-32. **Single shared key** (`lpnw2026setup`) still appears in **legacy tools** and page-sync fallbacks — one leak affects those URLs. **`lpnw-login-as.php`** (Apr 2026) uses **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` instead; migrate other one-shot tools to constants over time.
+32. ~~**Single shared key** (`lpnw2026setup`)~~ **Addressed:** one-shot tools use **`lpnw_tool_query_key_ok()`** (`LPNW_CRON_SECRET` / `PAGE_SYNC` / `LOGIN_AS` or dev fallback). Page sync has no anonymous default key.
 33. **Destructive GET tools** — e.g. cache purge / tier-test scripts; ensure never left on production without rotation.
 
 ---
