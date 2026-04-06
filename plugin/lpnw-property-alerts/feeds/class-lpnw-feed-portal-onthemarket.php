@@ -5,7 +5,7 @@
  * Fetches HTML search pages and reads embedded __NEXT_DATA__ JSON
  * (Redux search results). Falls back to DOM parsing of listing links if needed.
  * Each cron run processes a batch of area+section pairs (see lpnw_otm_cursor)
- * with a time budget for shared hosting.
+ * with a time budget; the full NW set is rotated over many runs, not one.
  *
  * @package LPNW_Property_Alerts
  */
@@ -56,7 +56,7 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 
 	private const OPTION_CURSOR = 'lpnw_otm_cursor';
 
-	private const TIME_BUDGET_SECONDS = 25.0;
+	private const TIME_BUDGET_SECONDS = 45.0;
 
 	public function get_source_name(): string {
 		return 'onthemarket';
@@ -68,7 +68,7 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @return int
 	 */
 	protected function get_batch_size(): int {
-		return 4;
+		return 7;
 	}
 
 	/**

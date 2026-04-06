@@ -63,7 +63,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 */
 	private const OPTION_CURSOR = 'lpnw_zoopla_cursor';
 
-	private const TIME_BUDGET_SECONDS = 25.0;
+	private const TIME_BUDGET_SECONDS = 40.0;
 
 	public function get_source_name(): string {
 		return 'zoopla';
@@ -75,7 +75,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 * @return int
 	 */
 	protected function get_batch_size(): int {
-		return 4;
+		return 6;
 	}
 
 	/**
