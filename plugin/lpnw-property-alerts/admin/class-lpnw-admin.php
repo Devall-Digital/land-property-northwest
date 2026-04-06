@@ -21,6 +21,10 @@ class LPNW_Admin {
 
 	public const TRANSIENT_ADD_OFF_MARKET_NOTICE = 'lpnw_add_off_market_notice';
 
+	public const SKIP_QUEUED_NONCE_ACTION = 'lpnw_skip_queued_alerts';
+
+	public const TRANSIENT_SKIPPED_QUEUE_PREFIX = 'lpnw_skipped_queue_notice_';
+
 	/** @var array<string, string> */
 	private static array $manual_feed_class_map = array(
 		'rightmove'       => LPNW_Feed_Portal_Rightmove::class,
@@ -49,7 +53,9 @@ class LPNW_Admin {
 		add_action( 'wp_dashboard_setup', array( __CLASS__, 'register_wp_dashboard_widget' ) );
 		add_action( 'admin_post_lpnw_run_feed', array( __CLASS__, 'handle_manual_feed_run' ) );
 		add_action( 'admin_post_lpnw_add_off_market', array( __CLASS__, 'handle_add_off_market' ) );
+		add_action( 'admin_post_lpnw_skip_queued_alerts', array( __CLASS__, 'handle_skip_queued_alerts' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'render_feed_run_admin_notice' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'render_skip_queue_admin_notice' ) );
 	}
 
 	public static function add_menu_pages(): void {
@@ -299,6 +305,76 @@ class LPNW_Admin {
 				)
 			)
 		);
+	}
+
+	/**
+	 * After bulk-skipping queued alerts, show a one-time notice on Alert Log.
+	 */
+	public static function render_skip_queue_admin_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'lpnw-alerts_page_lpnw-alert-log' !== $screen->id ) {
+			return;
+		}
+
+		if ( empty( $_GET['lpnw_queue_skipped'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$key = self::TRANSIENT_SKIPPED_QUEUE_PREFIX . get_current_user_id();
+		$n   = get_transient( $key );
+		delete_transient( $key );
+
+		if ( ! is_numeric( $n ) ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-warning is-dismissible"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: %d: number of queue rows marked skipped */
+					_n(
+						'Marked %d queued alert as skipped (no email will be sent for those rows). New matches will queue as normal.',
+						'Marked %d queued alerts as skipped (no email will be sent for those rows). New matches will queue as normal.',
+						(int) $n,
+						'lpnw-alerts'
+					),
+					(int) $n
+				)
+			)
+		);
+	}
+
+	/**
+	 * Mark every queued alert row as skipped (admin maintenance).
+	 */
+	public static function handle_skip_queued_alerts(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to change the alert queue.', 'lpnw-alerts' ) );
+		}
+
+		check_admin_referer( self::SKIP_QUEUED_NONCE_ACTION );
+
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_alert_queue';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE status = 'queued'" );
+
+		if ( $count > 0 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "UPDATE {$table} SET status = 'skipped', sent_at = NULL WHERE status = 'queued'" );
+		}
+
+		set_transient( self::TRANSIENT_SKIPPED_QUEUE_PREFIX . get_current_user_id(), $count, 120 );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=lpnw-alert-log&lpnw_queue_skipped=1' ) );
+		exit;
 	}
 
 	/**
@@ -598,6 +674,13 @@ class LPNW_Admin {
 		);
 
 		add_settings_section(
+			'lpnw_billing_section',
+			__( 'WooCommerce billing & tiers', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_billing_section_intro' ),
+			'lpnw-settings'
+		);
+
+		add_settings_section(
 			'lpnw_alerts_section',
 			__( 'Alert delivery', 'lpnw-alerts' ),
 			array( __CLASS__, 'render_alerts_section_intro' ),
@@ -653,6 +736,24 @@ class LPNW_Admin {
 		}
 
 		add_settings_field(
+			'tier_use_subscriptions',
+			__( 'Use WooCommerce Subscriptions for Pro/VIP tier', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array( 'key' => 'tier_use_subscriptions', 'type' => 'checkbox' )
+		);
+
+		add_settings_field(
+			'subscription_on_hold_grace_days',
+			__( 'On-hold grace (days)', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array( 'key' => 'subscription_on_hold_grace_days', 'type' => 'number' )
+		);
+
+		add_settings_field(
 			'free_tier_weekly_instant_alerts',
 			__( 'Free tier: instant sample emails per week', 'lpnw-alerts' ),
 			array( __CLASS__, 'render_field' ),
@@ -660,6 +761,26 @@ class LPNW_Admin {
 			'lpnw_alerts_section',
 			array( 'key' => 'free_tier_weekly_instant_alerts', 'type' => 'number' )
 		);
+	}
+
+	/**
+	 * Intro for WooCommerce tier settings.
+	 */
+	public static function render_billing_section_intro(): void {
+		$wcs = class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available();
+		echo '<p class="description">';
+		if ( $wcs ) {
+			esc_html_e(
+				'WooCommerce Subscriptions is active. Pro and VIP access follow active subscriptions (including free trials while status is active). Failed renewals usually set the subscription to on-hold; grace days below keep paid access briefly while the customer fixes payment.',
+				'lpnw-alerts'
+			);
+		} else {
+			esc_html_e(
+				'Install and activate WooCommerce Subscriptions to sell monthly Pro/VIP with renewals and trials. Until then, tier can follow completed/processing orders only.',
+				'lpnw-alerts'
+			);
+		}
+		echo '</p>';
 	}
 
 	/**
@@ -704,6 +825,7 @@ class LPNW_Admin {
 			'epc_enabled',
 			'landregistry_enabled',
 			'auctions_enabled',
+			'tier_use_subscriptions',
 		);
 		foreach ( $checkboxes as $key ) {
 			$sanitized[ $key ] = ! empty( $input[ $key ] );
@@ -725,6 +847,12 @@ class LPNW_Admin {
 		}
 		$sanitized['free_tier_weekly_instant_alerts'] = $ft_instant;
 
+		$grace = isset( $input['subscription_on_hold_grace_days'] ) ? absint( $input['subscription_on_hold_grace_days'] ) : 14;
+		if ( $grace > 60 ) {
+			$grace = 60;
+		}
+		$sanitized['subscription_on_hold_grace_days'] = $grace; // 0 allowed = strict on-hold.
+
 		return array_merge( $prev, $sanitized );
 	}
 
@@ -741,18 +869,38 @@ class LPNW_Admin {
 			if ( 'portals_enabled' === $key && ! array_key_exists( 'portals_enabled', $settings ) ) {
 				$value = true;
 			}
+			if ( 'tier_use_subscriptions' === $key && ! array_key_exists( 'tier_use_subscriptions', $settings )
+				&& class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available() ) {
+				$value = true;
+			}
 			printf(
 				'<input type="checkbox" name="lpnw_settings[%s]" value="1" %s />',
 				esc_attr( $key ),
 				checked( $value, true, false )
 			);
+			if ( 'tier_use_subscriptions' === $key && class_exists( 'LPNW_Woo_Subscription_Tier' ) && ! LPNW_Woo_Subscription_Tier::is_available() ) {
+				echo ' <span class="description">' . esc_html__( '(WooCommerce Subscriptions is not active.)', 'lpnw-alerts' ) . '</span>';
+			}
 		} elseif ( 'number' === $type ) {
-			$num = '' !== $value ? absint( $value ) : 0;
-			printf(
-				'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="100" step="1" />',
-				esc_attr( $key ),
-				$num
-			);
+			if ( 'subscription_on_hold_grace_days' === $key ) {
+				$num = '' !== $value && is_numeric( $value ) ? absint( $value ) : 14;
+				if ( $num > 60 ) {
+					$num = 60;
+				}
+				printf(
+					'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="60" step="1" />',
+					esc_attr( $key ),
+					$num
+				);
+				echo ' <p class="description">' . esc_html__( 'While a subscription is on-hold after a failed payment, keep Pro/VIP access for this many days since the subscription was last updated. Use 0 for no grace.', 'lpnw-alerts' ) . '</p>';
+			} else {
+				$num = '' !== $value ? absint( $value ) : 0;
+				printf(
+					'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="100" step="1" />',
+					esc_attr( $key ),
+					$num
+				);
+			}
 		} else {
 			printf(
 				'<input type="%s" name="lpnw_settings[%s]" value="%s" class="regular-text" />',

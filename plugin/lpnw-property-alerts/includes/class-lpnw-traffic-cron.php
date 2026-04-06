@@ -2,10 +2,13 @@
 /**
  * Rate-limited traffic cron bridge for shared hosting.
  *
- * WordPress may call spawn_cron() on many page views; on busy sites that can mean
- * frequent background hits to wp-cron.php. This class ensures at most one spawn
- * attempt per 15 minutes while keeping the advertised portal cadence honest when
- * DISABLE_WP_CRON is not set.
+ * WordPress calls _wp_cron() on normal page loads only when DISABLE_WP_CRON is
+ * false. Many hosts set DISABLE_WP_CRON true and expect a real cron to hit
+ * wp-cron.php; when that URL is blocked, nothing runs unless something still
+ * calls spawn_cron(). The LPNW cron_request filter points spawn_cron() at
+ * ?lpnw_cron=tick (mu-plugin). This class triggers spawn_cron() from public
+ * traffic and from wp-admin for administrators, at most once per 15 minutes,
+ * so scheduled portal feeds keep moving without relying on core's wp-cron hook.
  *
  * @package LPNW_Property_Alerts
  */
@@ -25,14 +28,18 @@ class LPNW_Traffic_Cron {
 	public const LOCK_SECONDS = 900;
 
 	/**
-	 * Register shutdown hook on front-end requests.
+	 * Register shutdown hook on front-end requests and (for admins) wp-admin.
 	 */
 	public static function init(): void {
 		if ( wp_doing_ajax() || wp_doing_cron() ) {
 			return;
 		}
 
-		if ( is_admin() ) {
+		if ( is_admin() && ! is_user_logged_in() ) {
+			return;
+		}
+
+		if ( is_admin() && ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
@@ -51,10 +58,6 @@ class LPNW_Traffic_Cron {
 	 * Spawn a non-blocking wp-cron run if the lock allows.
 	 */
 	public static function maybe_spawn_cron(): void {
-		if ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ) {
-			return;
-		}
-
 		if ( false !== get_transient( self::TRANSIENT_KEY ) ) {
 			return;
 		}

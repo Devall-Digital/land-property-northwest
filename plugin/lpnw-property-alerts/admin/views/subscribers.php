@@ -11,12 +11,14 @@
 defined( 'ABSPATH' ) || exit;
 
 /** @var array<string, mixed> $data */
-$items       = $data['items'];
-$total       = (int) $data['total'];
-$paged       = (int) $data['paged'];
-$per_page    = (int) $data['per_page'];
-$search      = (string) $data['search'];
-$tier_counts = $data['tier_counts'];
+$items              = $data['items'];
+$total              = (int) $data['total'];
+$paged              = (int) $data['paged'];
+$per_page           = (int) $data['per_page'];
+$search             = (string) $data['search'];
+$tier_counts        = $data['tier_counts'];
+$no_profile_count   = isset( $data['no_profile_count'] ) ? (int) $data['no_profile_count'] : 0;
+$no_profile_sample  = isset( $data['no_profile_sample'] ) && is_array( $data['no_profile_sample'] ) ? $data['no_profile_sample'] : array();
 
 $total_pages = (int) max( 1, ceil( $total / $per_page ) );
 $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
@@ -30,8 +32,32 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 		</p>
 	</div>
 	<p class="description">
-		<?php esc_html_e( 'Users who have saved alert preferences. Tier follows WooCommerce orders when Pro or VIP is paid; otherwise you can set an override on the user profile.', 'lpnw-alerts' ); ?>
+		<?php esc_html_e( 'Subscribers with a preferences row. New signups get default NW listing coverage until they save the form; Setup shows whether they have clicked Save at least once. Tier follows WooCommerce when Pro or VIP is paid; otherwise use the user profile override.', 'lpnw-alerts' ); ?>
 	</p>
+
+	<?php if ( $no_profile_count > 0 && '' === $search ) : ?>
+		<div class="notice notice-warning inline" style="margin:12px 0;padding:10px 12px;">
+			<p style="margin:0 0 8px;">
+				<?php
+				printf(
+					/* translators: %d: number of WordPress users without lpnw_subscriber_preferences row */
+					esc_html__( '%d registered user(s) have no alert profile yet (never hit preferences or dashboard after deploy). They will get defaults on next login.', 'lpnw-alerts' ),
+					$no_profile_count
+				);
+				?>
+			</p>
+			<?php if ( ! empty( $no_profile_sample ) ) : ?>
+				<ul style="margin:0;padding-left:18px;">
+					<?php foreach ( $no_profile_sample as $u ) : ?>
+						<li>
+							<a href="<?php echo esc_url( get_edit_user_link( (int) $u->ID ) ); ?>"><?php echo esc_html( (string) $u->user_email ); ?></a>
+							<span class="description"> — <?php echo esc_html( (string) $u->user_registered ); ?></span>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+		</div>
+	<?php endif; ?>
 
 	<div class="lpnw-tier-summary" style="display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;">
 		<div class="card" style="margin:0;padding:12px;min-width:120px;">
@@ -74,10 +100,10 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 					?>
 				</th>
 				<th scope="col">
-					<?php esc_html_e( 'From orders', 'lpnw-alerts' ); ?>
+					<?php esc_html_e( 'From billing', 'lpnw-alerts' ); ?>
 					<?php
 					LPNW_Admin_Help::tip_icon(
-						__( 'Tier implied by recent completed or processing orders with lpnw-pro or lpnw-vip products. Ignores admin comps.', 'lpnw-alerts' )
+						__( 'Paid tier from active WooCommerce Subscriptions when enabled in settings, otherwise from completed or processing orders with Pro/VIP products. Ignores admin comps.', 'lpnw-alerts' )
 					);
 					?>
 				</th>
@@ -90,6 +116,14 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 					?>
 				</th>
 				<th scope="col"><?php esc_html_e( 'Frequency', 'lpnw-alerts' ); ?></th>
+				<th scope="col">
+					<?php esc_html_e( 'Setup', 'lpnw-alerts' ); ?>
+					<?php
+					LPNW_Admin_Help::tip_icon(
+						__( 'Done = user clicked Save on the preferences form at least once. Pending = still on default onboarding path.', 'lpnw-alerts' )
+					);
+					?>
+				</th>
 				<th scope="col"><?php esc_html_e( 'Active', 'lpnw-alerts' ); ?></th>
 				<th scope="col">
 					<?php esc_html_e( 'Orders', 'lpnw-alerts' ); ?>
@@ -104,7 +138,7 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 		<tbody>
 			<?php if ( empty( $items ) ) : ?>
 				<tr>
-					<td colspan="7"><?php esc_html_e( 'No subscribers match your search.', 'lpnw-alerts' ); ?></td>
+					<td colspan="8"><?php esc_html_e( 'No subscribers match your search.', 'lpnw-alerts' ); ?></td>
 				</tr>
 			<?php else : ?>
 				<?php foreach ( $items as $row ) : ?>
@@ -114,9 +148,18 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 							<span class="description"><?php echo esc_html( $row['email'] ); ?></span>
 						</td>
 						<td><strong><?php echo esc_html( strtoupper( $row['tier'] ) ); ?></strong></td>
-						<td><?php echo esc_html( strtoupper( $row['from_orders'] ) ); ?></td>
+						<td><?php echo esc_html( strtoupper( $row['from_billing'] ) ); ?></td>
 						<td><?php echo $row['override'] ? esc_html( strtoupper( $row['override'] ) ) : '—'; ?></td>
 						<td><?php echo esc_html( $row['frequency'] ); ?></td>
+						<td>
+							<?php if ( ! empty( $row['setup_complete'] ) ) : ?>
+								<span style="color:#059669;"><?php esc_html_e( 'Done', 'lpnw-alerts' ); ?></span>
+							<?php elseif ( ! empty( $row['redirect_pending'] ) ) : ?>
+								<?php esc_html_e( 'Pending', 'lpnw-alerts' ); ?>
+							<?php else : ?>
+								<span class="description"><?php esc_html_e( 'Defaults', 'lpnw-alerts' ); ?></span>
+							<?php endif; ?>
+						</td>
 						<td><?php echo ! empty( $row['is_active'] ) ? esc_html__( 'Yes', 'lpnw-alerts' ) : esc_html__( 'No', 'lpnw-alerts' ); ?></td>
 						<td>
 							<?php if ( '' !== $row['orders_url'] ) : ?>
