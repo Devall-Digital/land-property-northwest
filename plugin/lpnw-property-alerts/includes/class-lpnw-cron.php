@@ -17,6 +17,10 @@ class LPNW_Cron {
 	private const CRON_REPAIR_CHECK_TRANSIENT = 'lpnw_cron_stale_check';
 
 	public static function init(): void {
+		if ( ! class_exists( 'LPNW_Portal_Cron', false ) ) {
+			require_once __DIR__ . '/class-lpnw-portal-cron.php';
+		}
+
 		add_filter( 'cron_schedules', array( __CLASS__, 'add_intervals' ) );
 
 		add_action( 'init', array( __CLASS__, 'maybe_repair_stale_fifteen_min_cron' ), 5 );
@@ -25,7 +29,9 @@ class LPNW_Cron {
 		add_action( 'lpnw_cron_epc', array( __CLASS__, 'run_epc_feed' ) );
 		add_action( 'lpnw_cron_landregistry', array( __CLASS__, 'run_landregistry_feed' ) );
 		add_action( 'lpnw_cron_auctions', array( __CLASS__, 'run_auction_feeds' ) );
-		add_action( 'lpnw_cron_portals', array( __CLASS__, 'run_portal_feeds' ) );
+		add_action( LPNW_Portal_Cron::HOOK_RIGHTMOVE, array( __CLASS__, 'run_portal_rightmove' ) );
+		add_action( LPNW_Portal_Cron::HOOK_ZOOPLA, array( __CLASS__, 'run_portal_zoopla' ) );
+		add_action( LPNW_Portal_Cron::HOOK_ONTHEMARKET, array( __CLASS__, 'run_portal_onthemarket' ) );
 		add_action( 'lpnw_cron_dispatch_alerts', array( __CLASS__, 'dispatch_alerts' ) );
 		add_action( 'lpnw_cron_free_digest', array( __CLASS__, 'run_free_digest' ) );
 		add_action( 'lpnw_cron_data_retention', array( __CLASS__, 'run_data_retention' ) );
@@ -67,10 +73,12 @@ class LPNW_Cron {
 
 		$grace = 20 * MINUTE_IN_SECONDS;
 
-		$hooks = array(
-			'lpnw_cron_portals',
-			'lpnw_cron_auctions',
-			'lpnw_cron_dispatch_alerts',
+		$hooks = array_merge(
+			LPNW_Portal_Cron::get_portal_hook_names(),
+			array(
+				'lpnw_cron_auctions',
+				'lpnw_cron_dispatch_alerts',
+			)
 		);
 
 		$stale = false;
@@ -89,10 +97,12 @@ class LPNW_Cron {
 		delete_transient( 'doing_cron' );
 
 		$now = time();
-		wp_clear_scheduled_hook( 'lpnw_cron_portals' );
+		foreach ( LPNW_Portal_Cron::get_portal_hook_names() as $i => $hook ) {
+			wp_clear_scheduled_hook( $hook );
+			wp_schedule_event( $now + ( $i * 300 ), 'lpnw_fifteen_min', $hook );
+		}
 		wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
 		wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
-		wp_schedule_event( $now, 'lpnw_fifteen_min', 'lpnw_cron_portals' );
 		wp_schedule_event( $now + 60, 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
 		wp_schedule_event( $now + 120, 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
 	}
@@ -146,24 +156,45 @@ class LPNW_Cron {
 	}
 
 	/**
-	 * Run property portal feeds (Rightmove, Zoopla, OnTheMarket).
-	 * These are the primary "new to market" data sources.
+	 * Whether portal ingestion is enabled in settings.
 	 */
-	public static function run_portal_feeds(): void {
+	private static function portals_enabled(): bool {
 		$settings = get_option( 'lpnw_settings', array() );
 
-		if ( ! isset( $settings['portals_enabled'] ) || $settings['portals_enabled'] ) {
-			$feeds = array(
-				new LPNW_Feed_Portal_Rightmove(),
-				new LPNW_Feed_Portal_Zoopla(),
-				new LPNW_Feed_Portal_OnTheMarket(),
-			);
+		return ! isset( $settings['portals_enabled'] ) || $settings['portals_enabled'];
+	}
 
-			foreach ( $feeds as $feed ) {
-				$feed->run();
-				sleep( 2 );
-			}
+	/**
+	 * Rightmove only (own WP-Cron event so each portal gets a full PHP time budget).
+	 */
+	public static function run_portal_rightmove(): void {
+		if ( ! self::portals_enabled() ) {
+			return;
 		}
+		$feed = new LPNW_Feed_Portal_Rightmove();
+		$feed->run();
+	}
+
+	/**
+	 * Zoopla only.
+	 */
+	public static function run_portal_zoopla(): void {
+		if ( ! self::portals_enabled() ) {
+			return;
+		}
+		$feed = new LPNW_Feed_Portal_Zoopla();
+		$feed->run();
+	}
+
+	/**
+	 * OnTheMarket only.
+	 */
+	public static function run_portal_onthemarket(): void {
+		if ( ! self::portals_enabled() ) {
+			return;
+		}
+		$feed = new LPNW_Feed_Portal_OnTheMarket();
+		$feed->run();
 	}
 
 	public static function dispatch_alerts(): void {

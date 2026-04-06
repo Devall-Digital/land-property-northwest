@@ -57,13 +57,15 @@ add_action( 'init', function () {
 
 	// Step 2: Verify all cron events are scheduled
 	$events = array(
-		'lpnw_cron_planning'       => 'lpnw_six_hours',
-		'lpnw_cron_epc'            => 'daily',
-		'lpnw_cron_landregistry'   => 'daily',
-		'lpnw_cron_auctions'       => 'daily',
-		'lpnw_cron_portals'        => 'lpnw_fifteen_min',
-		'lpnw_cron_dispatch_alerts' => 'lpnw_fifteen_min',
-		'lpnw_cron_free_digest'    => 'weekly',
+		'lpnw_cron_planning'         => 'lpnw_six_hours',
+		'lpnw_cron_epc'              => 'daily',
+		'lpnw_cron_landregistry'     => 'daily',
+		'lpnw_cron_auctions'         => 'daily',
+		'lpnw_cron_portal_rightmove' => 'lpnw_fifteen_min',
+		'lpnw_cron_portal_zoopla'    => 'lpnw_fifteen_min',
+		'lpnw_cron_portal_onthemarket' => 'lpnw_fifteen_min',
+		'lpnw_cron_dispatch_alerts'  => 'lpnw_fifteen_min',
+		'lpnw_cron_free_digest'      => 'weekly',
 	);
 
 	foreach ( $events as $hook => $recurrence ) {

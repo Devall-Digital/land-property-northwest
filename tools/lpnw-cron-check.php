@@ -58,7 +58,9 @@ $hooks = array(
 	'lpnw_cron_epc',
 	'lpnw_cron_landregistry',
 	'lpnw_cron_auctions',
-	'lpnw_cron_portals',
+	'lpnw_cron_portal_rightmove',
+	'lpnw_cron_portal_zoopla',
+	'lpnw_cron_portal_onthemarket',
 	'lpnw_cron_dispatch_alerts',
 	'lpnw_cron_free_digest',
 );

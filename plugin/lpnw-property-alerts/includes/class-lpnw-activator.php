@@ -238,6 +238,10 @@ class LPNW_Activator {
 	}
 
 	private static function schedule_cron(): void {
+		if ( ! class_exists( 'LPNW_Portal_Cron', false ) ) {
+			require_once __DIR__ . '/class-lpnw-portal-cron.php';
+		}
+
 		if ( ! wp_next_scheduled( 'lpnw_cron_planning' ) ) {
 			wp_schedule_event( time(), 'lpnw_six_hours', 'lpnw_cron_planning' );
 		}
@@ -250,9 +254,7 @@ class LPNW_Activator {
 		if ( ! wp_next_scheduled( 'lpnw_cron_auctions' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
 		}
-		if ( ! wp_next_scheduled( 'lpnw_cron_portals' ) ) {
-			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_portals' );
-		}
+		LPNW_Portal_Cron::schedule_split_portal_events();
 		if ( ! wp_next_scheduled( 'lpnw_cron_dispatch_alerts' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
 		}
@@ -270,6 +272,25 @@ class LPNW_Activator {
 	 * Previously we used an option flag only; if the schedule was wrong but the flag
 	 * was already set, production stayed on daily. We now verify wp_get_schedule().
 	 */
+	/**
+	 * One-time migration: replace combined lpnw_cron_portals with three staggered hooks.
+	 */
+	public static function maybe_migrate_portal_cron(): void {
+		if ( wp_installing() ) {
+			return;
+		}
+
+		if ( '1' === get_option( 'lpnw_portal_cron_split', '' ) ) {
+			return;
+		}
+
+		if ( ! class_exists( 'LPNW_Portal_Cron', false ) ) {
+			require_once __DIR__ . '/class-lpnw-portal-cron.php';
+		}
+
+		LPNW_Portal_Cron::maybe_migrate_and_schedule();
+	}
+
 	public static function maybe_reschedule_auction_cron(): void {
 		$schedule = wp_get_schedule( 'lpnw_cron_auctions' );
 		if ( 'lpnw_fifteen_min' === $schedule ) {

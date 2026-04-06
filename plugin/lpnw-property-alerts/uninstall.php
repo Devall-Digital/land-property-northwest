@@ -26,6 +26,7 @@ foreach ( $tables as $table ) {
 delete_option( 'lpnw_settings' );
 delete_option( 'lpnw_version' );
 delete_option( 'lpnw_auctions_cron_15m' );
+delete_option( 'lpnw_portal_cron_split' );
 delete_option( 'lpnw_mautic_api_url' );
 delete_option( 'lpnw_mautic_api_user' );
 delete_option( 'lpnw_mautic_api_password' );
@@ -35,6 +36,9 @@ wp_clear_scheduled_hook( 'lpnw_cron_epc' );
 wp_clear_scheduled_hook( 'lpnw_cron_landregistry' );
 wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
 wp_clear_scheduled_hook( 'lpnw_cron_portals' );
+wp_clear_scheduled_hook( 'lpnw_cron_portal_rightmove' );
+wp_clear_scheduled_hook( 'lpnw_cron_portal_zoopla' );
+wp_clear_scheduled_hook( 'lpnw_cron_portal_onthemarket' );
 wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
 wp_clear_scheduled_hook( 'lpnw_cron_free_digest' );
 wp_clear_scheduled_hook( 'lpnw_cron_data_retention' );

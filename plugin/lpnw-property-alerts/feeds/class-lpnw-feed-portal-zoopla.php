@@ -63,19 +63,10 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 */
 	private const OPTION_CURSOR = 'lpnw_zoopla_cursor';
 
-	private const TIME_BUDGET_SECONDS = 40.0;
+	private const TIME_BUDGET_SECONDS = 270.0;
 
 	public function get_source_name(): string {
 		return 'zoopla';
-	}
-
-	/**
-	 * Area+section pairs per fetch() invocation (Zoopla is slower / Cloudflare risk).
-	 *
-	 * @return int
-	 */
-	protected function get_batch_size(): int {
-		return 6;
 	}
 
 	/**
@@ -113,19 +104,18 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 			$last_processed = -1;
 		}
 
-		$start_index  = ( $last_processed + 1 ) % $total_pairs;
-		$batch_size   = $this->get_batch_size();
+		$idx          = ( $last_processed + 1 ) % $total_pairs;
 		$time_started = microtime( true );
 		$processed    = 0;
 		$new_last     = $last_processed;
+		$max_loops    = $total_pairs + 5;
 
-		for ( $n = 0; $n < $batch_size; $n++ ) {
+		for ( $loop = 0; $loop < $max_loops; $loop++ ) {
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				$this->lpnw_diag_log( 'stopping batch early (time budget)', 0, 0 );
+				$this->lpnw_diag_log( 'stopping sweep (time budget)', 0, 0 );
 				break;
 			}
 
-			$idx  = ( $start_index + $n ) % $total_pairs;
 			$pair = $pairs[ $idx ];
 
 			if ( $processed > 0 ) {
@@ -133,20 +123,19 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 			}
 
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				$this->lpnw_diag_log( 'stopping batch early (time budget before fetch)', 0, 0 );
+				$this->lpnw_diag_log( 'stopping sweep (time budget before fetch)', 0, 0 );
 				break;
 			}
 
 			$this->lpnw_diag_log(
 				sprintf(
-					'fetching %s %s [%s] [pair %d/%d, batch %d/%d]',
+					'fetching %s %s [%s] [pair %d/%d, sweep %d]',
 					$pair['area_name'],
 					$pair['section'],
 					$pair['slug'],
 					$idx + 1,
 					$total_pairs,
-					$processed + 1,
-					$batch_size
+					$processed + 1
 				),
 				0,
 				0
@@ -158,6 +147,12 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 			$new_last = $idx;
 			update_option( self::OPTION_CURSOR, $new_last, false );
 			++$processed;
+
+			$idx = ( $idx + 1 ) % $total_pairs;
+			if ( $processed >= $total_pairs ) {
+				$this->lpnw_diag_log( 'full NW sweep completed for this run', 0, 0 );
+				break;
+			}
 		}
 
 		$all_properties = $this->deduplicate( $all_properties );
@@ -165,7 +160,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 		$next_idx = ( $new_last + 1 ) % $total_pairs;
 		$this->lpnw_diag_log(
 			sprintf(
-				'batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
+				'sweep done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
 				$processed,
 				$new_last,
 				$next_idx,

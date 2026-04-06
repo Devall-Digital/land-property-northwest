@@ -58,10 +58,10 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 
 	/**
 	 * Stop starting new pairs if elapsed time approaches this (seconds).
-	 * Larger values shorten full NW rotation but risk max_execution_time,
-	 * stuck doing_cron, and portal throttling; tune with host limits in mind.
+	 * Leave headroom below typical max_execution_time (e.g. 300s on 20i) for parse/match.
+	 * Cursor resumes next run if the budget is hit mid-sweep.
 	 */
-	private const TIME_BUDGET_SECONDS = 45.0;
+	private const TIME_BUDGET_SECONDS = 270.0;
 
 	/**
 	 * Base headers for HTML search requests (User-Agent added per request via rotation).
@@ -93,15 +93,6 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 
 	public function get_source_name(): string {
 		return 'rightmove';
-	}
-
-	/**
-	 * Max region+channel pairs to process in one fetch() invocation.
-	 *
-	 * @return int Positive count.
-	 */
-	protected function get_batch_size(): int {
-		return 10;
 	}
 
 	/**
@@ -139,19 +130,18 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			$last_processed = -1;
 		}
 
-		$start_index    = ( $last_processed + 1 ) % $total_pairs;
-		$batch_size     = $this->get_batch_size();
-		$time_started   = microtime( true );
-		$processed      = 0;
-		$new_last       = $last_processed;
+		$idx          = ( $last_processed + 1 ) % $total_pairs;
+		$time_started = microtime( true );
+		$processed    = 0;
+		$new_last     = $last_processed;
+		$max_loops    = $total_pairs + 5;
 
-		for ( $n = 0; $n < $batch_size; $n++ ) {
+		for ( $loop = 0; $loop < $max_loops; $loop++ ) {
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				error_log( 'LPNW Rightmove: stopping batch early (time budget)' );
+				error_log( 'LPNW Rightmove: stopping sweep (time budget)' );
 				break;
 			}
 
-			$idx  = ( $start_index + $n ) % $total_pairs;
 			$pair = $pairs[ $idx ];
 
 			if ( $processed > 0 ) {
@@ -159,20 +149,19 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			}
 
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
-				error_log( 'LPNW Rightmove: stopping batch early (time budget before fetch)' );
+				error_log( 'LPNW Rightmove: stopping sweep (time budget before fetch)' );
 				break;
 			}
 
 			error_log(
 				sprintf(
-					'LPNW Rightmove: fetching %s %s (region %d) [pair %d/%d, batch %d/%d]',
+					'LPNW Rightmove: fetching %s %s (region %d) [pair %d/%d, sweep %d]',
 					$pair['area_name'],
 					$pair['channel'],
 					$pair['region_id'],
 					$idx + 1,
 					$total_pairs,
-					$processed + 1,
-					$batch_size
+					$processed + 1
 				)
 			);
 
@@ -199,7 +188,13 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 
 			$new_last = $idx;
 			update_option( self::OPTION_CURSOR, $new_last, false );
-			$processed++;
+			++$processed;
+
+			$idx = ( $idx + 1 ) % $total_pairs;
+			if ( $processed >= $total_pairs ) {
+				error_log( 'LPNW Rightmove: full NW sweep completed for this run.' );
+				break;
+			}
 		}
 
 		$all_properties = $this->deduplicate( $all_properties );
@@ -207,7 +202,7 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		$next_idx = ( $new_last + 1 ) % $total_pairs;
 		error_log(
 			sprintf(
-				'LPNW Rightmove: batch done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
+				'LPNW Rightmove: sweep done. Pairs this run: %d, last index: %d, next start: %d, properties: %d',
 				$processed,
 				$new_last,
 				$next_idx,
