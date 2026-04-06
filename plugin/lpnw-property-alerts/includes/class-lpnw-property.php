@@ -68,6 +68,11 @@ class LPNW_Property {
 		);
 
 		if ( $existing ) {
+			$row['first_listed_date'] = self::resolve_first_listed_date_for_update(
+				(int) $existing,
+				$table,
+				$row['first_listed_date']
+			);
 			$updated = $wpdb->update( $table, $row, array( 'id' => $existing ) );
 			return false === $updated ? false : (int) $existing;
 		}
@@ -78,6 +83,48 @@ class LPNW_Property {
 			$inserted_new = true;
 		}
 		return $new_id;
+	}
+
+	/**
+	 * Keep the best first_listed_date on update: never wipe with an empty fetch,
+	 * and use the earlier of incoming vs stored when both are present (cross-portal dedupe).
+	 *
+	 * @param int         $id       Existing property row ID.
+	 * @param string      $table    Full lpnw_properties table name.
+	 * @param string|null $incoming Y-m-d from the feed or null.
+	 * @return string|null         Value to write (DATE column).
+	 */
+	private static function resolve_first_listed_date_for_update( int $id, string $table, $incoming ): ?string {
+		global $wpdb;
+
+		$current = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT first_listed_date FROM {$table} WHERE id = %d",
+				$id
+			)
+		);
+
+		$inc = is_string( $incoming ) ? trim( $incoming ) : '';
+		$cur = ( null !== $current && '' !== (string) $current ) ? trim( (string) $current ) : '';
+
+		if ( '' === $inc ) {
+			return '' !== $cur ? $cur : null;
+		}
+
+		if ( '' === $cur ) {
+			return $inc;
+		}
+
+		$t_inc = strtotime( $inc );
+		$t_cur = strtotime( $cur );
+		if ( false === $t_inc ) {
+			return $cur;
+		}
+		if ( false === $t_cur ) {
+			return $inc;
+		}
+
+		return $t_inc <= $t_cur ? $inc : $cur;
 	}
 
 	/**
