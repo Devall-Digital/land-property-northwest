@@ -4,9 +4,9 @@
  *
  * Fetches Rightmove's HTML search results pages and extracts the embedded
  * __NEXT_DATA__ JSON to get property listings across Northwest England.
- * WP-Cron runs portal jobs about every 15 minutes; each run processes only a
- * batch of region/channel pairs (see lpnw_rightmove_cursor), not the full NW
- * market in one go, so shared-hosting time limits and portal rate limits are respected.
+ * WP-Cron runs this feed on a 15-minute schedule; each run sweeps all configured
+ * NW region/channel pairs until the in-script time budget or full cycle (see
+ * lpnw_rightmove_cursor if the budget stops mid-sweep).
  *
  * Uses individual NW city/area region IDs rather than a broad region to
  * maximise coverage and avoid Rightmove's server-side request blocking
