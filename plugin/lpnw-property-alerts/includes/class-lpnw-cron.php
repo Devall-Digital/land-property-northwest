@@ -69,6 +69,7 @@ class LPNW_Cron {
 
 		$hooks = array(
 			'lpnw_cron_portals',
+			'lpnw_cron_auctions',
 			'lpnw_cron_dispatch_alerts',
 		);
 
@@ -89,8 +90,10 @@ class LPNW_Cron {
 
 		$now = time();
 		wp_clear_scheduled_hook( 'lpnw_cron_portals' );
+		wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
 		wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
 		wp_schedule_event( $now, 'lpnw_fifteen_min', 'lpnw_cron_portals' );
+		wp_schedule_event( $now + 60, 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
 		wp_schedule_event( $now + 120, 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
 	}
 

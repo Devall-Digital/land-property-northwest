@@ -99,9 +99,22 @@ $type_bar_label  = $types_selected > 0
 		$types_selected
 	)
 	: __( 'All property types (no filter)', 'lpnw-alerts' );
+
+$lpnw_onboarding_nudge = class_exists( 'LPNW_Onboarding' ) && ! LPNW_Onboarding::has_completed_setup( $user_id );
 ?>
 
 <div class="lpnw-dashboard lpnw-dashboard--subscriber lpnw-subscriber-area">
+	<?php if ( $lpnw_onboarding_nudge ) : ?>
+		<div class="lpnw-dashboard-notice lpnw-dashboard-notice--info" role="status">
+			<p class="lpnw-dashboard-notice__title"><?php esc_html_e( 'Complete your alert preferences', 'lpnw-alerts' ); ?></p>
+			<p class="lpnw-dashboard-notice__text">
+				<?php esc_html_e( 'Review areas and filters on your preferences page and click Save. You already have broad Northwest listing alerts until you customise.', 'lpnw-alerts' ); ?>
+			</p>
+			<p class="lpnw-dashboard-notice__cta">
+				<a class="lpnw-btn lpnw-btn--primary" href="<?php echo esc_url( home_url( '/preferences/' ) ); ?>"><?php esc_html_e( 'Open preferences', 'lpnw-alerts' ); ?></a>
+			</p>
+		</div>
+	<?php endif; ?>
 	<?php if ( $show_alert_schedule_tip ) : ?>
 		<div class="lpnw-dashboard-notice lpnw-dashboard-notice--info" role="status">
 			<p class="lpnw-dashboard-notice__title"><?php esc_html_e( 'How your alerts are sent', 'lpnw-alerts' ); ?></p>

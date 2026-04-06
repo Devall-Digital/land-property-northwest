@@ -555,6 +555,9 @@ class LPNW_Public {
 		);
 		$property_types_sanitized = LPNW_Subscriber::sanitize_preference_property_types( $ptypes_raw );
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked at start of handler.
+		$alerts_on = isset( $_POST['lpnw_alerts_active'] ) && '1' === (string) wp_unslash( $_POST['lpnw_alerts_active'] );
+
 		$prefs = array(
 			'areas'                => $areas_sanitized,
 			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
@@ -568,6 +571,7 @@ class LPNW_Public {
 				sanitize_text_field( wp_unslash( $_POST['frequency'] ?? 'weekly' ) ),
 				$tier
 			),
+			'is_active'            => $alerts_on ? 1 : 0,
 		);
 
 		$min_bedrooms_raw = isset( $_POST['min_bedrooms'] ) ? sanitize_text_field( wp_unslash( $_POST['min_bedrooms'] ) ) : '';
@@ -583,6 +587,9 @@ class LPNW_Public {
 		$saved = LPNW_Subscriber::save_preferences( $user_id, $prefs );
 
 		if ( $saved ) {
+			if ( class_exists( 'LPNW_Onboarding' ) ) {
+				LPNW_Onboarding::mark_setup_complete( $user_id );
+			}
 			wp_send_json_success( 'Preferences saved.' );
 		} else {
 			wp_send_json_error( 'Could not save preferences.' );

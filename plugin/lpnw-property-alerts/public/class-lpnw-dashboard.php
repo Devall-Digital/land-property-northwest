@@ -30,6 +30,10 @@ class LPNW_Dashboard {
 		$user_id = get_current_user_id();
 		$tier    = LPNW_Subscriber::get_tier( $user_id );
 		$prefs   = LPNW_Subscriber::get_preferences( $user_id );
+		if ( ! $prefs && class_exists( 'LPNW_Onboarding' ) ) {
+			LPNW_Onboarding::bootstrap_default_preferences( $user_id );
+			$prefs = LPNW_Subscriber::get_preferences( $user_id );
+		}
 
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/dashboard.php';
@@ -46,6 +50,10 @@ class LPNW_Dashboard {
 
 		$user_id = get_current_user_id();
 		$prefs   = LPNW_Subscriber::get_preferences( $user_id );
+		if ( ! $prefs && class_exists( 'LPNW_Onboarding' ) ) {
+			LPNW_Onboarding::bootstrap_default_preferences( $user_id );
+			$prefs = LPNW_Subscriber::get_preferences( $user_id );
+		}
 		$tier    = LPNW_Subscriber::get_tier( $user_id );
 
 		ob_start();

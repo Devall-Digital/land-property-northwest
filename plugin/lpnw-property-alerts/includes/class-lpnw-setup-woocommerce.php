@@ -65,7 +65,11 @@ final class LPNW_Setup_WooCommerce {
 		if ( ! empty( $report['products'] ) && is_array( $report['products'] ) ) {
 			foreach ( $report['products'] as $slug => $row ) {
 				if ( is_array( $row ) && isset( $row['action'], $row['id'] ) ) {
-					$lines[] = sprintf( 'Product %s: %s (ID %d).', $slug, $row['action'], (int) $row['id'] );
+					$kind = '';
+					if ( class_exists( 'WC_Product_Subscription' ) && in_array( $slug, array( 'lpnw-pro', 'lpnw-vip' ), true ) ) {
+						$kind = ' (subscription)';
+					}
+					$lines[] = sprintf( 'Product %s: %s (ID %d)%s.', $slug, $row['action'], (int) $row['id'], $kind );
 				}
 			}
 		}
@@ -150,11 +154,127 @@ final class LPNW_Setup_WooCommerce {
 
 		$results = array();
 
-		foreach ( $defs as $slug => $def ) {
-			$results[ $slug ] = self::upsert_simple_product( $slug, $def['name'], $def['price'], $def['desc'] );
+		$results['lpnw-free'] = self::upsert_simple_product(
+			'lpnw-free',
+			$defs['lpnw-free']['name'],
+			$defs['lpnw-free']['price'],
+			$defs['lpnw-free']['desc']
+		);
+
+		$use_sub_products = class_exists( 'WC_Product_Subscription' );
+		if ( $use_sub_products ) {
+			$results['lpnw-pro'] = self::upsert_subscription_product(
+				'lpnw-pro',
+				$defs['lpnw-pro']['name'],
+				$defs['lpnw-pro']['price'],
+				$defs['lpnw-pro']['desc'],
+				array(
+					'trial_days' => 7,
+				)
+			);
+			$results['lpnw-vip'] = self::upsert_subscription_product(
+				'lpnw-vip',
+				$defs['lpnw-vip']['name'],
+				$defs['lpnw-vip']['price'],
+				$defs['lpnw-vip']['desc'],
+				array()
+			);
+		} else {
+			$results['lpnw-pro'] = self::upsert_simple_product(
+				'lpnw-pro',
+				$defs['lpnw-pro']['name'],
+				$defs['lpnw-pro']['price'],
+				$defs['lpnw-pro']['desc']
+			);
+			$results['lpnw-vip'] = self::upsert_simple_product(
+				'lpnw-vip',
+				$defs['lpnw-vip']['name'],
+				$defs['lpnw-vip']['price'],
+				$defs['lpnw-vip']['desc']
+			);
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Create or update a simple subscription product (monthly, until cancelled).
+	 *
+	 * @param string               $slug    Product slug.
+	 * @param string               $name    Title.
+	 * @param string               $price   Price per period.
+	 * @param string               $desc    HTML description.
+	 * @param array<string, mixed> $opts    Optional: trial_days (int).
+	 * @return array<string, int|string>
+	 */
+	private static function upsert_subscription_product( string $slug, string $name, string $price, string $desc, array $opts = array() ): array {
+		if ( ! class_exists( 'WC_Product_Subscription' ) ) {
+			return self::upsert_simple_product( $slug, $name, $price, $desc );
+		}
+
+		$existing_id = self::get_post_id_by_slug( $slug, 'product' );
+
+		if ( $existing_id > 0 ) {
+			$product = wc_get_product( $existing_id );
+			if ( ! $product instanceof WC_Product_Subscription ) {
+				wp_delete_post( $existing_id, true );
+				$existing_id = 0;
+			}
+		}
+
+		if ( $existing_id > 0 ) {
+			$product = wc_get_product( $existing_id );
+			if ( ! $product instanceof WC_Product_Subscription ) {
+				$product = new WC_Product_Subscription( $existing_id );
+			}
+			$action = 'updated';
+		} else {
+			$product = new WC_Product_Subscription();
+			$action  = 'created';
+		}
+
+		$product->set_name( $name );
+		$product->set_slug( $slug );
+		$product->set_regular_price( $price );
+		$product->set_virtual( true );
+		$product->set_catalog_visibility( 'visible' );
+		$product->set_description( wp_kses_post( $desc ) );
+		$product->set_short_description( wp_kses_post( $desc ) );
+		$product->set_status( 'publish' );
+		$product->set_manage_stock( false );
+
+		if ( method_exists( $product, 'set_subscription_period' ) ) {
+			$product->set_subscription_period( 'month' );
+		}
+		if ( method_exists( $product, 'set_subscription_period_interval' ) ) {
+			$product->set_subscription_period_interval( 1 );
+		}
+		if ( method_exists( $product, 'set_subscription_length' ) ) {
+			$product->set_subscription_length( 0 );
+		}
+
+		$trial_days = isset( $opts['trial_days'] ) ? max( 0, absint( $opts['trial_days'] ) ) : 0;
+		if ( $trial_days > 0 && method_exists( $product, 'set_trial_length' ) && method_exists( $product, 'set_trial_period' ) ) {
+			$product->set_trial_length( $trial_days );
+			$product->set_trial_period( 'day' );
+		} elseif ( method_exists( $product, 'set_trial_length' ) ) {
+			$product->set_trial_length( 0 );
+		}
+
+		$product_id = $product->save();
+
+		$saved = wc_get_product( $product_id );
+		if ( $saved instanceof WC_Product && class_exists( 'LPNW_WooCommerce_Store' ) ) {
+			LPNW_WooCommerce_Store::apply_tier_product_flags( $saved );
+			$saved->save();
+		}
+
+		wc_delete_product_transients( $product_id );
+
+		return array(
+			'id'     => $product_id,
+			'action' => $action,
+		);
 	}
 
 	/**

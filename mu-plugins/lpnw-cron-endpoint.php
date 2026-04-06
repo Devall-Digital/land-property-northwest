@@ -52,11 +52,15 @@ add_action(
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Core entry script; defines DOING_CRON after its own guard.
 		require_once ABSPATH . 'wp-cron.php';
 
-		// wp-cron.php uses return when another process holds the lock (included from this scope).
+		// wp-cron.php normally ends with die(). If execution reaches here, it returned early
+		// (lock busy, lock mismatch, or another runner stole the lock mid-hook). Do not assume busy.
 		if ( ! headers_sent() ) {
 			header( 'Content-Type: text/plain; charset=utf-8' );
 		}
-		echo esc_html( "cron_lock_busy\n" );
+		$doing     = get_transient( 'doing_cron' );
+		$gmt_time  = microtime( true );
+		$lock_busy = is_string( $doing ) && ( (float) $doing + (float) WP_CRON_LOCK_TIMEOUT > $gmt_time );
+		echo esc_html( $lock_busy ? "cron_lock_busy\n" : "cron_skipped\n" );
 		exit;
 	},
 	999

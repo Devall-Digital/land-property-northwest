@@ -165,17 +165,17 @@ final class LPNW_Admin_Help {
 			__( 'Subscribers', 'lpnw-alerts' ),
 			'<p>' . esc_html__( 'Everyone listed here has saved alert preferences at least once. Search by email or display name.', 'lpnw-alerts' ) . '</p>' .
 			'<ul>' .
-			'<li><strong>' . esc_html__( 'Tier', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Effective tier used for alerts: WooCommerce Pro/VIP orders (completed or processing) always win.', 'lpnw-alerts' ) . '</li>' .
-			'<li><strong>' . esc_html__( 'From orders', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'What tier their order history alone would give (ignores admin comp overrides).', 'lpnw-alerts' ) . '</li>' .
-			'<li><strong>' . esc_html__( 'Override', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Optional comp or trial set on the user profile; only applies when there is no qualifying paid Pro/VIP order.', 'lpnw-alerts' ) . '</li>' .
-			'<li><strong>' . esc_html__( 'Orders', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Opens WooCommerce filtered to this customer. Refunds and order status change what “from orders” shows.', 'lpnw-alerts' ) . '</li>' .
+			'<li><strong>' . esc_html__( 'Tier', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Effective tier for alerts: active Pro/VIP subscription when Subscriptions mode is on in LPNW settings, otherwise qualifying orders; admin override only when neither applies.', 'lpnw-alerts' ) . '</li>' .
+			'<li><strong>' . esc_html__( 'From billing', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Paid tier from subscriptions or orders (ignores admin comp overrides), matching the “Tier from billing” column.', 'lpnw-alerts' ) . '</li>' .
+			'<li><strong>' . esc_html__( 'Override', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Optional comp set on the user profile; only applies when billing does not already grant Pro/VIP.', 'lpnw-alerts' ) . '</li>' .
+			'<li><strong>' . esc_html__( 'Orders', 'lpnw-alerts' ) . '</strong> — ' . esc_html__( 'Opens WooCommerce orders for this customer. Manage subscriptions under WooCommerce → Subscriptions when using recurring billing.', 'lpnw-alerts' ) . '</li>' .
 			'</ul>'
 		);
 		self::add_tab(
 			$screen,
 			'lpnw_subscribers_tiers',
 			__( 'Changing tier', 'lpnw-alerts' ),
-			'<p>' . esc_html__( 'Paid upgrades and downgrades: use WooCommerce (new order, refund, or cancel) so billing stays honest.', 'lpnw-alerts' ) . '</p>' .
+			'<p>' . esc_html__( 'Paid changes: use WooCommerce Subscriptions (switch, cancel, or new subscription) so customers are not double-charged. WooCommerce Subscriptions Switching handles Pro to VIP upgrades.', 'lpnw-alerts' ) . '</p>' .
 			'<p>' . esc_html__( 'Free trials or comps without a card: edit the user and use “Admin tier override” under LPNW alert tier (support).', 'lpnw-alerts' ) . '</p>'
 		);
 		self::set_sidebar( $screen );
@@ -198,9 +198,9 @@ final class LPNW_Admin_Help {
 			$screen,
 			'lpnw_user_tier',
 			__( 'LPNW tier', 'lpnw-alerts' ),
-			'<p>' . esc_html__( 'The LPNW section sets alert tier when WooCommerce does not already grant Pro or VIP from a completed or processing order.', 'lpnw-alerts' ) . '</p>' .
-			'<p>' . esc_html__( 'If “Tier from orders” is PRO or VIP, the override dropdown is disabled so you do not strip paid access by mistake. Adjust the real order in WooCommerce instead.', 'lpnw-alerts' ) . '</p>' .
-			'<p>' . esc_html__( 'Product slugs lpnw-pro and lpnw-vip in orders drive automatic tier detection.', 'lpnw-alerts' ) . '</p>'
+			'<p>' . esc_html__( 'The LPNW section sets alert tier when WooCommerce billing (subscription or qualifying order) does not already grant Pro or VIP.', 'lpnw-alerts' ) . '</p>' .
+			'<p>' . esc_html__( 'If “Tier from billing” is PRO or VIP, the override dropdown is disabled. Change the subscription or order in WooCommerce instead.', 'lpnw-alerts' ) . '</p>' .
+			'<p>' . esc_html__( 'Product slugs lpnw-pro and lpnw-vip on subscription or order line items drive automatic tier detection.', 'lpnw-alerts' ) . '</p>'
 		);
 	}
 }

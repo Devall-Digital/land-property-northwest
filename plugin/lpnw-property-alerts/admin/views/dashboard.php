@@ -110,7 +110,9 @@ if ( $total_pages > 1 ) {
 							<?php esc_html_e( 'Paid Pro/VIP (WooCommerce)', 'lpnw-alerts' ); ?>
 							<?php
 							LPNW_Admin_Help::tip_icon(
-								__( 'Customers linked to a WordPress user account with at least one completed or processing order containing a Pro or VIP subscription product. Guest checkout is not counted.', 'lpnw-alerts' )
+								class_exists( 'LPNW_Subscriber' ) && LPNW_Subscriber::use_subscription_for_paid_tier() && class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available()
+									? __( 'WordPress users with an active Pro or VIP subscription (WooCommerce Subscriptions). Guest checkout is not counted.', 'lpnw-alerts' )
+									: __( 'WordPress users with at least one completed or processing order containing a Pro or VIP product. Guest checkout is not counted.', 'lpnw-alerts' )
 							);
 							?>
 						</p>
@@ -174,10 +176,10 @@ if ( $total_pages > 1 ) {
 							<td>
 								<?php if ( $wp_cron_off ) : ?>
 									<span class="dashicons dashicons-yes-alt" style="color:#00a32a;" aria-hidden="true"></span>
-									<?php esc_html_e( 'Defined and true (use server or external cron to hit wp-cron.php).', 'lpnw-alerts' ); ?>
+									<?php esc_html_e( 'Defined and true: WordPress will not run cron on ordinary page loads. Use the automated cron URL below (or another real cron), or rely on this plugin’s rate-limited spawn when you browse the public site or wp-admin as an administrator.', 'lpnw-alerts' ); ?>
 								<?php else : ?>
 									<span class="dashicons dashicons-warning" style="color:#dba617;" aria-hidden="true"></span>
-									<?php esc_html_e( 'Not set or false (WordPress will trigger cron on page loads).', 'lpnw-alerts' ); ?>
+									<?php esc_html_e( 'Not set or false: WordPress may spawn cron on page loads. This plugin still rate-limits spawns to at most once every 15 minutes.', 'lpnw-alerts' ); ?>
 								<?php endif; ?>
 							</td>
 						</tr>
@@ -191,7 +193,7 @@ if ( $total_pages > 1 ) {
 									<p class="description" style="margin:0;">
 										<?php
 										esc_html_e(
-											'Point EasyCron or your host cron at this URL every 5 to 15 minutes. It runs WordPress cron (portals, alert dispatch, and other LPNW jobs) without using wp-cron.php, which some hosts block. Traffic-driven cron also uses this path when visitors trigger spawn_cron().',
+											'Point EasyCron or your host cron at this URL every 5 to 15 minutes. It runs WordPress cron (portals, auctions, alert dispatch, and other LPNW jobs) without using wp-cron.php, which some hosts block. When DISABLE_WP_CRON is true, this URL (or browsing the site with the plugin’s spawn bridge) is what actually runs those jobs.',
 											'lpnw-alerts'
 										);
 										?>
