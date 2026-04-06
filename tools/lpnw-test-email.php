@@ -21,7 +21,9 @@ function lpnw_test_email_maybe_run(): void {
 		return;
 	}
 
-	if ( ! lpnw_tool_query_key_ok( sanitize_text_field( wp_unslash( $_GET['key'] ) ) ) {
+	$tool_key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
+
+	if ( ! lpnw_tool_query_key_ok( $tool_key ) ) {
 		return;
 	}
 
@@ -60,7 +62,7 @@ function lpnw_test_email_maybe_run(): void {
 		add_query_arg(
 			array(
 				'lpnw_test_email' => 'send',
-				'key'             => LPNW_TEST_EMAIL_KEY,
+				'key'             => $tool_key,
 			),
 			home_url( '/' )
 		)
