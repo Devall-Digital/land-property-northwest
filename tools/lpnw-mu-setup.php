@@ -22,11 +22,6 @@ add_action(
 		}
 
 		header( 'Content-Type: text/html; charset=utf-8' );
-		if ( ! lpnw_tool_query_key_ok( $key ) ) {
-			return;
-		}
-
-		header( 'Content-Type: text/html; charset=utf-8' );
 		echo '<html><head><title>LPNW Setup</title>';
 		echo '<style>body{font-family:sans-serif;max-width:700px;margin:40px auto;padding:0 20px;line-height:1.6;} .ok{color:green;} .warn{color:orange;} .err{color:red;}</style>';
 		echo '</head><body><h1>LPNW Setup Runner</h1>';
