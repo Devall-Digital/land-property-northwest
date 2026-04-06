@@ -83,7 +83,7 @@ Define `LPNW_CRON_SECRET` in `wp-config.php` as a long random string. The custom
 - `https://YOUR-DOMAIN/?nocache=1&lpnw_login_as=admin&key=YOUR_SECRET` → wp-admin  
 - `https://YOUR-DOMAIN/?nocache=1&lpnw_login_as=test&key=YOUR_SECRET` → test subscriber (`admin@codevall.co.uk` in the file)
 
-**Local dev:** if `LPNW_LOGIN_AS_SECRET` is not set, the mu-plugin still accepts the fallback **`lpnw2026setup`** (do not rely on that on a public site).
+**Requirement:** `LPNW_LOGIN_AS_SECRET` must be **defined and non-empty** in `wp-config.php`. If it is missing, the login-as URL does nothing (no default key in the repo).
 
 `tools/lpnw-autologin.php` (when placed in mu-plugins) uses the same rule.
 
@@ -93,9 +93,9 @@ Define `LPNW_CRON_SECRET` in `wp-config.php` as a long random string. The custom
 
 ### One-shot `tools/*.php` URLs (`&key=`)
 
-Scripts copied to `mu-plugins/` (or run from the site root) accept **`&key=`** when it matches **`LPNW_CRON_SECRET`**, **`LPNW_PAGE_SYNC_SECRET`**, or **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php`, in that order. If none of those constants are set, the dev fallback **`lpnw2026setup`** still works. **`mu-plugins/lpnw-tool-auth-loader.php`** loads `lpnw_tool_query_key_ok()` for mu-plugins; keep it deployed alongside other mu-plugins.
+Scripts copied to `mu-plugins/` (or run from the site root) accept **`&key=`** only when it matches **`LPNW_CRON_SECRET`**, **`LPNW_PAGE_SYNC_SECRET`**, or **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` (at least one must be defined). There is **no** hard-coded fallback key. **`mu-plugins/lpnw-tool-auth-loader.php`** loads `lpnw_tool_query_key_ok()` for mu-plugins; keep it deployed alongside other mu-plugins.
 
-**Note:** `lpnw-autologin.php` **deletes itself** after one successful admin login; `lpnw-login-as.php` does **not** (so agents and humans can reuse it during development).
+**Note:** `lpnw-autologin.php` **deletes itself** after one successful admin login; `lpnw-login-as.php` does **not** (so agents can reuse the same URL with `&key=`).
 
 ## Quick Deploy Script (lftp)
 

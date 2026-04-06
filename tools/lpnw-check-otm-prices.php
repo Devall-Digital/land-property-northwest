@@ -274,7 +274,7 @@ add_action(
 		if ( $suspect_count > 0 ) {
 			$home = home_url( '/' );
 			echo "To re-extract price from raw_data for those rows (price > 10000, rent), run once:\n";
-			echo "{$home}?lpnw_otm_prices=fix&key=(same as LPNW_CRON_SECRET, LPNW_PAGE_SYNC_SECRET, LPNW_LOGIN_AS_SECRET, or dev lpnw2026setup)\n";
+			echo "{$home}?lpnw_otm_prices=fix&key=(same as LPNW_CRON_SECRET, LPNW_PAGE_SYNC_SECRET, or LPNW_LOGIN_AS_SECRET)\n";
 		}
 
 		@unlink( __FILE__ );

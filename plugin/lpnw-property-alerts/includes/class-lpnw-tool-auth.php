@@ -4,7 +4,7 @@
  *
  * Load only after WordPress bootstrap (wp-load.php) so wp-config constants exist.
  * Accepts &key= matching (in order): LPNW_CRON_SECRET, LPNW_PAGE_SYNC_SECRET,
- * LPNW_LOGIN_AS_SECRET, or the development fallback lpnw2026setup.
+ * LPNW_LOGIN_AS_SECRET. No default key: define at least one in wp-config.php.
  *
  * @package LPNW_Property_Alerts
  */
@@ -34,6 +34,6 @@ if ( ! function_exists( 'lpnw_tool_query_key_ok' ) ) {
 			return true;
 		}
 
-		return hash_equals( 'lpnw2026setup', $provided );
+		return false;
 	}
 }

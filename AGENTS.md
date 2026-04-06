@@ -12,7 +12,7 @@ Cloud agents and browser automation should **not** guess wp-admin passwords. On 
 
 1. Include **`?nocache=1`** so 20i CDN does not return stale HTML.
 2. Add **`&lpnw_login_as=test`** (subscriber / dashboard) or **`&lpnw_login_as=admin`** (wp-admin).
-3. Add **`&key=`** — must match **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` on production. Cursor cloud agents: read the same value from **environment secrets** (e.g. `LPNW_LOGIN_AS_SECRET`). Local dev without that constant still accepts the fallback **`lpnw2026setup`** (see `docs/DEPLOYMENT.md`).
+3. Add **`&key=`** — must match **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` (required; there is no default key in code). Cursor cloud agents: read the same value from **environment secrets** (e.g. `LPNW_LOGIN_AS_SECRET`). Local WordPress: define the same constant in local `wp-config.php` (see `docs/DEPLOYMENT.md`).
 
 **Ready-to-use URL shape (replace `YOUR_LOGIN_SECRET`):**
 

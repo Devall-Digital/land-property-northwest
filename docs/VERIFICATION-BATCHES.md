@@ -12,7 +12,7 @@ Use this for periodic audits: **code defines intent**, these steps confirm **pro
 
 Agents **can** exercise the live subscriber UI the same way you do:
 
-1. **`mu-plugins/lpnw-login-as.php`** — **`&key=`** must match **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` on production (Cursor agent secrets should hold the same value). Local dev without that constant still accepts **`lpnw2026setup`**. Upload to `wp-content/mu-plugins/` if not already there (or redeploy from the repo).  
+1. **`mu-plugins/lpnw-login-as.php`** — **`&key=`** must match **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` (required; Cursor agent secrets should hold the same value). Local WordPress needs the same constant in local `wp-config.php`. Upload to `wp-content/mu-plugins/` if not already there (or redeploy from the repo).  
    - Example: `https://land-property-northwest.co.uk/?nocache=1&lpnw_login_as=test&key=YOUR_LOGIN_SECRET`  
    - Logs in as the **test** subscriber (`admin@codevall.co.uk` per file) and redirects to `/dashboard/`.  
    - **`admin`** target sends first administrator to wp-admin.  

@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: LPNW Diagnostic (remove after use)
- * Description: One-shot DB check and LPNW_Property::query test. Upload to wp-content/mu-plugins/, then open any front URL with ?lpnw_diag=run&key=YOUR_SECRET (wp-config LPNW_* or dev lpnw2026setup). Deletes itself after output.
+ * Description: One-shot DB check and LPNW_Property::query test. Upload to wp-content/mu-plugins/, then open any front URL with ?lpnw_diag=run&key= matching wp-config LPNW_CRON_SECRET, PAGE_SYNC, or LOGIN_AS. Deletes itself after output.
  *
  * @package LPNW_Diagnostic
  */

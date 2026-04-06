@@ -29,9 +29,9 @@ Planning Portal runs; national platform still limits practical coverage. Land Re
 
 ## Infrastructure
 
-- **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live `style.css` **6.12.1**); **LPNW Property Alerts plugin** **1.0.35** in repo (deploy via FTP after pull).
+- **WordPress 6.9.4** on 20i shared hosting; **GeneratePress** parent with **LPNW child theme** (live `style.css` **6.12.1**); **LPNW Property Alerts plugin** **1.0.36** in repo (deploy via FTP after pull).
 - **WP-Cron:** `DISABLE_WP_CRON` not set; **next scheduled jobs visible** in LPNW dashboard. Custom HTTP cron **`?lpnw_cron=tick&key=...`** requires non-empty **`LPNW_CRON_SECRET`** in `wp-config.php` (missing secret → 403). Traffic-driven WP-Cron still applies on normal page loads.
-- **Must-use plugins on live:** includes `lpnw-cron-endpoint.php`, **`lpnw-tool-auth-loader.php`** (shared key helper for one-shot scripts), and other helpers; **`lpnw-login-as.php`** uses **`LPNW_LOGIN_AS_SECRET`** when set in `wp-config.php`, else dev fallback **`lpnw2026setup`** (public sites should always set the constant; see `docs/DEPLOYMENT.md`). **`?lpnw_update=pages`:** admin session or **`LPNW_PAGE_SYNC_SECRET` / `LPNW_CRON_SECRET`** on the URL (no anonymous default).
+- **Must-use plugins on live:** includes `lpnw-cron-endpoint.php`, **`lpnw-tool-auth-loader.php`** (shared key helper for one-shot scripts), and other helpers; **`lpnw-login-as.php`** requires non-empty **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` (no default key in code; see `docs/DEPLOYMENT.md`). **`?lpnw_update=pages`:** admin session or **`LPNW_PAGE_SYNC_SECRET` / `LPNW_CRON_SECRET`** on the URL (no anonymous default).
 - **Mautic** base URL configured; **API check: connected (HTTP 200)**. **VIP / Pro / Free** Mautic email **IDs** were populated in settings (4 Apr 2026); reopen **Settings** after template changes.
 - **WooCommerce** with **Stripe** gateway; **three published products** in catalog; admin bar may show **Store coming soon** until you launch the shop publicly.
 - **Tier detection** from WooCommerce orders (completed/processing) is implemented; live tier mix varies (4 Apr: **2** active subscribers with preferences, **2 free / 0 pro / 0 vip** in the dashboard breakdown).

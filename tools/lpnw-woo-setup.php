@@ -3,7 +3,7 @@
  * Temporary WooCommerce and menu bootstrap for Land & Property Northwest.
  *
  * Upload to the WordPress site root next to wp-load.php, visit once:
- * https://example.com/lpnw-woo-setup.php?key=YOUR_SECRET (LPNW_CRON_SECRET / PAGE_SYNC / LOGIN_AS or dev lpnw2026setup)
+ * https://example.com/lpnw-woo-setup.php?key=YOUR_SECRET (must match LPNW_CRON_SECRET, PAGE_SYNC, or LOGIN_AS in wp-config)
  * Then delete this file from the server.
  *
  * @package LPNW_Property_Alerts

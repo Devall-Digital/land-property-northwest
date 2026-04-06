@@ -85,7 +85,7 @@
 ### Tools / mu-plugins truth
 
 31. **`lpnw-login-as.php`** — Header/runbook say **self-delete**; **no `unlink`** in file.
-32. ~~**Single shared key** (`lpnw2026setup`)~~ **Addressed:** one-shot tools use **`lpnw_tool_query_key_ok()`** (`LPNW_CRON_SECRET` / `PAGE_SYNC` / `LOGIN_AS` or dev fallback). Page sync has no anonymous default key.
+32. ~~**Single shared key** in repo~~ **Addressed:** one-shot tools use **`lpnw_tool_query_key_ok()`** (`LPNW_CRON_SECRET` / `PAGE_SYNC` / `LOGIN_AS` only). Login-as requires **`LPNW_LOGIN_AS_SECRET`**. No hard-coded default keys.
 33. **Destructive GET tools** — e.g. cache purge / tier-test scripts; ensure never left on production without rotation.
 
 ---
