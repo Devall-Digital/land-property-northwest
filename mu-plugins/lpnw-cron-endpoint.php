@@ -3,8 +3,8 @@
  * Custom cron endpoint - bypasses 20i's wp-cron.php bot protection.
  *
  * CRON SERVICE URL:
- * https://example.com/?lpnw_cron=tick
- * Optional: &key=SECRET when LPNW_CRON_SECRET is defined in wp-config.php.
+ * https://example.com/?lpnw_cron=tick&key=SECRET
+ * LPNW_CRON_SECRET must be set in wp-config.php (non-empty); requests without a matching key get 403.
  *
  * Runs the same worker logic as wp-cron.php (scheduled hooks), but via a normal
  * front URL 20i does not block. Do not call wp_cron() from init then exit: since
@@ -32,7 +32,8 @@ add_action(
 			require_once $helper;
 		}
 
-		$allowed = true;
+		// Fail closed: require non-empty LPNW_CRON_SECRET and matching &key= (see LPNW_Cron_HTTP).
+		$allowed = false;
 		if ( class_exists( 'LPNW_Cron_HTTP', false ) ) {
 			$allowed = LPNW_Cron_HTTP::request_is_authorized();
 		} elseif ( defined( 'LPNW_CRON_SECRET' ) && '' !== (string) LPNW_CRON_SECRET ) {

@@ -59,6 +59,7 @@ final class LPNW_Property_Alerts {
 		$includes = LPNW_PLUGIN_DIR . 'includes/';
 		$feeds    = LPNW_PLUGIN_DIR . 'feeds/';
 
+		require_once $includes . 'class-lpnw-tool-auth.php';
 		require_once $includes . 'class-lpnw-cron.php';
 		require_once $includes . 'class-lpnw-cron-http.php';
 		require_once $includes . 'class-lpnw-cron-request.php';

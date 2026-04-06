@@ -2,12 +2,12 @@
 /**
  * Log in as admin or test subscriber when wp-login.php is awkward (e.g. host WAF).
  *
- * DEVELOPMENT: uses the fixed key below. Before public launch, switch to
- * LPNW_LOGIN_AS_SECRET in wp-config.php (see docs/DEPLOYMENT.md) or remove this file.
+ * Requires LPNW_LOGIN_AS_SECRET in wp-config.php (non-empty). Agents use the same value
+ * in Cursor environment secrets on the URL as &key=...
  *
  * URL examples:
- *   /?lpnw_login_as=admin&key=lpnw2026setup   → wp-admin
- *   /?lpnw_login_as=test&key=lpnw2026setup   → test user dashboard
+ *   /?nocache=1&lpnw_login_as=admin&key=SECRET   → wp-admin
+ *   /?nocache=1&lpnw_login_as=test&key=SECRET   → test user dashboard
  *
  * @package LPNW
  */
@@ -19,8 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'init',
 	static function () {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Dev login bypass via GET; remove before launch or use LPNW_LOGIN_AS_SECRET.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Login bypass via GET + wp-config secret.
 		if ( empty( $_GET['lpnw_login_as'] ) ) {
+			return;
+		}
+
+		if ( ! defined( 'LPNW_LOGIN_AS_SECRET' ) || '' === (string) LPNW_LOGIN_AS_SECRET ) {
 			return;
 		}
 
@@ -29,11 +33,7 @@ add_action(
 			$provided = sanitize_text_field( wp_unslash( $_GET['key'] ) );
 		}
 
-		$secret = ( defined( 'LPNW_LOGIN_AS_SECRET' ) && '' !== LPNW_LOGIN_AS_SECRET )
-			? (string) LPNW_LOGIN_AS_SECRET
-			: 'lpnw2026setup';
-
-		if ( '' === $provided || ! hash_equals( $secret, $provided ) ) {
+		if ( '' === $provided || ! hash_equals( (string) LPNW_LOGIN_AS_SECRET, $provided ) ) {
 			return;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended

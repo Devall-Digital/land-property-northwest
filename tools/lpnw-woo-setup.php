@@ -3,22 +3,24 @@
  * Temporary WooCommerce and menu bootstrap for Land & Property Northwest.
  *
  * Upload to the WordPress site root next to wp-load.php, visit once:
- * https://example.com/lpnw-woo-setup.php?key=lpnw2026setup
+ * https://example.com/lpnw-woo-setup.php?key=YOUR_SECRET (must match LPNW_CRON_SECRET, PAGE_SYNC, or LOGIN_AS in wp-config)
  * Then delete this file from the server.
  *
  * @package LPNW_Property_Alerts
  */
 
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- One-off URL secret; no nonce (before wp-load).
-$setup_key = isset( $_GET['key'] ) ? (string) $_GET['key'] : '';
-if ( 'lpnw2026setup' !== $setup_key ) {
+require_once __DIR__ . '/wp-load.php';
+
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
+
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- One-off URL secret; no nonce.
+$setup_key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+if ( ! lpnw_tool_query_key_ok( $setup_key ) ) {
 	header( 'HTTP/1.1 403 Forbidden' );
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	echo "Forbidden\n";
 	exit;
 }
-
-require_once __DIR__ . '/wp-load.php';
 
 require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 

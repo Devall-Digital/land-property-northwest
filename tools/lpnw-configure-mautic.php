@@ -4,12 +4,14 @@
  * Description: Configure Mautic API settings, verify API access, create a WPForms contact form, and fix the Contact page shortcode. Deletes itself after a successful run.
  *
  * Install: copy this file to wp-content/mu-plugins/ then visit once:
- * https://your-site.example/?lpnw_config=mautic&key=lpnw2026setup
+ * https://your-site.example/?lpnw_config=mautic&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * @package LPNW
  */
 
 defined( 'ABSPATH' ) || exit;
+
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 /**
  * Run one-shot setup when query args match.
@@ -26,7 +28,7 @@ function lpnw_configure_mautic_run(): void {
 	}
 
 	$provided = (string) wp_unslash( $_GET['key'] );
-	if ( ! hash_equals( 'lpnw2026setup', $provided ) ) {
+	if ( ! lpnw_tool_query_key_ok( $provided ) ) {
 		return;
 	}
 

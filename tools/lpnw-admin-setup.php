@@ -4,10 +4,14 @@
  * Run once from wp-admin context (we're now logged in).
  */
 if ( ! defined( 'ABSPATH' ) ) { return; }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 add_action( 'admin_init', function() {
 	if ( empty( $_GET['lpnw_admin_setup'] ) || 'run' !== $_GET['lpnw_admin_setup'] ) { return; }
-	if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) { return; }
+	$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+	if ( ! lpnw_tool_query_key_ok( $key ) ) {
+		return;
+	}
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	header( 'Content-Type: text/plain; charset=utf-8' );

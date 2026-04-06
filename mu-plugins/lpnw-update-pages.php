@@ -5,6 +5,8 @@
  * Prefer the built-in handler in the plugin (LPNW 1.0.17+): same URL, does not self-delete.
  * This file removes itself after success if you still upload it.
  *
+ * Requires `?key=` matching `LPNW_PAGE_SYNC_SECRET` or `LPNW_CRON_SECRET` in wp-config.php.
+ *
  * @package LPNW_MU
  */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +19,15 @@ add_action(
 		if ( empty( $_GET['lpnw_update'] ) || 'pages' !== $_GET['lpnw_update'] ) {
 			return;
 		}
-		if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- GET shared secret, not a form nonce.
+		$provided = isset( $_GET['key'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['key'] ) ) : '';
+		$allowed  = false;
+		if ( defined( 'LPNW_PAGE_SYNC_SECRET' ) && '' !== (string) LPNW_PAGE_SYNC_SECRET ) {
+			$allowed = hash_equals( (string) LPNW_PAGE_SYNC_SECRET, $provided );
+		} elseif ( defined( 'LPNW_CRON_SECRET' ) && '' !== (string) LPNW_CRON_SECRET ) {
+			$allowed = hash_equals( (string) LPNW_CRON_SECRET, $provided );
+		}
+		if ( ! $allowed ) {
 			return;
 		}
 

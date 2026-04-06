@@ -1,17 +1,14 @@
 <?php
 /**
  * Plugin Name: LPNW Email Template Test
- * Description: Upload to wp-content/mu-plugins/. Preview: ?lpnw_test_email=preview&key=lpnw2026setup — remove after use.
+ * Description: Upload to wp-content/mu-plugins/. Preview: ?lpnw_test_email=preview&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md) — remove after use.
  *
  * @package LPNW_Property_Alerts
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Shared secret for preview and send URLs.
- */
-const LPNW_TEST_EMAIL_KEY = 'lpnw2026setup';
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 add_action( 'template_redirect', 'lpnw_test_email_maybe_run', 1 );
 
@@ -24,7 +21,7 @@ function lpnw_test_email_maybe_run(): void {
 		return;
 	}
 
-	if ( ! hash_equals( LPNW_TEST_EMAIL_KEY, sanitize_text_field( wp_unslash( $_GET['key'] ) ) ) ) {
+	if ( ! lpnw_tool_query_key_ok( sanitize_text_field( wp_unslash( $_GET['key'] ) ) ) {
 		return;
 	}
 

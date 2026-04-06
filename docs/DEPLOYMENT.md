@@ -66,34 +66,36 @@ Some marketing pages are **WordPress page post_content**, not read directly from
 
 1. **Recommended (plugin 1.0.17+):** while logged in as **administrator**, visit  
    `https://YOUR-DOMAIN/?nocache=1&lpnw_update=pages`  
-   (no `key` needed). Or use the same URL with **`&key=...`** if you are not logged in: define **`LPNW_PAGE_SYNC_SECRET`** in `wp-config.php` and pass that value, or use the same value as **`LPNW_CRON_SECRET`**, or the legacy default **`lpnw2026setup`** if neither constant is set.  
+   (no `key` needed when your browser session is already an admin). If you are **not** logged in, you must pass **`&key=...`** matching **`LPNW_PAGE_SYNC_SECRET`** or **`LPNW_CRON_SECRET`** in `wp-config.php`. There is **no** default key: anonymous requests without a configured secret are denied.  
    **20i CDN note:** the **home URL** can be edge-cached as full HTML, so the sync may appear to “do nothing” (you still see the normal page). If that happens, run the same query string on another path, e.g. **`https://YOUR-DOMAIN/pricing/?nocache=1&lpnw_update=pages&key=...`** — the handler runs on any front request.
-2. **Legacy:** upload **`tools/lpnw-update-pages.php`** or **`mu-plugins/lpnw-update-pages.php`** and hit the URL once (that copy **self-deletes**).
+2. **Legacy:** avoid **`mu-plugins/lpnw-update-pages.php`** on production (fixed dev key). Remove it from the server if present; use the plugin handler above instead.
 
 If you skip the sync, live pages keep **old HTML** (e.g. pricing table without recent markup).
 
 ### Cron URL secret (`LPNW_CRON_SECRET`)
 
-If you define `LPNW_CRON_SECRET` in `wp-config.php`, the custom cron endpoint requires `?lpnw_cron=tick&key=YOUR_SECRET`. Without the constant, behaviour stays open (legacy). Prefer defining the constant on production and updating EasyCron / 20i jobs to include `&key=...`.
+Define `LPNW_CRON_SECRET` in `wp-config.php` as a long random string. The custom cron URL **`?lpnw_cron=tick`** only runs when **`&key=`** matches that value. If the constant is missing or empty, the endpoint returns **403** (fail closed). Update EasyCron / 20i jobs to include `&key=YOUR_SECRET`.
 
 ### Emergency admin login (`lpnw-login-as.php`)
 
-**During development:** the repo uses a **default key** in code (`lpnw2026setup`) so you can open:
+**Production:** define **`LPNW_LOGIN_AS_SECRET`** in `wp-config.php` and use **`&key=`** with that value:
 
-- `https://YOUR-DOMAIN/?lpnw_login_as=admin&key=lpnw2026setup` → wp-admin  
-- `https://YOUR-DOMAIN/?lpnw_login_as=test&key=lpnw2026setup` → test subscriber (`admin@codevall.co.uk` in the file)
+- `https://YOUR-DOMAIN/?nocache=1&lpnw_login_as=admin&key=YOUR_SECRET` → wp-admin  
+- `https://YOUR-DOMAIN/?nocache=1&lpnw_login_as=test&key=YOUR_SECRET` → test subscriber (`admin@codevall.co.uk` in the file)
 
-`tools/lpnw-autologin.php` (when placed in mu-plugins) uses the same rule: default key, or override below.
+**Requirement:** `LPNW_LOGIN_AS_SECRET` must be **defined and non-empty** in `wp-config.php`. If it is missing, the login-as URL does nothing (no default key in the repo).
 
-**Before public launch:** define a long random secret in `wp-config.php` (it overrides the default):
+`tools/lpnw-autologin.php` (when placed in mu-plugins) uses the same rule.
 
-```php
-define( 'LPNW_LOGIN_AS_SECRET', 'paste-a-long-random-string-here' );
-```
+**Remove** `lpnw-login-as.php` from the server when you no longer need it.
 
-Then use `&key=` matching that value. **Remove** `lpnw-login-as.php` from the server when you no longer need it, or leave only the wp-config secret with no default (customise the mu-plugin for production-only builds).
+**Cursor / cloud agents:** add the same `LPNW_LOGIN_AS_SECRET` value to the agent **environment secrets** (or your runbook) so automated browsers can build the login URL with `&key=...`. The secret lives in **two places**: `wp-config.php` on the server (authorises the request) and the agent env (supplies the key on the URL). It is **not** “stored only in the cloud agent”; the server must define it too.
 
-**Note:** `lpnw-autologin.php` **deletes itself** after one successful admin login; `lpnw-login-as.php` does **not** (so agents and humans can reuse it during development).
+### One-shot `tools/*.php` URLs (`&key=`)
+
+Scripts copied to `mu-plugins/` (or run from the site root) accept **`&key=`** only when it matches **`LPNW_CRON_SECRET`**, **`LPNW_PAGE_SYNC_SECRET`**, or **`LPNW_LOGIN_AS_SECRET`** from `wp-config.php` (at least one must be defined). There is **no** hard-coded fallback key. **`mu-plugins/lpnw-tool-auth-loader.php`** loads `lpnw_tool_query_key_ok()` for mu-plugins; keep it deployed alongside other mu-plugins.
+
+**Note:** `lpnw-autologin.php` **deletes itself** after one successful admin login; `lpnw-login-as.php` does **not** (so agents can reuse the same URL with `&key=`).
 
 ## Quick Deploy Script (lftp)
 

@@ -19,6 +19,34 @@ class LPNW_Subscriber {
 	public const USER_META_ADMIN_TIER_OVERRIDE = 'lpnw_admin_tier_override';
 
 	/**
+	 * Allowed property type checkbox values for subscriber preferences (matches matcher + preferences UI).
+	 *
+	 * @return array<int, string>
+	 */
+	public static function allowed_preference_property_types(): array {
+		return array(
+			'Detached',
+			'Semi-detached',
+			'Terraced',
+			'Flat/Maisonette',
+			'Auction lot',
+			'Other',
+		);
+	}
+
+	/**
+	 * Intersect submitted types with the allow-list.
+	 *
+	 * @param array<int, string> $raw Raw values from the form.
+	 * @return array<int, string>
+	 */
+	public static function sanitize_preference_property_types( array $raw ): array {
+		$clean = array_map( 'sanitize_text_field', $raw );
+
+		return array_values( array_intersect( self::allowed_preference_property_types(), $clean ) );
+	}
+
+	/**
 	 * Get preferences for a user.
 	 *
 	 * @param int $user_id WordPress user ID.

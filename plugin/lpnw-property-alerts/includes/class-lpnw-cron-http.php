@@ -8,22 +8,22 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Validates optional cron URL secret (wp-config constant).
+ * Validates cron URL secret (wp-config constant). Fails closed when unset.
  */
 class LPNW_Cron_HTTP {
 
 	/**
 	 * Whether the request may run wp_cron().
 	 *
-	 * If `LPNW_CRON_SECRET` is defined and non-empty, `$_GET['key']` must match.
-	 * If the constant is not set, behaviour matches the legacy open endpoint
-	 * (operators should define the constant on production).
+	 * `LPNW_CRON_SECRET` must be defined and non-empty in wp-config.php, and
+	 * `$_GET['key']` must match. This avoids an accidental open endpoint if the
+	 * constant is missing on production.
 	 *
 	 * @return bool
 	 */
 	public static function request_is_authorized(): bool {
 		if ( ! defined( 'LPNW_CRON_SECRET' ) || '' === (string) LPNW_CRON_SECRET ) {
-			return true;
+			return false;
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Query key is verified against LPNW_CRON_SECRET, not a WP nonce.

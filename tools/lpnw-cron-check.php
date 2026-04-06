@@ -1,17 +1,14 @@
 <?php
 /**
  * One-off LPNW cron diagnostic. Upload next to wp-load.php (or under mu-plugins) and visit once:
- * ?lpnw_cron_check=run&key=lpnw2026setup
+ * ?lpnw_cron_check=run&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * @package LPNW_Property_Alerts
  */
 
-if ( ! isset( $_GET['lpnw_cron_check'], $_GET['key'] ) || 'run' !== $_GET['lpnw_cron_check'] || 'lpnw2026setup' !== $_GET['key'] ) {
+if ( ! isset( $_GET['lpnw_cron_check'], $_GET['key'] ) || 'run' !== $_GET['lpnw_cron_check'] ) {
 	exit;
 }
-
-header( 'Content-Type: text/plain; charset=utf-8' );
-set_time_limit( 300 );
 
 /**
  * Locate wp-load.php from site root or wp-content/mu-plugins.
@@ -41,6 +38,18 @@ if ( null === $wp_load ) {
 }
 
 require_once $wp_load;
+
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
+$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+if ( ! lpnw_tool_query_key_ok( $key ) ) {
+	header( 'HTTP/1.1 403 Forbidden' );
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	echo "Forbidden\n";
+	exit;
+}
+
+header( 'Content-Type: text/plain; charset=utf-8' );
+set_time_limit( 300 );
 
 global $wpdb;
 

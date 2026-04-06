@@ -18,11 +18,6 @@ class LPNW_Page_Content_Sync
 {
 
     /**
-     * Legacy query key used before wp-config secrets (matches historical mu-plugin).
-     */
-    private const LEGACY_KEY = 'lpnw2026setup';
-
-    /**
      * Register init hook.
      */
     public static function init(): void
@@ -89,7 +84,9 @@ class LPNW_Page_Content_Sync
     }
 
     /**
-     * Authorization: administrator session, or shared secret (wp-config or legacy key).
+     * Authorization: administrator session, or shared secret in wp-config / filter.
+     *
+     * There is no default query key: without secrets, only a logged-in admin can sync.
      *
      * @return bool
      */
@@ -111,16 +108,16 @@ class LPNW_Page_Content_Sync
         }
 
         /**
-         * Filter: allow a custom query key for page sync (empty = use legacy default below).
+         * Filter: optional extra shared key for page sync (e.g. CI). Empty = not used.
          *
-         * @param string $key Expected ?key= value when no wp-config secret is set.
+         * @param string $key Expected ?key= value; empty string disables this path.
          */
         $filter_key = (string) apply_filters('lpnw_page_sync_allowed_key', '');
         if ('' !== $filter_key ) {
             return hash_equals($filter_key, $provided);
         }
 
-        return hash_equals(self::LEGACY_KEY, $provided);
+        return false;
     }
 
     /**

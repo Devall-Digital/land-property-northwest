@@ -3,7 +3,7 @@
  * MU-plugin: backfill structured columns on lpnw_properties from raw_data JSON.
  *
  * Copy to wp-content/mu-plugins/ then open (once or repeatedly):
- * ?lpnw_backfill_fields=run&key=lpnw2026setup
+ * ?lpnw_backfill_fields=run&key=YOUR_LPNW_SECRET (see docs/DEPLOYMENT.md)
  *
  * Processes up to 500 rows per request in batches of 200. Does not delete itself.
  *
@@ -13,6 +13,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
 
 /**
  * Square feet from a portal display-size style string.
@@ -457,7 +458,8 @@ add_action(
 		if ( empty( $_GET['lpnw_backfill_fields'] ) || 'run' !== $_GET['lpnw_backfill_fields'] ) {
 			return;
 		}
-		if ( empty( $_GET['key'] ) || 'lpnw2026setup' !== $_GET['key'] ) {
+		$key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
+		if ( ! lpnw_tool_query_key_ok( $key ) ) {
 			return;
 		}
 
