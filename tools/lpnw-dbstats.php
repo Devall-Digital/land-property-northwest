@@ -1,5 +1,8 @@
 ﻿<?php
 if (!defined('ABSPATH')) return;
+
+require_once WPMU_PLUGIN_DIR . '/lpnw-tool-auth-loader.php';
+
 add_action('wp_loaded', function() {
     if (empty($_GET['lpnw_dbstats']) || 'run' !== $_GET['lpnw_dbstats']) return;
     $key = isset( $_GET['key'] ) ? (string) wp_unslash( $_GET['key'] ) : '';
