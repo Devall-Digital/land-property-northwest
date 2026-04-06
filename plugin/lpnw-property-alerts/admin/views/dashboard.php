@@ -110,7 +110,9 @@ if ( $total_pages > 1 ) {
 							<?php esc_html_e( 'Paid Pro/VIP (WooCommerce)', 'lpnw-alerts' ); ?>
 							<?php
 							LPNW_Admin_Help::tip_icon(
-								__( 'Customers linked to a WordPress user account with at least one completed or processing order containing a Pro or VIP subscription product. Guest checkout is not counted.', 'lpnw-alerts' )
+								class_exists( 'LPNW_Subscriber' ) && LPNW_Subscriber::use_subscription_for_paid_tier() && class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available()
+									? __( 'WordPress users with an active Pro or VIP subscription (WooCommerce Subscriptions). Guest checkout is not counted.', 'lpnw-alerts' )
+									: __( 'WordPress users with at least one completed or processing order containing a Pro or VIP product. Guest checkout is not counted.', 'lpnw-alerts' )
 							);
 							?>
 						</p>

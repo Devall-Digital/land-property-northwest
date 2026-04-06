@@ -674,6 +674,13 @@ class LPNW_Admin {
 		);
 
 		add_settings_section(
+			'lpnw_billing_section',
+			__( 'WooCommerce billing & tiers', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_billing_section_intro' ),
+			'lpnw-settings'
+		);
+
+		add_settings_section(
 			'lpnw_alerts_section',
 			__( 'Alert delivery', 'lpnw-alerts' ),
 			array( __CLASS__, 'render_alerts_section_intro' ),
@@ -729,6 +736,24 @@ class LPNW_Admin {
 		}
 
 		add_settings_field(
+			'tier_use_subscriptions',
+			__( 'Use WooCommerce Subscriptions for Pro/VIP tier', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array( 'key' => 'tier_use_subscriptions', 'type' => 'checkbox' )
+		);
+
+		add_settings_field(
+			'subscription_on_hold_grace_days',
+			__( 'On-hold grace (days)', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array( 'key' => 'subscription_on_hold_grace_days', 'type' => 'number' )
+		);
+
+		add_settings_field(
 			'free_tier_weekly_instant_alerts',
 			__( 'Free tier: instant sample emails per week', 'lpnw-alerts' ),
 			array( __CLASS__, 'render_field' ),
@@ -736,6 +761,26 @@ class LPNW_Admin {
 			'lpnw_alerts_section',
 			array( 'key' => 'free_tier_weekly_instant_alerts', 'type' => 'number' )
 		);
+	}
+
+	/**
+	 * Intro for WooCommerce tier settings.
+	 */
+	public static function render_billing_section_intro(): void {
+		$wcs = class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available();
+		echo '<p class="description">';
+		if ( $wcs ) {
+			esc_html_e(
+				'WooCommerce Subscriptions is active. Pro and VIP access follow active subscriptions (including free trials while status is active). Failed renewals usually set the subscription to on-hold; grace days below keep paid access briefly while the customer fixes payment.',
+				'lpnw-alerts'
+			);
+		} else {
+			esc_html_e(
+				'Install and activate WooCommerce Subscriptions to sell monthly Pro/VIP with renewals and trials. Until then, tier can follow completed/processing orders only.',
+				'lpnw-alerts'
+			);
+		}
+		echo '</p>';
 	}
 
 	/**
@@ -780,6 +825,7 @@ class LPNW_Admin {
 			'epc_enabled',
 			'landregistry_enabled',
 			'auctions_enabled',
+			'tier_use_subscriptions',
 		);
 		foreach ( $checkboxes as $key ) {
 			$sanitized[ $key ] = ! empty( $input[ $key ] );
@@ -801,6 +847,12 @@ class LPNW_Admin {
 		}
 		$sanitized['free_tier_weekly_instant_alerts'] = $ft_instant;
 
+		$grace = isset( $input['subscription_on_hold_grace_days'] ) ? absint( $input['subscription_on_hold_grace_days'] ) : 14;
+		if ( $grace > 60 ) {
+			$grace = 60;
+		}
+		$sanitized['subscription_on_hold_grace_days'] = $grace; // 0 allowed = strict on-hold.
+
 		return array_merge( $prev, $sanitized );
 	}
 
@@ -817,18 +869,38 @@ class LPNW_Admin {
 			if ( 'portals_enabled' === $key && ! array_key_exists( 'portals_enabled', $settings ) ) {
 				$value = true;
 			}
+			if ( 'tier_use_subscriptions' === $key && ! array_key_exists( 'tier_use_subscriptions', $settings )
+				&& class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available() ) {
+				$value = true;
+			}
 			printf(
 				'<input type="checkbox" name="lpnw_settings[%s]" value="1" %s />',
 				esc_attr( $key ),
 				checked( $value, true, false )
 			);
+			if ( 'tier_use_subscriptions' === $key && class_exists( 'LPNW_Woo_Subscription_Tier' ) && ! LPNW_Woo_Subscription_Tier::is_available() ) {
+				echo ' <span class="description">' . esc_html__( '(WooCommerce Subscriptions is not active.)', 'lpnw-alerts' ) . '</span>';
+			}
 		} elseif ( 'number' === $type ) {
-			$num = '' !== $value ? absint( $value ) : 0;
-			printf(
-				'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="100" step="1" />',
-				esc_attr( $key ),
-				$num
-			);
+			if ( 'subscription_on_hold_grace_days' === $key ) {
+				$num = '' !== $value && is_numeric( $value ) ? absint( $value ) : 14;
+				if ( $num > 60 ) {
+					$num = 60;
+				}
+				printf(
+					'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="60" step="1" />',
+					esc_attr( $key ),
+					$num
+				);
+				echo ' <p class="description">' . esc_html__( 'While a subscription is on-hold after a failed payment, keep Pro/VIP access for this many days since the subscription was last updated. Use 0 for no grace.', 'lpnw-alerts' ) . '</p>';
+			} else {
+				$num = '' !== $value ? absint( $value ) : 0;
+				printf(
+					'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="100" step="1" />',
+					esc_attr( $key ),
+					$num
+				);
+			}
 		} else {
 			printf(
 				'<input type="%s" name="lpnw_settings[%s]" value="%s" class="regular-text" />',

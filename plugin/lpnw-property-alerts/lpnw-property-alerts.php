@@ -3,7 +3,7 @@
  * Plugin Name: LPNW Property Alerts
  * Plugin URI: https://land-property-northwest.co.uk
  * Description: Property intelligence and alert engine for Northwest England. Aggregates planning applications, EPC data, Land Registry transactions, and auction listings into automated subscriber alerts.
- * Version: 1.0.38
+ * Version: 1.0.39
  * Author: Land & Property Northwest
  * Author URI: https://land-property-northwest.co.uk
  * License: Proprietary
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LPNW_VERSION', '1.0.38' );
+define( 'LPNW_VERSION', '1.0.39' );
 define( 'LPNW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LPNW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LPNW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -70,6 +70,7 @@ final class LPNW_Property_Alerts {
 		require_once $includes . 'class-lpnw-subscriber.php';
 		require_once $includes . 'class-lpnw-onboarding.php';
 		require_once $includes . 'class-lpnw-woocommerce-store.php';
+		require_once $includes . 'class-lpnw-woo-subscription-tier.php';
 		require_once $includes . 'class-lpnw-user-tier-profile.php';
 		require_once $includes . 'class-lpnw-free-tier-instant.php';
 		require_once $includes . 'class-lpnw-matcher.php';

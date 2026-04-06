@@ -100,10 +100,10 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 					?>
 				</th>
 				<th scope="col">
-					<?php esc_html_e( 'From orders', 'lpnw-alerts' ); ?>
+					<?php esc_html_e( 'From billing', 'lpnw-alerts' ); ?>
 					<?php
 					LPNW_Admin_Help::tip_icon(
-						__( 'Tier implied by recent completed or processing orders with lpnw-pro or lpnw-vip products. Ignores admin comps.', 'lpnw-alerts' )
+						__( 'Paid tier from active WooCommerce Subscriptions when enabled in settings, otherwise from completed or processing orders with Pro/VIP products. Ignores admin comps.', 'lpnw-alerts' )
 					);
 					?>
 				</th>
@@ -148,7 +148,7 @@ $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );
 							<span class="description"><?php echo esc_html( $row['email'] ); ?></span>
 						</td>
 						<td><strong><?php echo esc_html( strtoupper( $row['tier'] ) ); ?></strong></td>
-						<td><?php echo esc_html( strtoupper( $row['from_orders'] ) ); ?></td>
+						<td><?php echo esc_html( strtoupper( $row['from_billing'] ) ); ?></td>
 						<td><?php echo $row['override'] ? esc_html( strtoupper( $row['override'] ) ) : '—'; ?></td>
 						<td><?php echo esc_html( $row['frequency'] ); ?></td>
 						<td>

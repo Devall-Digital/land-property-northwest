@@ -88,7 +88,7 @@ final class LPNW_Admin_Subscribers {
 		if ( is_array( $rows ) ) {
 			foreach ( $rows as $row ) {
 				$uid = (int) $row->user_id;
-				$from_orders = LPNW_Subscriber::get_tier_from_orders( $uid );
+				$from_billing = LPNW_Subscriber::get_tier_from_billing( $uid );
 				$effective   = LPNW_Subscriber::get_tier( $uid );
 				$override    = get_user_meta( $uid, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE, true );
 				$override    = is_string( $override ) && '' !== $override ? $override : '';
@@ -127,7 +127,7 @@ final class LPNW_Admin_Subscribers {
 					'setup_complete' => $setup_done,
 					'redirect_pending' => $pending,
 					'tier'           => $effective,
-					'from_orders'    => $from_orders,
+					'from_billing'   => $from_billing,
 					'override'       => $override,
 					'orders_url'     => $orders_url,
 					'edit_url'       => get_edit_user_link( $uid ),

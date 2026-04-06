@@ -27,13 +27,13 @@ final class LPNW_User_Tier_Profile {
 			return;
 		}
 
-		$from_orders = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier_from_orders( (int) $user->ID ) : 'free';
+		$from_billing = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier_from_billing( (int) $user->ID ) : 'free';
 		$current     = get_user_meta( $user->ID, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE, true );
 		$current     = is_string( $current ) ? $current : '';
 
 		$disabled_note = '';
-		if ( in_array( $from_orders, array( 'pro', 'vip' ), true ) ) {
-			$disabled_note = __( 'This user has a qualifying paid order; tier follows WooCommerce until that changes.', 'lpnw-alerts' );
+		if ( in_array( $from_billing, array( 'pro', 'vip' ), true ) ) {
+			$disabled_note = __( 'This user has an active paid subscription or qualifying order; tier follows WooCommerce until that changes.', 'lpnw-alerts' );
 		}
 
 		wp_nonce_field( 'lpnw_save_tier_override', 'lpnw_tier_override_nonce' );
@@ -45,9 +45,9 @@ final class LPNW_User_Tier_Profile {
 		</p>
 		<table class="form-table" role="presentation">
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Tier from orders', 'lpnw-alerts' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Tier from billing', 'lpnw-alerts' ); ?></th>
 				<td>
-					<strong><?php echo esc_html( strtoupper( $from_orders ) ); ?></strong>
+					<strong><?php echo esc_html( strtoupper( $from_billing ) ); ?></strong>
 					<?php if ( '' !== $disabled_note ) : ?>
 						<p class="description"><?php echo esc_html( $disabled_note ); ?></p>
 					<?php endif; ?>
@@ -58,14 +58,14 @@ final class LPNW_User_Tier_Profile {
 					<label for="lpnw_admin_tier_override"><?php esc_html_e( 'Admin tier override', 'lpnw-alerts' ); ?></label>
 				</th>
 				<td>
-					<select name="lpnw_admin_tier_override" id="lpnw_admin_tier_override" <?php disabled( in_array( $from_orders, array( 'pro', 'vip' ), true ) ); ?>>
+					<select name="lpnw_admin_tier_override" id="lpnw_admin_tier_override" <?php disabled( in_array( $from_billing, array( 'pro', 'vip' ), true ) ); ?>>
 						<option value="" <?php selected( $current, '' ); ?>><?php esc_html_e( 'None (use orders only)', 'lpnw-alerts' ); ?></option>
 						<option value="free" <?php selected( $current, 'free' ); ?>><?php esc_html_e( 'Free', 'lpnw-alerts' ); ?></option>
 						<option value="pro" <?php selected( $current, 'pro' ); ?>><?php esc_html_e( 'Pro (comp / trial)', 'lpnw-alerts' ); ?></option>
 						<option value="vip" <?php selected( $current, 'vip' ); ?>><?php esc_html_e( 'VIP (comp / trial)', 'lpnw-alerts' ); ?></option>
 					</select>
 					<p class="description">
-						<?php esc_html_e( 'Use for trials and support. Pro or VIP from a completed or processing paid order always wins and cannot be downgraded here.', 'lpnw-alerts' ); ?>
+						<?php esc_html_e( 'Use for trials and support. An active paid subscription or qualifying order always wins and cannot be downgraded here.', 'lpnw-alerts' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -90,8 +90,8 @@ final class LPNW_User_Tier_Profile {
 			return;
 		}
 
-		$from_orders = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier_from_orders( $user_id ) : 'free';
-		if ( in_array( $from_orders, array( 'pro', 'vip' ), true ) ) {
+		$from_billing = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier_from_billing( $user_id ) : 'free';
+		if ( in_array( $from_billing, array( 'pro', 'vip' ), true ) ) {
 			return;
 		}
 

@@ -184,6 +184,35 @@ class LPNW_Subscriber {
 	}
 
 	/**
+	 * Whether Pro/VIP should come from WooCommerce Subscriptions when the extension is active.
+	 *
+	 * @return bool
+	 */
+	public static function use_subscription_for_paid_tier(): bool {
+		$settings = get_option( 'lpnw_settings', array() );
+		if ( ! is_array( $settings ) ) {
+			return class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available();
+		}
+		if ( array_key_exists( 'tier_use_subscriptions', $settings ) ) {
+			return ! empty( $settings['tier_use_subscriptions'] );
+		}
+		return class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available();
+	}
+
+	/**
+	 * Paid tier from billing: active subscriptions first (when enabled), else qualifying orders.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return string One of: free, pro, vip
+	 */
+	public static function get_tier_from_billing( int $user_id ): string {
+		if ( self::use_subscription_for_paid_tier() && class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available() ) {
+			return LPNW_Woo_Subscription_Tier::get_paid_tier( $user_id );
+		}
+		return self::get_tier_from_orders( $user_id );
+	}
+
+	/**
 	 * Tier from WooCommerce orders only (ignores admin override). For admin display and support.
 	 *
 	 * VIP wins over Pro if both appear in order history.
@@ -245,6 +274,10 @@ class LPNW_Subscriber {
 	 * @return int
 	 */
 	public static function count_customers_with_paid_tier_order(): int {
+		if ( self::use_subscription_for_paid_tier() && class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available() ) {
+			return LPNW_Woo_Subscription_Tier::count_users_with_paid_subscription_tier();
+		}
+
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return 0;
 		}
@@ -294,15 +327,15 @@ class LPNW_Subscriber {
 	}
 
 	/**
-	 * Effective tier: paid WooCommerce orders always win; otherwise optional admin override applies.
+	 * Effective tier: paid subscription (when enabled) or qualifying orders; else admin override.
 	 *
 	 * @param int $user_id WordPress user ID.
 	 * @return string One of: free, pro, vip
 	 */
 	public static function get_tier( int $user_id ): string {
-		$from_orders = self::get_tier_from_orders( $user_id );
-		if ( 'pro' === $from_orders || 'vip' === $from_orders ) {
-			return $from_orders;
+		$from_billing = self::get_tier_from_billing( $user_id );
+		if ( 'pro' === $from_billing || 'vip' === $from_billing ) {
+			return $from_billing;
 		}
 
 		$raw = get_user_meta( $user_id, self::USER_META_ADMIN_TIER_OVERRIDE, true );
