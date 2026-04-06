@@ -11,6 +11,12 @@ defined( 'ABSPATH' ) || exit;
 
 class LPNW_Public {
 
+	private const CONTACT_RATE_TRANSIENT_PREFIX = 'lpnw_contact_form_';
+
+	private const CONTACT_RATE_LIMIT = 8;
+
+	private const CONTACT_RATE_WINDOW = 3600;
+
 	public static function init(): void {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 		add_shortcode( 'lpnw_alert_feed', array( __CLASS__, 'render_alert_feed' ) );
@@ -547,12 +553,13 @@ class LPNW_Public {
 		$ptypes_raw = self::normalize_post_string_array(
 			isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array()
 		);
+		$property_types_sanitized = LPNW_Subscriber::sanitize_preference_property_types( $ptypes_raw );
 
 		$prefs = array(
 			'areas'                => $areas_sanitized,
 			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
 			'max_price'            => absint( $_POST['max_price'] ?? 0 ),
-			'property_types'       => array_map( 'sanitize_text_field', $ptypes_raw ),
+			'property_types'       => $property_types_sanitized,
 			'alert_types'          => $alert_types_sanitized,
 			'listing_channels'     => $listing_channels,
 			'tenure_preferences'   => $tenure_preferences,
@@ -651,6 +658,17 @@ class LPNW_Public {
 	public static function ajax_contact_form(): void {
 		check_ajax_referer( 'lpnw_contact', 'nonce' );
 
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) ) : '0';
+		$rk = self::CONTACT_RATE_TRANSIENT_PREFIX . md5( $ip );
+		$n  = (int) get_transient( $rk );
+		if ( $n >= self::CONTACT_RATE_LIMIT ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Too many messages sent from your connection recently. Please try again later.', 'lpnw-alerts' ),
+				)
+			);
+		}
+
 		$name    = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
 		$email   = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
 		$subject = isset( $_POST['subject'] ) ? sanitize_text_field( wp_unslash( $_POST['subject'] ) ) : '';
@@ -703,6 +721,10 @@ class LPNW_Public {
 		$headers[] = 'Reply-To: ' . $email;
 
 		$sent = wp_mail( $admin_email, $mail_subject, $body, $headers );
+
+		if ( $sent ) {
+			set_transient( $rk, $n + 1, self::CONTACT_RATE_WINDOW );
+		}
 
 		if ( ! $sent ) {
 			wp_send_json_error(
