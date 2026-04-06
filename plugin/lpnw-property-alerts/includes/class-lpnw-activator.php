@@ -222,6 +222,8 @@ class LPNW_Activator {
 			'mautic_api_password'  => '',
 			'retention_days'       => 180,
 			'free_tier_weekly_instant_alerts' => 5,
+			// Skip instant/digest listing alerts when portal first_listed_date is older than this many days (0 = off).
+			'listing_alert_max_portal_age_days' => 2,
 		);
 
 		if ( false === get_option( 'lpnw_settings' ) ) {

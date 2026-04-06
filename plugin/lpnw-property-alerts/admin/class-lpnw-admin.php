@@ -689,6 +689,7 @@ class LPNW_Admin {
 
 		$feed_fields = array(
 			'portals_enabled'      => 'Enable portal feeds (Rightmove, Zoopla, OnTheMarket)',
+			'listing_alert_max_portal_age_days' => 'Listing alerts: max portal listing age (days)',
 			'planning_enabled'     => 'Enable Planning Portal feed',
 			'epc_enabled'          => 'Enable EPC Open Data feed',
 			'epc_api_email'        => 'EPC account email (Basic auth username)',
@@ -701,6 +702,8 @@ class LPNW_Admin {
 			$type = 'text';
 			if ( str_contains( $key, 'enabled' ) ) {
 				$type = 'checkbox';
+			} elseif ( 'listing_alert_max_portal_age_days' === $key ) {
+				$type = 'number';
 			} elseif ( 'epc_api_email' === $key ) {
 				$type = 'email';
 			}
@@ -847,6 +850,12 @@ class LPNW_Admin {
 		}
 		$sanitized['free_tier_weekly_instant_alerts'] = $ft_instant;
 
+		$listing_age = isset( $input['listing_alert_max_portal_age_days'] ) ? absint( $input['listing_alert_max_portal_age_days'] ) : 2;
+		if ( $listing_age > 365 ) {
+			$listing_age = 365;
+		}
+		$sanitized['listing_alert_max_portal_age_days'] = $listing_age;
+
 		$grace = isset( $input['subscription_on_hold_grace_days'] ) ? absint( $input['subscription_on_hold_grace_days'] ) : 14;
 		if ( $grace > 60 ) {
 			$grace = 60;
@@ -882,7 +891,21 @@ class LPNW_Admin {
 				echo ' <span class="description">' . esc_html__( '(WooCommerce Subscriptions is not active.)', 'lpnw-alerts' ) . '</span>';
 			}
 		} elseif ( 'number' === $type ) {
-			if ( 'subscription_on_hold_grace_days' === $key ) {
+			if ( 'listing_alert_max_portal_age_days' === $key ) {
+				$num = isset( $value ) && '' !== $value && is_numeric( $value ) ? absint( $value ) : 2;
+				if ( $num > 365 ) {
+					$num = 365;
+				}
+				printf(
+					'<input type="number" name="lpnw_settings[%s]" value="%d" class="small-text" min="0" max="365" step="1" />',
+					esc_attr( $key ),
+					$num
+				);
+				echo ' <p class="description">' . esc_html__(
+					'When the portal publishes a first-listed date, skip instant listing alerts if that date is older than this many calendar days (compared to today in the site timezone). Use 0 to disable this check. Helps when batched crawls discover listings days after they went live.',
+					'lpnw-alerts'
+				) . '</p>';
+			} elseif ( 'subscription_on_hold_grace_days' === $key ) {
 				$num = '' !== $value && is_numeric( $value ) ? absint( $value ) : 14;
 				if ( $num > 60 ) {
 					$num = 60;

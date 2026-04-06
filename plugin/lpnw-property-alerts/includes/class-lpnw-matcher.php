@@ -33,6 +33,10 @@ class LPNW_Matcher {
 				continue;
 			}
 
+			if ( ! LPNW_Listing_Alert_Eligibility::should_queue_alerts( $property ) ) {
+				continue;
+			}
+
 			foreach ( $subscribers as $subscriber ) {
 				if ( $this->matches( $property, $subscriber ) ) {
 					$uid = (int) $subscriber->user_id;
