@@ -1,9 +1,8 @@
 <?php
 /**
- * PNG favicons, web app manifest, and theme color when no Customizer site icon is set.
+ * Favicon and manifest tags; theme wins over Customizer Site Icon for predictable tabs.
  *
- * If the admin uploads a Site Icon (Appearance > Customize > Site Identity), WordPress
- * outputs its own tags and this class stays quiet to avoid duplicates.
+ * Header uses transparent lpnw-brand-icon.png; tabs use lpnw-tab-icon.png (navy tile) for contrast on light UI.
  *
  * @package LPNW_Theme
  */
@@ -11,7 +10,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Head tags for theme PNG icon and PWA-lite manifest.
+ * Head tags: strip core wp_site_icon, print theme PNG links and manifest.
  */
 final class LPNW_Favicons {
 
@@ -21,45 +20,53 @@ final class LPNW_Favicons {
 	 * Register hooks.
 	 */
 	public static function bootstrap(): void {
-		add_action( 'wp_head', array( __CLASS__, 'maybe_output_head_tags' ), 2 );
-		add_action( 'login_head', array( __CLASS__, 'maybe_output_login_head_tags' ), 1 );
+		add_action( 'wp_head', array( __CLASS__, 'strip_core_site_icon' ), 0 );
+		add_action( 'login_head', array( __CLASS__, 'strip_core_site_icon_login' ), 0 );
+		add_action( 'wp_head', array( __CLASS__, 'output_head_tags' ), 1 );
+		add_action( 'login_head', array( __CLASS__, 'output_login_head_tags' ), 1 );
 	}
 
 	/**
-	 * Print favicon links, manifest, and theme-color when WP is not using a custom site icon.
+	 * Remove WordPress default site icon on the front end (runs before priority 99).
 	 */
-	public static function maybe_output_head_tags(): void {
+	public static function strip_core_site_icon(): void {
+		remove_action( 'wp_head', 'wp_site_icon', 99 );
+	}
+
+	/**
+	 * Remove WordPress default site icon on wp-login.php.
+	 */
+	public static function strip_core_site_icon_login(): void {
+		remove_action( 'login_head', 'wp_site_icon', 99 );
+	}
+
+	/**
+	 * Print favicon links, manifest, and theme-color on the front end.
+	 */
+	public static function output_head_tags(): void {
 		if ( is_admin() || wp_is_json_request() || is_feed() || is_embed() ) {
 			return;
 		}
 
-		if ( function_exists( 'has_site_icon' ) && has_site_icon() ) {
-			return;
-		}
-
 		self::output_icon_tags();
 	}
 
 	/**
-	 * Same favicon bundle on wp-login.php (theme wp_head does not run there).
+	 * Same bundle on wp-login.php.
 	 */
-	public static function maybe_output_login_head_tags(): void {
-		if ( function_exists( 'has_site_icon' ) && has_site_icon() ) {
-			return;
-		}
-
+	public static function output_login_head_tags(): void {
 		self::output_icon_tags();
 	}
 
 	/**
-	 * Echo link and meta tags (single shared PNG).
+	 * Echo link and meta tags (tab icon + manifest; brand PNG is for header/schema only).
 	 */
 	private static function output_icon_tags(): void {
-		$icon     = get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-icon.png';
+		$tab      = get_stylesheet_directory_uri() . '/assets/img/lpnw-tab-icon.png';
 		$manifest = get_stylesheet_directory_uri() . '/assets/site.webmanifest';
 
-		echo '<link rel="icon" href="' . esc_url( $icon ) . '" type="image/png" sizes="512x512">' . "\n";
-		echo '<link rel="apple-touch-icon" href="' . esc_url( $icon ) . '">' . "\n";
+		echo '<link rel="icon" href="' . esc_url( $tab ) . '" type="image/png" sizes="192x192">' . "\n";
+		echo '<link rel="apple-touch-icon" href="' . esc_url( $tab ) . '">' . "\n";
 		echo '<link rel="manifest" href="' . esc_url( $manifest ) . '">' . "\n";
 		printf(
 			'<meta name="theme-color" content="%s">' . "\n",

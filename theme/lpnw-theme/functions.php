@@ -45,7 +45,7 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
 }
 
 /**
- * Public URL for the shared PNG brand mark (header, favicons, login, schema).
+ * Public URL for the header/login/schema PNG (transparent background; tab favicon uses lpnw-tab-icon.png).
  *
  * @return string
  */
