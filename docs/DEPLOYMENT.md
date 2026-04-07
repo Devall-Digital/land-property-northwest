@@ -9,7 +9,7 @@ How to deploy changes from this repo to the live 20i hosting.
 Get these from 20i panel > Manage Hosting > FTP Users:
 
 - **Host:** (your 20i FTP host)
-- **Port:** 21 (FTP) or 22 (SFTP)
+- **Port:** 21 (FTP) or 22 (SFTP). On 20i, SFTP may use the same hostname as FTP; if login fails, confirm in the panel which protocol and port apply to your user.
 - **Username:** (your FTP username)
 - **Password:** (your FTP password)
 - **Root directory:** Usually `/` or `/public_html/`
@@ -44,7 +44,15 @@ With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 ./tools/deploy-ftp.sh
 ```
 
-This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugins/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` in lftp because some FTP hosts present a chain that fails verification in CI; use SFTP or tighten SSL in your own environment if you prefer.
+**SFTP instead of FTP** (same host/user/pass if 20i enabled SFTP for that user):
+
+```bash
+FTP_USE_SFTP=1 ./tools/deploy-ftp.sh
+```
+
+This mirrors `plugin/lpnw-property-alerts/`, `theme/lpnw-theme/`, and `mu-plugins/` into `public_html/wp-content/` on the 20i package (same layout as manual upload). The script sets `ssl:verify-certificate no` for FTP because some hosts present a chain that fails verification in CI.
+
+**530 Login failed / FTP locking:** 20i can restrict FTP/SFTP to allowed IPs. Automated runs from cloud CI or Cursor agents may fail even when your home IP works. Fix: allowlist the runner IP in 20i, disable FTP locking for that user, or run `./tools/deploy-ftp.sh` from your own machine.
 
 ## PowerShell deploy (Windows)
 
