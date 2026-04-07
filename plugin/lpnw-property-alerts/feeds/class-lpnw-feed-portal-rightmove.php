@@ -4,10 +4,10 @@
  *
  * Fetches Rightmove's HTML search results pages and extracts the embedded
  * __NEXT_DATA__ JSON to get property listings across Northwest England.
- * Rightmove runs on cron hook lpnw_cron_portal_rightmove (every 2 minutes by default)
- * so each NW slice is revisited roughly every 15 minutes despite batching. Other portals
- * use the 15-minute lpnw_cron_portals hook. Each run processes a batch of region/channel
- * pairs (see cursor option lpnw_rightmove_cursor) so execution stays within shared-hosting time limits.
+ * Invoked from lpnw_cron_portals with other portals (typically every 15 minutes). Each run
+ * processes a batch of region/channel pairs (see cursor option lpnw_rightmove_cursor) so
+ * execution stays within shared-hosting time limits. If WordPress is only woken every 15 minutes,
+ * a faster cron schedule alone does not shorten discovery time; do more work per tick instead.
  *
  * Uses individual NW city/area region IDs rather than a broad region to
  * maximise coverage and avoid Rightmove's server-side request blocking
@@ -61,7 +61,7 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 	 * Stop starting new pairs if elapsed time approaches this (seconds).
 	 * Leaves room for parsing, deduplication, and shutdown.
 	 */
-	private const TIME_BUDGET_SECONDS = 25.0;
+	private const TIME_BUDGET_SECONDS = 28.0;
 
 	/**
 	 * Base headers for HTML search requests (User-Agent added per request via rotation).
@@ -101,7 +101,7 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 	 * @return int Positive count.
 	 */
 	protected function get_batch_size(): int {
-		return 6;
+		return 8;
 	}
 
 	/**

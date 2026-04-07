@@ -470,8 +470,7 @@ class LPNW_Admin {
 	 */
 	public static function get_cron_schedule_summary(): array {
 		$hooks = array(
-			'lpnw_cron_portal_rightmove' => __( 'Rightmove listings (fast poll)', 'lpnw-alerts' ),
-			'lpnw_cron_portals'          => __( 'Other portals (Zoopla, OnTheMarket)', 'lpnw-alerts' ),
+			'lpnw_cron_portals'         => __( 'Property portals (Rightmove, OnTheMarket, Zoopla)', 'lpnw-alerts' ),
 			'lpnw_cron_planning'        => __( 'Planning Portal', 'lpnw-alerts' ),
 			'lpnw_cron_epc'             => __( 'EPC Open Data', 'lpnw-alerts' ),
 			'lpnw_cron_landregistry'    => __( 'Land Registry', 'lpnw-alerts' ),
