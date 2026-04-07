@@ -62,7 +62,7 @@ final class LPNW_Favicons {
 	 * Echo link and meta tags.
 	 */
 	private static function output_icon_tags(): void {
-		$logo = function_exists( 'lpnw_theme_get_brand_logo_url' )
+		$logo     = function_exists( 'lpnw_theme_get_brand_logo_url' )
 			? lpnw_theme_get_brand_logo_url()
 			: ( get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.png' );
 		$manifest = get_stylesheet_directory_uri() . '/assets/site.webmanifest';
