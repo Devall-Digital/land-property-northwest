@@ -2,11 +2,13 @@
 # Deploy plugin and theme to 20i via lftp mirror (FTP or SFTP).
 # Requires: lftp, env vars FTP_HOST, FTP_USER, FTP_PASS (see .cursor/rules/secrets.mdc).
 #
-# Default: FTP (often port 21 with TLS). 20i also offers SFTP (usually port 22).
-# If FTP fails with 530 (IP lock) from CI/cloud, run this from your PC or set 20i FTP locking.
+# 20i StackCP: SFTP on port 22 is the usual choice; the script defaults to SFTP when
+# FTP_HOST contains stackcp.com. Plain FTP can 530 from some networks; use FTP_USE_SFTP=0 to force FTP.
 #
 # SFTP:   FTP_USE_SFTP=1 ./tools/deploy-ftp.sh
-# Optional: FTP_PORT=22 (SFTP) or FTP_PORT=21 (FTP explicit)
+# Plain FTP: FTP_USE_SFTP=0 ./tools/deploy-ftp.sh
+# Default: SFTP for StackCP / 20i hosts (*.stackcp.com); FTP otherwise.
+# Optional: FTP_PORT=21 (FTP explicit port)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -16,14 +18,24 @@ if [[ -z "${FTP_HOST:-}" || -z "${FTP_USER:-}" || -z "${FTP_PASS:-}" ]]; then
 	exit 1
 fi
 
+# Auto: 20i / StackCP SFTP uses the same hostname as FTP (see .env.example).
+use_sftp=false
 if [[ "${FTP_USE_SFTP:-}" == "1" || "${FTP_USE_SFTP:-}" == "yes" ]]; then
+	use_sftp=true
+elif [[ "${FTP_USE_SFTP:-}" == "0" || "${FTP_USE_SFTP:-}" == "no" ]]; then
+	use_sftp=false
+elif [[ "${FTP_HOST}" == *stackcp.com* ]]; then
+	use_sftp=true
+fi
+
+if [[ "$use_sftp" == true ]]; then
 	REMOTE_OPEN=( -u "$FTP_USER,$FTP_PASS" "sftp://${FTP_HOST}" )
 	LFTP_EXTRA="
 set sftp:auto-confirm yes
 "
 else
 	FTP_PORT="${FTP_PORT:-21}"
-	REMOTE_OPEN=( -u "$FTP_USER,$FTP_PASS" -p "$FTP_PORT" "$FTP_HOST" )
+	REMOTE_OPEN=( -u "$FTP_USER,$FTP_PASS" -p "${FTP_PORT}" "$FTP_HOST" )
 	LFTP_EXTRA="
 set ftp:ssl-allow true
 set ssl:verify-certificate no

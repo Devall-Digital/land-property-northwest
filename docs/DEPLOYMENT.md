@@ -44,7 +44,13 @@ With `lftp` installed and `FTP_HOST`, `FTP_USER`, `FTP_PASS` in the environment:
 ./tools/deploy-ftp.sh
 ```
 
-**SFTP instead of FTP** (same host/user/pass if 20i enabled SFTP for that user):
+For **20i StackCP** hosts such as `ftp.gb.stackcp.com`, the script **defaults to SFTP** (same `FTP_HOST`, `FTP_USER`, `FTP_PASS` as in the panel). To **force plain FTP** instead:
+
+```bash
+FTP_USE_SFTP=0 ./tools/deploy-ftp.sh
+```
+
+To **force SFTP** on a non-StackCP host:
 
 ```bash
 FTP_USE_SFTP=1 ./tools/deploy-ftp.sh
