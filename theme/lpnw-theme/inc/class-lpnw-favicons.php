@@ -2,7 +2,7 @@
 /**
  * Favicon and manifest tags; theme wins over Customizer Site Icon for predictable tabs.
  *
- * Header uses transparent lpnw-brand-icon.png; tabs use lpnw-tab-icon.png (navy tile) for contrast on light UI.
+ * Uses lpnw-brand-logo.png for favicon, manifest, and (via functions.php) header/schema/login.
  *
  * @package LPNW_Theme
  */
@@ -59,14 +59,14 @@ final class LPNW_Favicons {
 	}
 
 	/**
-	 * Echo link and meta tags (tab icon + manifest; brand PNG is for header/schema only).
+	 * Echo link and meta tags.
 	 */
 	private static function output_icon_tags(): void {
-		$tab      = get_stylesheet_directory_uri() . '/assets/img/lpnw-tab-icon.png';
+		$logo     = get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.png';
 		$manifest = get_stylesheet_directory_uri() . '/assets/site.webmanifest';
 
-		echo '<link rel="icon" href="' . esc_url( $tab ) . '" type="image/png" sizes="192x192">' . "\n";
-		echo '<link rel="apple-touch-icon" href="' . esc_url( $tab ) . '">' . "\n";
+		echo '<link rel="icon" href="' . esc_url( $logo ) . '" type="image/png" sizes="192x192">' . "\n";
+		echo '<link rel="apple-touch-icon" href="' . esc_url( $logo ) . '">' . "\n";
 		echo '<link rel="manifest" href="' . esc_url( $manifest ) . '">' . "\n";
 		printf(
 			'<meta name="theme-color" content="%s">' . "\n",

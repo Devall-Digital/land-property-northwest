@@ -18,12 +18,12 @@ add_action( 'admin_init', function() {
 	$out = array();
 
 	// 1. Brand PNG: Customizer logo + site icon (same file as theme header / favicon).
-	$brand_path = get_stylesheet_directory() . '/assets/img/lpnw-brand-icon.png';
+	$brand_path = get_stylesheet_directory() . '/assets/img/lpnw-brand-logo.png';
 	if ( ! file_exists( $brand_path ) ) {
 		$out[] = "Brand icon PNG not found at {$brand_path}.";
 	} else {
 		$upload_dir = wp_upload_dir();
-		$target     = $upload_dir['path'] . '/lpnw-brand-icon.png';
+		$target     = $upload_dir['path'] . '/lpnw-brand-logo.png';
 
 		if ( ! file_exists( $target ) ) {
 			copy( $brand_path, $target );

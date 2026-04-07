@@ -45,12 +45,12 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
 }
 
 /**
- * Public URL for the header/login/schema PNG (transparent background; tab favicon uses lpnw-tab-icon.png).
+ * Public URL for the shared brand logo PNG (header, favicon, login, schema).
  *
  * @return string
  */
-function lpnw_theme_get_brand_icon_url(): string {
-	return get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-icon.png';
+function lpnw_theme_get_brand_logo_url(): string {
+	return get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.png';
 }
 
 /**
@@ -668,7 +668,7 @@ body.login #login {
 	width: 72px;
 	height: 72px;
 	margin: 0 auto 0.75rem;
-	background: url(' . esc_url( lpnw_theme_get_brand_icon_url() ) . ') center / contain no-repeat;
+	background: url(' . esc_url( lpnw_theme_get_brand_logo_url() ) . ') center / contain no-repeat;
 }
 ';
 
@@ -995,7 +995,7 @@ add_filter(
 		$tag     = ( is_front_page() && is_home() ) ? 'h1' : 'p';
 		$href    = esc_url( apply_filters( 'generate_site_title_href', home_url( '/' ) ) );
 		$name    = esc_html__( 'Land & Property Northwest', 'lpnw-theme' );
-		$markurl = esc_url( lpnw_theme_get_brand_icon_url() );
+		$markurl = esc_url( lpnw_theme_get_brand_logo_url() );
 
 		return sprintf(
 			'<%1$s class="main-title lpnw-site-title"%4$s><a href="%2$s" class="lpnw-site-title__link" rel="home"><img src="%5$s" alt="" class="lpnw-site-title__mark" width="48" height="48" decoding="async" loading="eager" /><span class="lpnw-site-title__text">%3$s</span></a></%1$s>',
@@ -1193,7 +1193,7 @@ function lpnw_schema_get_organization(): array {
 		'@type'       => 'Organization',
 		'name'        => 'Land & Property Northwest',
 		'url'         => lpnw_schema_site_url(),
-		'logo'        => esc_url_raw( lpnw_theme_get_brand_icon_url() ),
+		'logo'        => esc_url_raw( lpnw_theme_get_brand_logo_url() ),
 		'description' => 'Property intelligence and instant alert service for Northwest England',
 		'areaServed'  => array(
 			'@type' => 'Place',
@@ -1354,7 +1354,7 @@ function lpnw_schema_get_article(): ?array {
 			'url'   => lpnw_schema_site_url(),
 			'logo'  => array(
 				'@type' => 'ImageObject',
-				'url'   => esc_url_raw( lpnw_theme_get_brand_icon_url() ),
+				'url'   => esc_url_raw( lpnw_theme_get_brand_logo_url() ),
 			),
 		),
 	);
