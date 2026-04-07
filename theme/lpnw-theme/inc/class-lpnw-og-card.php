@@ -142,7 +142,7 @@ final class LPNW_OG_Card {
 		imagefilledrectangle( $im, 0, $h - 140, $w, $h, $bar_bg );
 		imagefilledrectangle( $im, 12, $h - 6, 400, $h, $teal );
 
-		$font = get_stylesheet_directory() . '/assets/fonts/DejaVuSans-Bold.ttf';
+		$font    = get_stylesheet_directory() . '/assets/fonts/DejaVuSans-Bold.ttf';
 		$use_ttf = is_readable( $font );
 
 		$site = get_bloginfo( 'name' );

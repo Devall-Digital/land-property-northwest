@@ -13,9 +13,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$heading    = isset( $heading ) ? $heading : __( 'Northwest property alerts before the crowd', 'lpnw-theme' );
-$subheading = isset( $subheading ) ? $subheading : __( 'Planning, auctions, EPC signals, and Land Registry activity in one feed. Set your criteria and get there first.', 'lpnw-theme' );
-$cta_text   = isset( $cta_text ) ? $cta_text : __( 'Get started', 'lpnw-theme' );
+$heading     = isset( $heading ) ? $heading : __( 'Northwest property alerts before the crowd', 'lpnw-theme' );
+$subheading  = isset( $subheading ) ? $subheading : __( 'Planning, auctions, EPC signals, and Land Registry activity in one feed. Set your criteria and get there first.', 'lpnw-theme' );
+$cta_text    = isset( $cta_text ) ? $cta_text : __( 'Get started', 'lpnw-theme' );
 $cta_url     = isset( $cta_url ) ? $cta_url : wp_registration_url();
 $pricing_url = isset( $pricing_url ) ? $pricing_url : home_url( '/pricing/' );
 

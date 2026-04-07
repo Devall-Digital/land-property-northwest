@@ -17,30 +17,29 @@ add_action( 'admin_init', function() {
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	$out = array();
 
-	// 1. Upload logo as PNG and set as custom logo
-	$logo_svg_path = get_stylesheet_directory() . '/assets/img/logo-full.svg';
-	if ( file_exists( $logo_svg_path ) ) {
-		// WordPress doesn't natively support SVG logos in all themes.
-		// Copy the SVG to uploads and create a media attachment.
+	// 1. Brand PNG: Customizer logo + site icon (same file as theme header / favicon).
+	$brand_path = get_stylesheet_directory() . '/assets/img/lpnw-brand-icon.png';
+	if ( ! file_exists( $brand_path ) ) {
+		$out[] = "Brand icon PNG not found at {$brand_path}.";
+	} else {
 		$upload_dir = wp_upload_dir();
-		$target     = $upload_dir['path'] . '/lpnw-logo.svg';
+		$target     = $upload_dir['path'] . '/lpnw-brand-icon.png';
 
 		if ( ! file_exists( $target ) ) {
-			copy( $logo_svg_path, $target );
+			copy( $brand_path, $target );
 		}
 
-		// Check if attachment already exists
 		$existing = get_posts( array(
-			'post_type'  => 'attachment',
-			'meta_key'   => '_wp_attached_file',
-			'meta_value' => str_replace( $upload_dir['basedir'] . '/', '', $target ),
+			'post_type'   => 'attachment',
+			'meta_key'    => '_wp_attached_file',
+			'meta_value'  => str_replace( $upload_dir['basedir'] . '/', '', $target ),
 			'numberposts' => 1,
 		) );
 
 		if ( empty( $existing ) ) {
 			$attachment_id = wp_insert_attachment( array(
-				'post_title'     => 'LPNW Logo',
-				'post_mime_type' => 'image/svg+xml',
+				'post_title'     => 'LPNW Brand Icon',
+				'post_mime_type' => 'image/png',
 				'post_status'    => 'inherit',
 			), $target );
 
@@ -49,94 +48,61 @@ add_action( 'admin_init', function() {
 				$metadata = wp_generate_attachment_metadata( $attachment_id, $target );
 				wp_update_attachment_metadata( $attachment_id, $metadata );
 				set_theme_mod( 'custom_logo', $attachment_id );
-				$out[] = "Logo uploaded and set (attachment ID {$attachment_id}).";
+				update_option( 'site_icon', $attachment_id );
+				$out[] = "Brand PNG uploaded: custom logo + site icon (ID {$attachment_id}).";
 			} else {
-				$out[] = "Logo upload failed.";
+				$out[] = 'Brand PNG upload failed.';
 			}
 		} else {
-			$attachment_id = $existing[0]->ID;
+			$attachment_id = (int) $existing[0]->ID;
 			set_theme_mod( 'custom_logo', $attachment_id );
-			$out[] = "Logo already uploaded, set as custom logo (ID {$attachment_id}).";
-		}
-	} else {
-		$out[] = "Logo SVG not found at {$logo_svg_path}.";
-	}
-
-	// 2. Upload favicon
-	$icon_svg_path = get_stylesheet_directory() . '/assets/img/logo-icon.svg';
-	if ( file_exists( $icon_svg_path ) ) {
-		$upload_dir = wp_upload_dir();
-		$icon_target = $upload_dir['path'] . '/lpnw-icon.svg';
-		if ( ! file_exists( $icon_target ) ) {
-			copy( $icon_svg_path, $icon_target );
-		}
-
-		$icon_existing = get_posts( array(
-			'post_type'  => 'attachment',
-			'meta_key'   => '_wp_attached_file',
-			'meta_value' => str_replace( $upload_dir['basedir'] . '/', '', $icon_target ),
-			'numberposts' => 1,
-		) );
-
-		if ( empty( $icon_existing ) ) {
-			$icon_id = wp_insert_attachment( array(
-				'post_title'     => 'LPNW Icon',
-				'post_mime_type' => 'image/svg+xml',
-				'post_status'    => 'inherit',
-			), $icon_target );
-			if ( $icon_id ) {
-				update_option( 'site_icon', $icon_id );
-				$out[] = "Site icon set (ID {$icon_id}).";
-			}
-		} else {
-			update_option( 'site_icon', $icon_existing[0]->ID );
-			$out[] = "Site icon already uploaded, set (ID {$icon_existing[0]->ID}).";
+			update_option( 'site_icon', $attachment_id );
+			$out[] = "Brand PNG already in media; custom logo + site icon set (ID {$attachment_id}).";
 		}
 	}
 
-	// 3. Allow SVG uploads
+	// 2. Allow SVG uploads (optional content).
 	add_filter( 'upload_mimes', function( $mimes ) {
 		$mimes['svg'] = 'image/svg+xml';
 		return $mimes;
 	} );
 
-	// 4. Configure GeneratePress settings
-	// Hide site title (logo replaces it)
-	set_theme_mod( 'hide_title', true );
+	// 3. Configure GeneratePress settings.
+	set_theme_mod( 'hide_title', false );
 	set_theme_mod( 'hide_tagline', true );
-	$out[] = "Site title and tagline hidden (logo only in header).";
+	$out[] = 'Site title visible with brand mark; tagline hidden.';
 
-	// 5. Set header background colour to navy
+	// 4. Set header background colour to navy.
 	set_theme_mod( 'header_background_color', '#1B2A4A' );
 	set_theme_mod( 'header_text_color', '#FFFFFF' );
 	set_theme_mod( 'header_link_color', '#FFFFFF' );
 	set_theme_mod( 'header_link_hover_color', '#E8A317' );
 	$out[] = "Header colours set (navy background, white text, amber hover).";
 
-	// 6. Set navigation colours
+	// 5. Set navigation colours.
 	set_theme_mod( 'navigation_background_color', '#1B2A4A' );
 	set_theme_mod( 'navigation_text_color', '#FFFFFF' );
 	set_theme_mod( 'navigation_text_hover_color', '#E8A317' );
 	set_theme_mod( 'navigation_background_hover_color', '#2D4470' );
-	$out[] = "Navigation colours set.";
+	$out[] = 'Navigation colours set.';
 
-	// 7. Configure container width
+	// 6. Configure container width.
 	set_theme_mod( 'container_width', 1200 );
-	$out[] = "Container width set to 1200px.";
+	$out[] = 'Container width set to 1200px.';
 
-	// 8. Enable search engine indexing (was set to noindex during build)
+	// 7. Enable search engine indexing (was set to noindex during build).
 	update_option( 'blog_public', '1' );
-	$out[] = "Search engine indexing ENABLED.";
+	$out[] = 'Search engine indexing ENABLED.';
 
-	// 9. Purge StackCache if available
+	// 8. Purge StackCache if available.
 	if ( function_exists( 'stackcache_purge_all' ) ) {
 		stackcache_purge_all();
-		$out[] = "StackCache purged.";
+		$out[] = 'StackCache purged.';
 	}
 
-	// 10. Flush rewrite rules
+	// 9. Flush rewrite rules.
 	flush_rewrite_rules();
-	$out[] = "Rewrite rules flushed.";
+	$out[] = 'Rewrite rules flushed.';
 
 	echo "LPNW Admin Setup\n";
 	echo str_repeat( '=', 50 ) . "\n\n";

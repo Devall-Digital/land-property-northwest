@@ -11,8 +11,10 @@ defined( 'ABSPATH' ) || exit;
 
 require_once get_stylesheet_directory() . '/inc/class-lpnw-og-card.php';
 require_once get_stylesheet_directory() . '/inc/class-lpnw-open-graph.php';
+require_once get_stylesheet_directory() . '/inc/class-lpnw-favicons.php';
 LPNW_OG_Card::bootstrap();
 LPNW_Open_Graph::bootstrap();
+LPNW_Favicons::bootstrap();
 
 /**
  * Load a template part from `template-parts/{name}.php` with extracted variables.
@@ -43,48 +45,61 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
 }
 
 /**
+ * Public URL for the shared PNG brand mark (header, favicons, login, schema).
+ *
+ * @return string
+ */
+function lpnw_theme_get_brand_icon_url(): string {
+	return get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-icon.png';
+}
+
+/**
  * Enqueue parent and child styles, plus Google Fonts.
  */
-add_action( 'wp_enqueue_scripts', function () {
-	$child_theme = wp_get_theme();
-	$style_path  = get_stylesheet_directory() . '/style.css';
-	$script_path = get_stylesheet_directory() . '/assets/js/theme.js';
-	$asset_ver   = $child_theme->get( 'Version' );
-	if ( is_readable( $style_path ) ) {
-		$asset_ver = (string) filemtime( $style_path );
-	}
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		$child_theme = wp_get_theme();
+		$style_path  = get_stylesheet_directory() . '/style.css';
+		$script_path = get_stylesheet_directory() . '/assets/js/theme.js';
+		$asset_ver   = $child_theme->get( 'Version' );
+		if ( is_readable( $style_path ) ) {
+			$asset_ver = (string) filemtime( $style_path );
+		}
 
-	wp_enqueue_style(
-		'generatepress-parent',
-		get_template_directory_uri() . '/style.css',
-		array(),
-		wp_get_theme( 'generatepress' )->get( 'Version' )
-	);
+		wp_enqueue_style(
+			'generatepress-parent',
+			get_template_directory_uri() . '/style.css',
+			array(),
+			wp_get_theme( 'generatepress' )->get( 'Version' )
+		);
 
-	wp_enqueue_style(
-		'lpnw-fonts',
-		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
-		array(),
-		null
-	);
+		wp_enqueue_style(
+			'lpnw-fonts',
+			'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
+			array(),
+			null
+		);
 
-	wp_enqueue_style(
-		'lpnw-child',
-		get_stylesheet_uri(),
-		array( 'generatepress-parent', 'lpnw-fonts' ),
-		$asset_ver
-	);
+		wp_enqueue_style(
+			'lpnw-child',
+			get_stylesheet_uri(),
+			array( 'generatepress-parent', 'lpnw-fonts' ),
+			$asset_ver
+		);
 
-	$script_ver = is_readable( $script_path ) ? (string) filemtime( $script_path ) : $child_theme->get( 'Version' );
+		$script_ver = is_readable( $script_path ) ? (string) filemtime( $script_path ) : $child_theme->get( 'Version' );
 
-	wp_enqueue_script(
-		'lpnw-theme',
-		get_stylesheet_directory_uri() . '/assets/js/theme.js',
-		array(),
-		$script_ver,
-		true
-	);
-}, 20 );
+		wp_enqueue_script(
+			'lpnw-theme',
+			get_stylesheet_directory_uri() . '/assets/js/theme.js',
+			array(),
+			$script_ver,
+			true
+		);
+	},
+	20
+);
 
 /**
  * Inline glassmorphism interactions: scroll header state, reveal, hero parallax, stat counters, primary button shine.
@@ -281,58 +296,78 @@ add_action( 'wp_enqueue_scripts', 'lpnw_theme_enqueue_glass_interactions_js', 21
 /**
  * Set up theme support.
  */
-add_action( 'after_setup_theme', function () {
-	add_theme_support( 'title-tag' );
-	add_theme_support( 'post-thumbnails' );
-	add_theme_support( 'html5', array(
-		'search-form', 'comment-form', 'comment-list', 'gallery', 'caption',
-	) );
+add_action(
+	'after_setup_theme',
+	function () {
+		add_theme_support( 'title-tag' );
+		add_theme_support( 'post-thumbnails' );
+		add_theme_support(
+			'html5',
+			array(
+				'search-form',
+				'comment-form',
+				'comment-list',
+				'gallery',
+				'caption',
+			)
+		);
 
-	// Subscriber-only nav; assign the "Subscriber" menu in Appearance > Menus (or via tools/lpnw-woo-setup.php).
-	register_nav_menu( 'lpnw_subscriber', __( 'Subscriber', 'lpnw-theme' ) );
+		// Subscriber-only nav; assign the "Subscriber" menu in Appearance > Menus (or via tools/lpnw-woo-setup.php).
+		register_nav_menu( 'lpnw_subscriber', __( 'Subscriber', 'lpnw-theme' ) );
 
-	add_theme_support(
-		'custom-logo',
-		array(
-			'height'      => 72,
-			'width'       => 380,
-			'flex-height' => true,
-			'flex-width'  => true,
-		)
-	);
-}, 11 );
+		add_theme_support(
+			'custom-logo',
+			array(
+				'height'      => 72,
+				'width'       => 380,
+				'flex-height' => true,
+				'flex-width'  => true,
+			)
+		);
+	},
+	11
+);
 
 /**
  * Register widget areas.
  */
-add_action( 'widgets_init', function () {
-	register_sidebar( array(
-		'name'          => __( 'Footer Column 1', 'lpnw-theme' ),
-		'id'            => 'lpnw-footer-1',
-		'before_widget' => '<div class="widget %2$s">',
-		'after_widget'  => '</div>',
-		'before_title'  => '<h4 class="widget-title">',
-		'after_title'   => '</h4>',
-	) );
+add_action(
+	'widgets_init',
+	function () {
+		register_sidebar(
+			array(
+				'name'          => __( 'Footer Column 1', 'lpnw-theme' ),
+				'id'            => 'lpnw-footer-1',
+				'before_widget' => '<div class="widget %2$s">',
+				'after_widget'  => '</div>',
+				'before_title'  => '<h4 class="widget-title">',
+				'after_title'   => '</h4>',
+			)
+		);
 
-	register_sidebar( array(
-		'name'          => __( 'Footer Column 2', 'lpnw-theme' ),
-		'id'            => 'lpnw-footer-2',
-		'before_widget' => '<div class="widget %2$s">',
-		'after_widget'  => '</div>',
-		'before_title'  => '<h4 class="widget-title">',
-		'after_title'   => '</h4>',
-	) );
+		register_sidebar(
+			array(
+				'name'          => __( 'Footer Column 2', 'lpnw-theme' ),
+				'id'            => 'lpnw-footer-2',
+				'before_widget' => '<div class="widget %2$s">',
+				'after_widget'  => '</div>',
+				'before_title'  => '<h4 class="widget-title">',
+				'after_title'   => '</h4>',
+			)
+		);
 
-	register_sidebar( array(
-		'name'          => __( 'Footer Column 3', 'lpnw-theme' ),
-		'id'            => 'lpnw-footer-3',
-		'before_widget' => '<div class="widget %2$s">',
-		'after_widget'  => '</div>',
-		'before_title'  => '<h4 class="widget-title">',
-		'after_title'   => '</h4>',
-	) );
-} );
+		register_sidebar(
+			array(
+				'name'          => __( 'Footer Column 3', 'lpnw-theme' ),
+				'id'            => 'lpnw-footer-3',
+				'before_widget' => '<div class="widget %2$s">',
+				'after_widget'  => '</div>',
+				'before_title'  => '<h4 class="widget-title">',
+				'after_title'   => '</h4>',
+			)
+		);
+	}
+);
 
 /**
  * Add custom body classes.
@@ -340,16 +375,19 @@ add_action( 'widgets_init', function () {
  * @param array<string> $classes Existing body classes.
  * @return array<string>
  */
-add_filter( 'body_class', function ( array $classes ): array {
-	$classes[] = 'lpnw-site';
+add_filter(
+	'body_class',
+	function ( array $classes ): array {
+		$classes[] = 'lpnw-site';
 
-	if ( is_user_logged_in() ) {
-		$tier      = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier( get_current_user_id() ) : 'free';
-		$classes[] = 'lpnw-tier-' . $tier;
+		if ( is_user_logged_in() ) {
+			$tier      = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier( get_current_user_id() ) : 'free';
+			$classes[] = 'lpnw-tier-' . $tier;
+		}
+
+		return $classes;
 	}
-
-	return $classes;
-} );
+);
 
 /**
  * Login / register screen: LPNW brand fonts and layout (matches site hero and CTAs).
@@ -624,15 +662,26 @@ body.login #login {
 	padding: 8px 12px;
 	font-size: 0.875rem;
 }
+#login h1 a::before {
+	content: "";
+	display: block;
+	width: 72px;
+	height: 72px;
+	margin: 0 auto 0.75rem;
+	background: url(' . esc_url( lpnw_theme_get_brand_icon_url() ) . ') center / contain no-repeat;
+}
 ';
 
 		wp_add_inline_style( 'lpnw-login-fonts', $css );
 	}
 );
 
-add_filter( 'login_headerurl', function () {
-	return home_url();
-} );
+add_filter(
+	'login_headerurl',
+	function () {
+		return home_url();
+	}
+);
 
 /**
  * GeneratePress: full-width layout on pages and the front page (no sidebar).
@@ -670,7 +719,7 @@ add_filter(
 );
 
 /**
- * GeneratePress: do not render Customizer logo in branding (avoids broken/empty logo box; title is text).
+ * GeneratePress: do not render Customizer logo slot (mark + title come from generate_site_title_output).
  */
 add_filter( 'generate_has_logo_site_branding', '__return_false' );
 
@@ -849,10 +898,10 @@ function lpnw_theme_nav_order_primary( array $items, $args ): array {
 		return $items;
 	}
 
-	$home_items   = array();
-	$browse_items = array();
+	$home_items    = array();
+	$browse_items  = array();
 	$pricing_items = array();
-	$rest         = array();
+	$rest          = array();
 
 	foreach ( $items as $item ) {
 		if ( ! is_object( $item ) || ! isset( $item->ID ) ) {
@@ -934,7 +983,7 @@ function lpnw_theme_nav_append_auth_items( string $items, $args ): string {
 add_filter( 'wp_nav_menu_items', 'lpnw_theme_nav_append_auth_items', 10, 2 );
 
 /**
- * GeneratePress: site title is text only (no Custom Logo / SVG in header).
+ * GeneratePress: site title with shared PNG brand mark (same asset as favicon).
  *
  * @param string $output Default title HTML.
  * @return string
@@ -942,17 +991,19 @@ add_filter( 'wp_nav_menu_items', 'lpnw_theme_nav_append_auth_items', 10, 2 );
 add_filter(
 	'generate_site_title_output',
 	function ( $output ) {
-		$schema = function_exists( 'generate_get_schema_type' ) && 'microdata' === generate_get_schema_type() ? ' itemprop="headline"' : '';
-		$tag    = ( is_front_page() && is_home() ) ? 'h1' : 'p';
-		$href   = esc_url( apply_filters( 'generate_site_title_href', home_url( '/' ) ) );
-		$name   = esc_html__( 'Land & Property Northwest', 'lpnw-theme' );
+		$schema  = function_exists( 'generate_get_schema_type' ) && 'microdata' === generate_get_schema_type() ? ' itemprop="headline"' : '';
+		$tag     = ( is_front_page() && is_home() ) ? 'h1' : 'p';
+		$href    = esc_url( apply_filters( 'generate_site_title_href', home_url( '/' ) ) );
+		$name    = esc_html__( 'Land & Property Northwest', 'lpnw-theme' );
+		$markurl = esc_url( lpnw_theme_get_brand_icon_url() );
 
 		return sprintf(
-			'<%1$s class="main-title lpnw-site-title"%4$s><a href="%2$s" class="lpnw-site-title__link" rel="home">%3$s</a></%1$s>',
+			'<%1$s class="main-title lpnw-site-title"%4$s><a href="%2$s" class="lpnw-site-title__link" rel="home"><img src="%5$s" alt="" class="lpnw-site-title__mark" width="48" height="48" decoding="async" loading="eager" /><span class="lpnw-site-title__text">%3$s</span></a></%1$s>',
 			tag_escape( $tag ),
 			$href,
 			$name,
-			$schema
+			$schema,
+			$markurl
 		);
 	},
 	10,
@@ -985,7 +1036,7 @@ function lpnw_theme_get_blog_url(): string {
  * Output the three-column footer block (before GeneratePress copyright row).
  */
 function lpnw_theme_render_footer_mega(): void {
-	$year = (int) gmdate( 'Y' );
+	$year      = (int) gmdate( 'Y' );
 	$copyright = sprintf(
 		/* translators: %d: current year (Gregorian). */
 		esc_html__( '© %d Land & Property Northwest. NW Property Intelligence & Alerts.', 'lpnw-theme' ),
@@ -999,30 +1050,63 @@ function lpnw_theme_render_footer_mega(): void {
 	}
 
 	$quick_links = array(
-		array( 'url' => home_url( '/' ), 'label' => __( 'Home', 'lpnw-theme' ) ),
-		array( 'url' => lpnw_theme_get_browse_properties_url(), 'label' => __( 'Browse Properties', 'lpnw-theme' ) ),
-		array( 'url' => home_url( '/pricing/' ), 'label' => __( 'Pricing', 'lpnw-theme' ) ),
-		array( 'url' => home_url( '/about/' ), 'label' => __( 'About', 'lpnw-theme' ) ),
-		array( 'url' => home_url( '/contact/' ), 'label' => __( 'Contact', 'lpnw-theme' ) ),
-		array( 'url' => $blog_url, 'label' => __( 'Blog', 'lpnw-theme' ) ),
+		array(
+			'url'   => home_url( '/' ),
+			'label' => __( 'Home', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => lpnw_theme_get_browse_properties_url(),
+			'label' => __( 'Browse Properties', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => home_url( '/pricing/' ),
+			'label' => __( 'Pricing', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => home_url( '/about/' ),
+			'label' => __( 'About', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => home_url( '/contact/' ),
+			'label' => __( 'Contact', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => $blog_url,
+			'label' => __( 'Blog', 'lpnw-theme' ),
+		),
 	);
 
 	$subscriber_links = array(
-		array( 'url' => home_url( '/dashboard/' ), 'label' => __( 'Dashboard', 'lpnw-theme' ) ),
-		array( 'url' => home_url( '/preferences/' ), 'label' => __( 'Alert Preferences', 'lpnw-theme' ) ),
-		array( 'url' => home_url( '/map/' ), 'label' => __( 'Property Map', 'lpnw-theme' ) ),
-		array( 'url' => home_url( '/saved/' ), 'label' => __( 'Saved Properties', 'lpnw-theme' ) ),
+		array(
+			'url'   => home_url( '/dashboard/' ),
+			'label' => __( 'Dashboard', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => home_url( '/preferences/' ),
+			'label' => __( 'Alert Preferences', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => home_url( '/map/' ),
+			'label' => __( 'Property Map', 'lpnw-theme' ),
+		),
+		array(
+			'url'   => home_url( '/saved/' ),
+			'label' => __( 'Saved Properties', 'lpnw-theme' ),
+		),
 	);
 
 	if ( is_user_logged_in() ) {
 		$subscriber_links[] = array(
-			'url' => wp_logout_url( home_url() ),
+			'url'   => wp_logout_url( home_url() ),
 			'label' => __( 'Log out', 'lpnw-theme' ),
 		);
 	} else {
-		$subscriber_links[] = array( 'url' => $register, 'label' => __( 'Register', 'lpnw-theme' ) );
 		$subscriber_links[] = array(
-			'url' => wp_login_url( home_url( '/dashboard/' ) ),
+			'url'   => $register,
+			'label' => __( 'Register', 'lpnw-theme' ),
+		);
+		$subscriber_links[] = array(
+			'url'   => wp_login_url( home_url( '/dashboard/' ) ),
 			'label' => __( 'Log in', 'lpnw-theme' ),
 		);
 	}
@@ -1109,6 +1193,7 @@ function lpnw_schema_get_organization(): array {
 		'@type'       => 'Organization',
 		'name'        => 'Land & Property Northwest',
 		'url'         => lpnw_schema_site_url(),
+		'logo'        => esc_url_raw( lpnw_theme_get_brand_icon_url() ),
 		'description' => 'Property intelligence and instant alert service for Northwest England',
 		'areaServed'  => array(
 			'@type' => 'Place',
@@ -1125,10 +1210,10 @@ function lpnw_schema_get_organization(): array {
 function lpnw_schema_get_website_with_search(): array {
 	$home = lpnw_schema_site_url();
 	return array(
-		'@context' => 'https://schema.org',
-		'@type'    => 'WebSite',
-		'name'     => 'Land & Property Northwest',
-		'url'      => $home,
+		'@context'        => 'https://schema.org',
+		'@type'           => 'WebSite',
+		'name'            => 'Land & Property Northwest',
+		'url'             => $home,
 		'potentialAction' => array(
 			'@type'       => 'SearchAction',
 			'target'      => array(
@@ -1267,6 +1352,10 @@ function lpnw_schema_get_article(): ?array {
 			'@type' => 'Organization',
 			'name'  => 'Land & Property Northwest',
 			'url'   => lpnw_schema_site_url(),
+			'logo'  => array(
+				'@type' => 'ImageObject',
+				'url'   => esc_url_raw( lpnw_theme_get_brand_icon_url() ),
+			),
 		),
 	);
 
@@ -1341,16 +1430,16 @@ function lpnw_schema_get_area_local_business(): ?array {
 	$page_url  = get_permalink( $page );
 
 	return array(
-		'@context'    => 'https://schema.org',
-		'@type'       => 'LocalBusiness',
-		'name'        => 'Land & Property Northwest - ' . $area_name,
-		'url'         => $page_url ? esc_url_raw( $page_url ) : lpnw_schema_site_url(),
-		'description' => sprintf(
+		'@context'           => 'https://schema.org',
+		'@type'              => 'LocalBusiness',
+		'name'               => 'Land & Property Northwest - ' . $area_name,
+		'url'                => $page_url ? esc_url_raw( $page_url ) : lpnw_schema_site_url(),
+		'description'        => sprintf(
 			/* translators: %s: geographic area name (e.g. city or region). */
 			__( 'Property intelligence and instant alerts for %s and the wider Northwest England market.', 'lpnw-theme' ),
 			$area_name
 		),
-		'areaServed' => array(
+		'areaServed'         => array(
 			'@type' => 'Place',
 			'name'  => $area_name,
 		),
