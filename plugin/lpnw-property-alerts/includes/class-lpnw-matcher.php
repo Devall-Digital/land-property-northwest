@@ -33,10 +33,6 @@ class LPNW_Matcher {
 				continue;
 			}
 
-			if ( LPNW_Portal_Listing_Alert_Gate::should_suppress_listing_alerts( $property ) ) {
-				continue;
-			}
-
 			foreach ( $subscribers as $subscriber ) {
 				if ( $this->matches( $property, $subscriber ) ) {
 					$uid = (int) $subscriber->user_id;

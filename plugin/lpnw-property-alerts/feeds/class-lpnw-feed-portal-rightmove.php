@@ -4,9 +4,10 @@
  *
  * Fetches Rightmove's HTML search results pages and extracts the embedded
  * __NEXT_DATA__ JSON to get property listings across Northwest England.
- * Checks every 15 minutes for new-to-market properties (sales and rentals).
- * Each cron run processes a batch of region/channel pairs (see cursor option
- * lpnw_rightmove_cursor) so execution stays within shared-hosting time limits.
+ * Rightmove runs on cron hook lpnw_cron_portal_rightmove (every 2 minutes by default)
+ * so each NW slice is revisited roughly every 15 minutes despite batching. Other portals
+ * use the 15-minute lpnw_cron_portals hook. Each run processes a batch of region/channel
+ * pairs (see cursor option lpnw_rightmove_cursor) so execution stays within shared-hosting time limits.
  *
  * Uses individual NW city/area region IDs rather than a broad region to
  * maximise coverage and avoid Rightmove's server-side request blocking

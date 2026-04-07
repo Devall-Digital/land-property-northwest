@@ -35,6 +35,7 @@ wp_clear_scheduled_hook( 'lpnw_cron_epc' );
 wp_clear_scheduled_hook( 'lpnw_cron_landregistry' );
 wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
 wp_clear_scheduled_hook( 'lpnw_cron_portals' );
+wp_clear_scheduled_hook( 'lpnw_cron_portal_rightmove' );
 wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
 wp_clear_scheduled_hook( 'lpnw_cron_free_digest' );
 wp_clear_scheduled_hook( 'lpnw_cron_data_retention' );

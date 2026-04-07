@@ -251,6 +251,9 @@ class LPNW_Activator {
 		if ( ! wp_next_scheduled( 'lpnw_cron_portals' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_portals' );
 		}
+		if ( ! wp_next_scheduled( 'lpnw_cron_portal_rightmove' ) ) {
+			wp_schedule_event( time(), 'lpnw_two_min', 'lpnw_cron_portal_rightmove' );
+		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_dispatch_alerts' ) ) {
 			wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_dispatch_alerts' );
 		}
@@ -279,5 +282,19 @@ class LPNW_Activator {
 		wp_clear_scheduled_hook( 'lpnw_cron_auctions' );
 		wp_schedule_event( time(), 'lpnw_fifteen_min', 'lpnw_cron_auctions' );
 		update_option( 'lpnw_auctions_cron_15m', '1', false );
+	}
+
+	/**
+	 * Register Rightmove on a 2-minute event so each NW slice is revisited within ~14 minutes
+	 * (42 pairs ÷ 6 per run × 2 minutes) while other portals stay on the 15-minute hook.
+	 */
+	public static function maybe_reschedule_rightmove_cron(): void {
+		$schedule = wp_get_schedule( 'lpnw_cron_portal_rightmove' );
+		if ( 'lpnw_two_min' === $schedule ) {
+			return;
+		}
+
+		wp_clear_scheduled_hook( 'lpnw_cron_portal_rightmove' );
+		wp_schedule_event( time(), 'lpnw_two_min', 'lpnw_cron_portal_rightmove' );
 	}
 }
