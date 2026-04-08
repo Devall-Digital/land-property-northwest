@@ -42,6 +42,35 @@ Use these in the email HTML body as Mautic tokens (same names):
 
 Create **three** emails (or reuse one with shared layout): one for VIP, one for Pro, one for the weekly free digest. Point each tier field in WordPress to the correct Mautic email ID.
 
+## Subscriber alerts: why Mautic can show “0 sent”
+
+WordPress sends each alert with `POST …/api/emails/{templateId}/contact/{contactId}/send`. The **Emails** list “Sent” counter only increases when Mautic actually queues/sends through that email asset. If it stays at **0** while **WordPress → LPNW Alerts → Alert Log** shows traffic, usual causes are:
+
+1. **Wrong template IDs** in **LPNW Alert Settings** (must match the numeric IDs of the three published LPNW emails).
+2. **Templates not published** (toggle on; no pending-only state).
+3. **API send rejected** for the contact: check the hosting **PHP error log** for lines `LPNW Mautic: send failed` or `sync_contact failed` (Do Not Contact, missing email, validation).
+4. **Fallback path:** if Mautic is not configured or the tier template ID is missing, the plugin uses **wp_mail** instead, so Mautic’s sent count does not move.
+5. **Cron:** `lpnw_cron_dispatch_alerts` should run every 15 minutes (or hit `?lpnw_cron=tick&key=…` if you use server cron). Stuck queue with no cron means nothing calls Mautic.
+
+**Quick check:** pick one subscriber contact in Mautic, confirm they are not **Do Not Contact** for email, then use **Send example** on a template (sanity check). Trigger a test match on staging or watch the next real dispatch while tailing the PHP log.
+
+## Prospect / blast segments (exclude unsubscribes and bounces)
+
+Mautic enforces **Do Not Contact** when you send through normal **Channels → Emails** to a **segment** (and tracks bounces). Your import segment must not be “everyone with a tag” only, or you risk including people who should be excluded.
+
+**Recommended pattern (two segments):**
+
+1. **Base import segment** (what you have today): e.g. tag `lpnw-campaign-2026` or `lpnw-campaign-import-2026` / alias `lpnw-campaign-import-2026`.
+2. **Send segment** (use this for the blast): clone or create **LPNW campaign — mailable** with filters:
+   - **Membership:** contact is in segment **LPNW campaign import 2026** (or matching tag filter).
+   - **Email** is not empty.
+   - **Do Not Contact** → **Email** is false / not opted out (wording varies by Mautic version; look for DNC or “Contactable by email”).
+   - **Bounced** / **Email bounced** → exclude bounced contacts if your build exposes this as a filter (often under **Email** or **Behaviour**).
+
+Then create a **segment email** (or **Campaign** with an Email action), choose the **send** segment, **send to segment** or schedule. Always **send a small batch or test segment** first.
+
+**Campaign vs one-shot segment email:** A **Campaign** lets you add waits, conditions, and second steps; a **segment email** is simpler for a single blast. Both respect DNC when configured correctly.
+
 ## Prospect intro (one-off segment blast)
 
 This is **not** wired from WordPress. Build it only in Mautic.
@@ -61,7 +90,8 @@ python tools/import_sqlite_contacts_to_mautic.py
 ```
 
 - Default DB path: `D:\Documents\Code\email_automation\data\contacts.db` (override with `LPNW_SQLITE_CONTACTS` or `--db`).
-- Imports **all** rows (including legacy bounced/unsubscribed); data is **cleaned** (valid emails, trimmed names, deduped); tag `**lpnw-campaign-2026`** is applied for segmenting.
+- Imports **all** rows by default (including legacy bounced/unsubscribed in the source DB); data is **cleaned** (valid emails, trimmed names, deduped); tag `**lpnw-campaign-2026`** is applied for segmenting. Use **`--skip-legacy-risky`** to omit rows whose `status` / `contact_stage` look like bounced, unsubscribed, spam, or invalid (string match on SQLite fields only; Mautic is still the source of truth after import).
+- Use **`--skip-if-bounces`** to skip rows with `total_bounces > 0` when that column is present.
 - **CSV fallback:** `python tools/import_sqlite_contacts_to_mautic.py --csv-only` then **Contacts → Import** in Mautic.
 - **Stalled import:** if the API times out part-way, resume with `--offset N` (skip the first `N` contacts already imported), e.g. `--offset 900`.
 

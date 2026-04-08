@@ -17,6 +17,7 @@ Optional:
 Examples:
   python tools/import_sqlite_contacts_to_mautic.py --dry-run
   python tools/import_sqlite_contacts_to_mautic.py --limit 10
+  python tools/import_sqlite_contacts_to_mautic.py --skip-legacy-risky --skip-if-bounces
   python tools/import_sqlite_contacts_to_mautic.py --csv-only --csv-out %TEMP%\\mautic-import.csv
   python tools/import_sqlite_contacts_to_mautic.py
 """
@@ -51,6 +52,17 @@ _PLACEHOLDER_COMPANY = frozenset(
 _CAMPAIGN_TAG = "lpnw-campaign-2026"
 # Mautic default "company" field max length.
 _MAX_COMPANY_LEN = 64
+# Substrings in SQLite status / contact_stage to skip on --skip-legacy-risky (lowercase match).
+_LEGACY_RISKY_STATUS_MARKERS = (
+    "bounce",
+    "bounced",
+    "unsub",
+    "spam",
+    "invalid",
+    "suppress",
+    "complaint",
+    "blacklist",
+)
 
 
 def load_env_file(path: Path) -> None:
@@ -100,7 +112,18 @@ def tidy_company(raw: str | None) -> str:
     return c
 
 
-def tidy_rows(raw_rows: list[dict]) -> tuple[list[dict], dict]:
+def row_matches_legacy_risky(row: dict) -> bool:
+    """True if SQLite status/stage suggests do-not-mail in the legacy DB."""
+    blob = f"{row.get('status', '')} {row.get('contact_stage', '')}".lower()
+    return any(m in blob for m in _LEGACY_RISKY_STATUS_MARKERS)
+
+
+def tidy_rows(
+    raw_rows: list[dict],
+    *,
+    skip_legacy_risky: bool = False,
+    skip_if_bounces: bool = False,
+) -> tuple[list[dict], dict]:
     """
     Normalise emails, names, companies; drop bad emails; dedupe by email (first wins).
     """
@@ -108,6 +131,8 @@ def tidy_rows(raw_rows: list[dict]) -> tuple[list[dict], dict]:
         "raw": len(raw_rows),
         "dropped_invalid_email": 0,
         "dropped_duplicate_email": 0,
+        "dropped_legacy_risky": 0,
+        "dropped_bounces": 0,
     }
     seen: set[str] = set()
     out: list[dict] = []
@@ -119,16 +144,27 @@ def tidy_rows(raw_rows: list[dict]) -> tuple[list[dict], dict]:
         if em in seen:
             stats["dropped_duplicate_email"] += 1
             continue
+        if skip_if_bounces:
+            tb = row.get("total_bounces")
+            try:
+                tb_int = int(tb) if tb is not None and str(tb).strip() != "" else 0
+            except (TypeError, ValueError):
+                tb_int = 0
+            if tb_int > 0:
+                stats["dropped_bounces"] += 1
+                continue
+        stage_row = {
+            "email": em,
+            "name": tidy_text(row.get("name")),
+            "company_name": tidy_company(row.get("company_name")),
+            "status": tidy_text(row.get("status"), 40),
+            "contact_stage": tidy_text(row.get("contact_stage"), 40),
+        }
+        if skip_legacy_risky and row_matches_legacy_risky(stage_row):
+            stats["dropped_legacy_risky"] += 1
+            continue
         seen.add(em)
-        out.append(
-            {
-                "email": em,
-                "name": tidy_text(row.get("name")),
-                "company_name": tidy_company(row.get("company_name")),
-                "status": tidy_text(row.get("status"), 40),
-                "contact_stage": tidy_text(row.get("contact_stage"), 40),
-            }
-        )
+        out.append(stage_row)
     stats["ready"] = len(out)
     return out, stats
 
@@ -267,6 +303,16 @@ def main() -> int:
         default=0,
         help="Skip first N contacts after tidy (resume a stalled import)",
     )
+    parser.add_argument(
+        "--skip-legacy-risky",
+        action="store_true",
+        help="Skip rows whose status/contact_stage suggest bounce/unsub/spam (SQLite only)",
+    )
+    parser.add_argument(
+        "--skip-if-bounces",
+        action="store_true",
+        help="Skip rows with total_bounces > 0 from SQLite",
+    )
     args = parser.parse_args()
 
     if not args.db.is_file():
@@ -274,10 +320,21 @@ def main() -> int:
         return 1
 
     raw = fetch_rows(args.db)
-    rows, stats = tidy_rows(raw)
+    rows, stats = tidy_rows(
+        raw,
+        skip_legacy_risky=args.skip_legacy_risky,
+        skip_if_bounces=args.skip_if_bounces,
+    )
+    extra = ""
+    if args.skip_legacy_risky or args.skip_if_bounces:
+        extra = (
+            f", legacy-risky skipped: {stats['dropped_legacy_risky']}"
+            f", bounces skipped: {stats['dropped_bounces']}"
+        )
     print(
         f"SQLite rows: {stats['raw']} -> Mautic-ready: {stats['ready']} "
-        f"(bad email: {stats['dropped_invalid_email']}, dupes skipped: {stats['dropped_duplicate_email']})",
+        f"(bad email: {stats['dropped_invalid_email']}, dupes skipped: {stats['dropped_duplicate_email']}"
+        f"{extra})",
         flush=True,
     )
 
