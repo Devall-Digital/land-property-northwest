@@ -758,6 +758,7 @@ a:hover {
 	flex-shrink: 0;
 	object-fit: contain;
 	border-radius: 0.5rem;
+	background-color: transparent;
 }
 
 .site-header .lpnw-site-title__text {
