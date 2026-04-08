@@ -45,15 +45,15 @@ function lpnw_get_template_part( string $name, array $args = array() ): void {
 }
 
 /**
- * Public URL for the shared brand logo PNG (header, favicon, login, schema).
+ * Public URL for the shared brand logo SVG (true transparency; no raster fake checkerboard).
  *
  * Appends ?ver=filemtime so CDN and browsers refetch after theme deploy.
  *
  * @return string
  */
 function lpnw_theme_get_brand_logo_url(): string {
-	$path = get_stylesheet_directory() . '/assets/img/lpnw-brand-logo.png';
-	$uri  = get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.png';
+	$path = get_stylesheet_directory() . '/assets/img/lpnw-brand-logo.svg';
+	$uri  = get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.svg';
 	if ( is_readable( $path ) ) {
 		return $uri . '?ver=' . rawurlencode( (string) filemtime( $path ) );
 	}

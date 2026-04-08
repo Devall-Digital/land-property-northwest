@@ -17,13 +17,13 @@ add_action( 'admin_init', function() {
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	$out = array();
 
-	// 1. Brand PNG: Customizer logo + site icon (same file as theme header / favicon).
-	$brand_path = get_stylesheet_directory() . '/assets/img/lpnw-brand-logo.png';
+	// 1. Brand SVG: Customizer logo + site icon (same file as theme header / favicon).
+	$brand_path = get_stylesheet_directory() . '/assets/img/lpnw-brand-logo.svg';
 	if ( ! file_exists( $brand_path ) ) {
-		$out[] = "Brand icon PNG not found at {$brand_path}.";
+		$out[] = "Brand logo SVG not found at {$brand_path}.";
 	} else {
 		$upload_dir = wp_upload_dir();
-		$target     = $upload_dir['path'] . '/lpnw-brand-logo.png';
+		$target     = $upload_dir['path'] . '/lpnw-brand-logo.svg';
 
 		if ( ! file_exists( $target ) ) {
 			copy( $brand_path, $target );
@@ -38,8 +38,8 @@ add_action( 'admin_init', function() {
 
 		if ( empty( $existing ) ) {
 			$attachment_id = wp_insert_attachment( array(
-				'post_title'     => 'LPNW Brand Icon',
-				'post_mime_type' => 'image/png',
+				'post_title'     => 'LPNW Brand Logo',
+				'post_mime_type' => 'image/svg+xml',
 				'post_status'    => 'inherit',
 			), $target );
 
@@ -49,15 +49,15 @@ add_action( 'admin_init', function() {
 				wp_update_attachment_metadata( $attachment_id, $metadata );
 				set_theme_mod( 'custom_logo', $attachment_id );
 				update_option( 'site_icon', $attachment_id );
-				$out[] = "Brand PNG uploaded: custom logo + site icon (ID {$attachment_id}).";
+				$out[] = "Brand SVG uploaded: custom logo + site icon (ID {$attachment_id}).";
 			} else {
-				$out[] = 'Brand PNG upload failed.';
+				$out[] = 'Brand SVG upload failed.';
 			}
 		} else {
 			$attachment_id = (int) $existing[0]->ID;
 			set_theme_mod( 'custom_logo', $attachment_id );
 			update_option( 'site_icon', $attachment_id );
-			$out[] = "Brand PNG already in media; custom logo + site icon set (ID {$attachment_id}).";
+			$out[] = "Brand SVG already in media; custom logo + site icon set (ID {$attachment_id}).";
 		}
 	}
 
