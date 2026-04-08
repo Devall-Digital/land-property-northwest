@@ -2,7 +2,7 @@
 /**
  * Favicon and manifest tags; theme wins over Customizer Site Icon for predictable tabs.
  *
- * Uses lpnw-brand-logo.svg for favicon and manifest (via lpnw_theme_get_brand_logo_url).
+ * Uses lpnw-brand-logo.png for favicon and manifest (via lpnw_theme_get_brand_logo_url).
  *
  * @package LPNW_Theme
  */
@@ -10,7 +10,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Head tags: strip core wp_site_icon, print theme SVG icon links and manifest.
+ * Head tags: strip core wp_site_icon, print theme PNG icon links and manifest.
  */
 final class LPNW_Favicons {
 
@@ -64,10 +64,10 @@ final class LPNW_Favicons {
 	private static function output_icon_tags(): void {
 		$logo     = function_exists( 'lpnw_theme_get_brand_logo_url' )
 			? lpnw_theme_get_brand_logo_url()
-			: ( get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.svg' );
+			: ( get_stylesheet_directory_uri() . '/assets/img/lpnw-brand-logo.png' );
 		$manifest = get_stylesheet_directory_uri() . '/assets/site.webmanifest';
 
-		echo '<link rel="icon" href="' . esc_url( $logo ) . '" type="image/svg+xml" sizes="any">' . "\n";
+		echo '<link rel="icon" href="' . esc_url( $logo ) . '" type="image/png" sizes="512x512">' . "\n";
 		echo '<link rel="apple-touch-icon" href="' . esc_url( $logo ) . '">' . "\n";
 		echo '<link rel="manifest" href="' . esc_url( $manifest ) . '">' . "\n";
 		printf(
