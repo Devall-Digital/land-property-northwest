@@ -12,9 +12,11 @@ defined( 'ABSPATH' ) || exit;
 require_once get_stylesheet_directory() . '/inc/class-lpnw-og-card.php';
 require_once get_stylesheet_directory() . '/inc/class-lpnw-open-graph.php';
 require_once get_stylesheet_directory() . '/inc/class-lpnw-favicons.php';
+require_once get_stylesheet_directory() . '/inc/class-lpnw-woocommerce-theme.php';
 LPNW_OG_Card::bootstrap();
 LPNW_Open_Graph::bootstrap();
 LPNW_Favicons::bootstrap();
+LPNW_WooCommerce_Theme::bootstrap();
 
 /**
  * Load a template part from `template-parts/{name}.php` with extracted variables.

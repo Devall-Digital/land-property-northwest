@@ -143,12 +143,12 @@ final class LPNW_Setup_WooCommerce {
 			'lpnw-pro'  => array(
 				'name'  => 'Pro Property Alerts',
 				'price' => '19.99',
-				'desc'  => '<p>Instant alerts when new opportunities match your criteria, plus full filtering over areas, price, and property types so you only see what you care about.</p>',
+				'desc'  => '<p>Instant alerts when new opportunities match your criteria, plus full filtering over areas, price, and property types so you only see what you care about.</p><p>Monthly subscription. Your card is charged through our secure checkout. Renewals bill automatically each month until you cancel from your account.</p>',
 			),
 			'lpnw-vip'  => array(
 				'name'  => 'Investor VIP Alerts',
 				'price' => '79.99',
-				'desc'  => '<p>Priority alerts and curated off-market style intelligence for investors who want the signal first, with room for higher-touch deal flow.</p>',
+				'desc'  => '<p>Priority alerts and curated off-market style intelligence for investors who want the signal first, with room for higher-touch deal flow.</p><p>Monthly subscription. Your card is charged through our secure checkout. Renewals bill automatically each month until you cancel from your account.</p>',
 			),
 		);
 
@@ -304,7 +304,13 @@ final class LPNW_Setup_WooCommerce {
 		$product->set_virtual( true );
 		$product->set_catalog_visibility( 'visible' );
 		$product->set_description( wp_kses_post( $desc ) );
-		$product->set_short_description( wp_kses_post( $desc ) );
+		$short = $desc;
+		if ( 'lpnw-pro' === $slug ) {
+			$short = '<p>' . esc_html__( 'Instant NW property alerts with full filters. Monthly subscription, secure checkout, cancel any time.', 'lpnw-alerts' ) . '</p>';
+		} elseif ( 'lpnw-vip' === $slug ) {
+			$short = '<p>' . esc_html__( 'Priority alerts and investor-grade deal flow. Monthly subscription, secure checkout, cancel any time.', 'lpnw-alerts' ) . '</p>';
+		}
+		$product->set_short_description( wp_kses_post( $short ) );
 		$product->set_status( 'publish' );
 		$product->set_manage_stock( false );
 

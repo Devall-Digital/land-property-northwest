@@ -243,6 +243,12 @@ class LPNW_Subscriber {
 		if ( self::use_subscription_for_paid_tier() && class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available() ) {
 			return LPNW_Woo_Subscription_Tier::get_paid_tier( $user_id );
 		}
+
+		if ( class_exists( 'LPNW_Stripe_Subscription_Tier' ) && LPNW_Stripe_Subscription_Tier::is_enabled()
+			&& class_exists( 'LPNW_Stripe_Subscription_Repository' ) && LPNW_Stripe_Subscription_Repository::user_has_any_row( $user_id ) ) {
+			return LPNW_Stripe_Subscription_Tier::get_paid_tier( $user_id );
+		}
+
 		return self::get_tier_from_orders( $user_id );
 	}
 
@@ -312,6 +318,10 @@ class LPNW_Subscriber {
 			return LPNW_Woo_Subscription_Tier::count_users_with_paid_subscription_tier();
 		}
 
+		if ( class_exists( 'LPNW_Stripe_Subscription_Tier' ) && LPNW_Stripe_Subscription_Tier::is_enabled() && function_exists( 'wc_get_orders' ) ) {
+			return self::count_paid_customers_merged_stripe_and_orders();
+		}
+
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return 0;
 		}
@@ -348,6 +358,79 @@ class LPNW_Subscriber {
 					continue;
 				}
 
+				$sig = self::lpnw_tier_signal_from_order( $order );
+				if ( 'pro' === $sig || 'vip' === $sig ) {
+					$seen[ $cid ] = true;
+				}
+			}
+
+			++$page;
+		} while ( $batch_count >= $per );
+
+		return count( $seen );
+	}
+
+	/**
+	 * Paid customers when native Stripe billing is on: Stripe access plus order-only customers without a billing row.
+	 *
+	 * @return int
+	 */
+	private static function count_paid_customers_merged_stripe_and_orders(): int {
+		$seen = array();
+
+		if ( class_exists( 'LPNW_Stripe_Subscription_Tier' ) ) {
+			global $wpdb;
+			$table = $wpdb->prefix . 'lpnw_billing_subscription';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results( "SELECT user_id, tier, status, current_period_end_ts, cancel_at_period_end, updated_at FROM {$table} WHERE user_id > 0" );
+			if ( is_array( $rows ) ) {
+				foreach ( $rows as $row ) {
+					if ( ! is_object( $row ) || ! LPNW_Stripe_Subscription_Tier::row_grants_access( $row ) ) {
+						continue;
+					}
+					$tier = isset( $row->tier ) ? sanitize_key( (string) $row->tier ) : '';
+					if ( 'pro' !== $tier && 'vip' !== $tier ) {
+						continue;
+					}
+					$uid = (int) $row->user_id;
+					if ( $uid > 0 ) {
+						$seen[ $uid ] = true;
+					}
+				}
+			}
+		}
+
+		$page = 1;
+		$per  = 100;
+
+		do {
+			$orders = wc_get_orders(
+				array(
+					'status'  => array( 'completed', 'processing' ),
+					'limit'   => $per,
+					'page'    => $page,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+					'return'  => 'objects',
+				)
+			);
+
+			$batch_count = is_array( $orders ) ? count( $orders ) : 0;
+			if ( $batch_count < 1 ) {
+				break;
+			}
+
+			foreach ( $orders as $order ) {
+				if ( ! is_object( $order ) || ! method_exists( $order, 'get_customer_id' ) ) {
+					continue;
+				}
+				$cid = (int) $order->get_customer_id();
+				if ( $cid <= 0 ) {
+					continue;
+				}
+				if ( class_exists( 'LPNW_Stripe_Subscription_Repository' ) && LPNW_Stripe_Subscription_Repository::user_has_any_row( $cid ) ) {
+					continue;
+				}
 				$sig = self::lpnw_tier_signal_from_order( $order );
 				if ( 'pro' === $sig || 'vip' === $sig ) {
 					$seen[ $cid ] = true;

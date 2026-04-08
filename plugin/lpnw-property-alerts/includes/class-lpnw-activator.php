@@ -147,6 +147,12 @@ class LPNW_Activator {
 		if ( version_compare( $current_db_version, '2.1', '<' ) ) {
 			self::migrate_to_2_1();
 			update_option( 'lpnw_db_version', '2.1' );
+			$current_db_version = '2.1';
+		}
+
+		if ( version_compare( $current_db_version, '2.2', '<' ) ) {
+			self::migrate_to_2_2();
+			update_option( 'lpnw_db_version', '2.2' );
 		}
 	}
 
@@ -222,6 +228,44 @@ class LPNW_Activator {
 				$wpdb->query( "ALTER TABLE {$prefs_table} ADD COLUMN {$col} {$definition} AFTER max_price" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 		}
+	}
+
+	/**
+	 * Stripe-linked recurring billing rows (no WooCommerce Subscriptions plugin).
+	 */
+	private static function migrate_to_2_2(): void {
+		global $wpdb;
+
+		$table   = $wpdb->prefix . 'lpnw_billing_subscription';
+		$charset = $wpdb->get_charset_collate();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$exists = (int) $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" );
+		if ( $exists ) {
+			return;
+		}
+
+		$sql = "CREATE TABLE {$table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			user_id BIGINT UNSIGNED NOT NULL,
+			source VARCHAR(20) NOT NULL DEFAULT 'stripe',
+			external_id VARCHAR(80) NOT NULL,
+			stripe_customer_id VARCHAR(80) DEFAULT NULL,
+			tier VARCHAR(8) NOT NULL DEFAULT 'pro',
+			status VARCHAR(32) NOT NULL DEFAULT '',
+			current_period_end_ts BIGINT UNSIGNED DEFAULT NULL,
+			cancel_at_period_end TINYINT(1) NOT NULL DEFAULT 0,
+			initial_wc_order_id BIGINT UNSIGNED DEFAULT NULL,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
+			PRIMARY KEY (id),
+			UNIQUE KEY lpnw_bill_sub_ext (source, external_id),
+			KEY lpnw_bill_sub_user (user_id),
+			KEY lpnw_bill_sub_status (status)
+		) {$charset};";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
 	}
 
 	/**
