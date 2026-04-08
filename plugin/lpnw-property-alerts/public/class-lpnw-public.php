@@ -189,16 +189,26 @@ class LPNW_Public {
 	}
 
 	/**
-	 * [lpnw_live_activity] - Pulsing live badge with recent ingest count.
+	 * [lpnw_live_activity] - Pulsing live badge with recent ingest or price-reduction activity.
 	 *
 	 * @param array<string, string>|string $atts Shortcode attributes.
 	 */
 	public static function render_live_activity( $atts = array() ): string {
 		global $wpdb;
+
+		$table = $wpdb->prefix . 'lpnw_properties';
+
 		$since = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties WHERE created_at >= %s",
+				"SELECT COUNT(*) FROM {$table} WHERE created_at >= %s
+				OR (
+					price_changed_at IS NOT NULL AND price_changed_at >= %s
+					AND previous_price IS NOT NULL AND previous_price > 0
+					AND price IS NOT NULL AND price > 0
+					AND price < previous_price
+				)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$since,
 				$since
 			)
 		);
@@ -207,7 +217,14 @@ class LPNW_Public {
 			$since_day = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
 			$count     = (int) $wpdb->get_var(
 				$wpdb->prepare(
-					"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties WHERE created_at >= %s",
+					"SELECT COUNT(*) FROM {$table} WHERE created_at >= %s
+					OR (
+						price_changed_at IS NOT NULL AND price_changed_at >= %s
+						AND previous_price IS NOT NULL AND previous_price > 0
+						AND price IS NOT NULL AND price > 0
+						AND price < previous_price
+					)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$since_day,
 					$since_day
 				)
 			);
@@ -216,13 +233,13 @@ class LPNW_Public {
 			}
 			$label = sprintf(
 				/* translators: %s: formatted count */
-				__( '%s new today', 'lpnw-alerts' ),
+				__( '%s new or price-reduced today', 'lpnw-alerts' ),
 				number_format_i18n( $count )
 			);
 		} else {
 			$label = sprintf(
 				/* translators: %s: formatted count */
-				__( '%s new in the last hour', 'lpnw-alerts' ),
+				__( '%s new or price-reduced in the last hour', 'lpnw-alerts' ),
 				number_format_i18n( $count )
 			);
 		}

@@ -621,9 +621,9 @@ class LPNW_Property {
 	/**
 	 * Check if the same property already exists from a different portal source.
 	 *
-	 * Matches by normalised postcode + price + address similarity.
-	 * Prevents the same property listed on both Rightmove and Zoopla
-	 * from generating duplicate alerts.
+	 * First: same postcode, channel (application_type), exact price on another portal.
+	 * Fallback: same postcode and channel where address is very similar or coordinates match,
+	 * and prices are not wildly different (one portal can be stale after a reduction).
 	 *
 	 * @param array<string, mixed> $data  Property data being inserted.
 	 * @param string               $table Table name.
@@ -642,7 +642,7 @@ class LPNW_Property {
 		$postcode = self::clean_postcode( $data['postcode'] ?? '' );
 		$price    = isset( $data['price'] ) ? absint( $data['price'] ) : 0;
 
-		if ( empty( $postcode ) || 0 === $price ) {
+		if ( '' === $postcode || 0 === $price ) {
 			return null;
 		}
 
@@ -662,13 +662,104 @@ class LPNW_Property {
 			 AND postcode = %s
 			 AND price = %d
 			 AND COALESCE(application_type, '') = %s
-			 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 			 LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				...$args
 			)
 		);
 
-		return $match ? (int) $match : null;
+		if ( $match ) {
+			return (int) $match;
+		}
+
+		$incoming_address = isset( $data['address'] ) ? (string) $data['address'] : '';
+		$in_lat           = isset( $data['latitude'] ) ? $data['latitude'] : null;
+		$in_lng           = isset( $data['longitude'] ) ? $data['longitude'] : null;
+		$args2            = array_merge( $other_sources, array( $postcode, $app_type ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- placeholders built above.
+		$candidates = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, address, latitude, longitude, price FROM {$table}
+			 WHERE source IN ({$placeholders})
+			 AND postcode = %s
+			 AND COALESCE(application_type, '') = %s
+			 ORDER BY updated_at DESC
+			 LIMIT 40",
+				...$args2
+			)
+		);
+
+		if ( ! is_array( $candidates ) ) {
+			return null;
+		}
+
+		foreach ( $candidates as $row ) {
+			if ( ! is_object( $row ) || ! isset( $row->id, $row->address ) ) {
+				continue;
+			}
+			if ( self::cross_portal_row_matches_incoming( $incoming_address, $price, $in_lat, $in_lng, $row ) ) {
+				return (int) $row->id;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Whether two portal prices could be the same listing (one feed stale after a change).
+	 *
+	 * @param int $a Incoming price (GBP).
+	 * @param int $b Existing row price (GBP).
+	 */
+	private static function cross_portal_prices_compatible_for_merge( int $a, int $b ): bool {
+		if ( $a <= 0 || $b <= 0 ) {
+			return false;
+		}
+		$lo = min( $a, $b );
+		$hi = max( $a, $b );
+
+		return ( $lo / $hi ) >= 0.5;
+	}
+
+	/**
+	 * Same physical listing on another portal: strong address match or tight geo + price sanity.
+	 *
+	 * @param string               $incoming_address Normalised later inside helpers.
+	 * @param int                  $incoming_price   Asking price from incoming feed.
+	 * @param mixed                $in_lat           Incoming latitude or null.
+	 * @param mixed                $in_lng           Incoming longitude or null.
+	 * @param object               $row              DB row with address, latitude, longitude, price.
+	 */
+	private static function cross_portal_row_matches_incoming( string $incoming_address, int $incoming_price, $in_lat, $in_lng, object $row ): bool {
+		$row_price = isset( $row->price ) ? absint( $row->price ) : 0;
+
+		$na = self::normalize_address_for_match( $incoming_address );
+		$nb = self::normalize_address_for_match( (string) $row->address );
+		if ( '' !== $na && '' !== $nb && $na === $nb ) {
+			return self::cross_portal_prices_compatible_for_merge( $incoming_price, $row_price );
+		}
+
+		if ( '' !== $incoming_address && self::addresses_similar( $incoming_address, (string) $row->address ) ) {
+			return self::cross_portal_prices_compatible_for_merge( $incoming_price, $row_price );
+		}
+
+		$lat = is_numeric( $in_lat ) ? (float) $in_lat : null;
+		$lng = is_numeric( $in_lng ) ? (float) $in_lng : null;
+		if ( null === $lat || null === $lng || ! is_finite( $lat ) || ! is_finite( $lng ) ) {
+			return false;
+		}
+
+		$rlat = isset( $row->latitude ) && is_numeric( $row->latitude ) ? (float) $row->latitude : null;
+		$rlng = isset( $row->longitude ) && is_numeric( $row->longitude ) ? (float) $row->longitude : null;
+		if ( null === $rlat || null === $rlng || ! is_finite( $rlat ) || ! is_finite( $rlng ) ) {
+			return false;
+		}
+
+		if ( abs( $rlat - $lat ) > 0.001 || abs( $rlng - $lng ) > 0.001 ) {
+			return false;
+		}
+
+		return self::cross_portal_prices_compatible_for_merge( $incoming_price, $row_price );
 	}
 
 	/**

@@ -171,6 +171,25 @@ class LPNW_Map {
 		$ptype = isset( $prop->property_type ) ? (string) $prop->property_type : '';
 		$url   = isset( $prop->source_url ) ? (string) $prop->source_url : '';
 
+		$recency_html = '';
+		if ( class_exists( 'LPNW_Property' ) ) {
+			if ( LPNW_Property::is_recent_price_reduction( $prop ) ) {
+				$pr1 = LPNW_Property::format_price_reduction_recency_line( $prop );
+				$pr2 = LPNW_Property::format_price_change_summary_line( $prop );
+				if ( '' !== $pr1 ) {
+					$recency_html .= '<p class="lpnw-map-popup__recency lpnw-map-popup__recency--price">' . esc_html( $pr1 ) . '</p>';
+				}
+				if ( '' !== $pr2 ) {
+					$recency_html .= '<p class="lpnw-map-popup__price-change">' . esc_html( $pr2 ) . '</p>';
+				}
+			} else {
+				$rec = LPNW_Property::get_card_listing_recency( $prop );
+				if ( ! empty( $rec['label'] ) ) {
+					$recency_html = '<p class="lpnw-map-popup__recency">' . esc_html( (string) $rec['label'] ) . '</p>';
+				}
+			}
+		}
+
 		$link_html = '';
 		if ( '' !== $url ) {
 			$link_html = sprintf(
@@ -181,11 +200,12 @@ class LPNW_Map {
 		}
 
 		$popup = sprintf(
-			'<div class="lpnw-map-popup"><p class="lpnw-map-popup__addr"><strong>%s</strong></p><p class="lpnw-map-popup__meta">%s</p>%s%s<p class="lpnw-map-popup__badge"><span class="lpnw-map-popup__badge-inner" style="background:%s;color:#fff;">%s</span></p>%s</div>',
+			'<div class="lpnw-map-popup"><p class="lpnw-map-popup__addr"><strong>%s</strong></p><p class="lpnw-map-popup__meta">%s</p>%s%s%s<p class="lpnw-map-popup__badge"><span class="lpnw-map-popup__badge-inner" style="background:%s;color:#fff;">%s</span></p>%s</div>',
 			esc_html( (string) $prop->address ),
 			esc_html( (string) $prop->postcode ),
 			$price_line ? '<p class="lpnw-map-popup__price">' . $price_line . '</p>' : '',
 			$ptype ? '<p class="lpnw-map-popup__type">' . esc_html( $ptype ) . '</p>' : '',
+			$recency_html,
 			esc_attr( $color ),
 			esc_html( $label ),
 			$link_html
