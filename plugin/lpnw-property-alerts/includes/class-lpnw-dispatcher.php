@@ -23,6 +23,9 @@ class LPNW_Dispatcher {
 	 * Process queued alerts in tier priority order.
 	 */
 	public function process_queue(): void {
+		if ( class_exists( 'LPNW_Mautic_Sync' ) ) {
+			LPNW_Mautic_Sync::ensure_alert_email_ids_when_missing();
+		}
 		$this->skip_queued_for_paused_subscribers();
 		$this->process_tier( 'vip' );
 		$this->process_tier( 'pro' );
@@ -52,6 +55,9 @@ class LPNW_Dispatcher {
 	 * Called by a separate weekly cron hook.
 	 */
 	public function send_free_digest(): void {
+		if ( class_exists( 'LPNW_Mautic_Sync' ) ) {
+			LPNW_Mautic_Sync::ensure_alert_email_ids_when_missing();
+		}
 		$this->skip_queued_for_paused_subscribers();
 		$this->process_tier( 'free' );
 	}
@@ -231,8 +237,22 @@ class LPNW_Dispatcher {
 			$sent       = null !== $mautic_tpl;
 		}
 
-		if ( ! $sent ) {
+		$skip_wp_fallback = false;
+		if ( defined( 'LPNW_ALERTS_MAUTIC_ONLY' ) && LPNW_ALERTS_MAUTIC_ONLY ) {
+			$skip_wp_fallback = $this->mautic->is_configured() && $this->mautic->has_email_template_for_tier( $tier );
+		}
+		$skip_wp_fallback = (bool) apply_filters( 'lpnw_alert_skip_wp_mail_fallback', $skip_wp_fallback, $tier, $user_id );
+
+		if ( ! $sent && ! $skip_wp_fallback ) {
 			$sent = $this->send_via_wp_mail( $user, $properties, $effective_frequency, $prefs );
+		} elseif ( ! $sent && $skip_wp_fallback ) {
+			error_log(
+				sprintf(
+					'LPNW Dispatcher: Mautic-only mode; alert not sent via Mautic for user_id %d tier %s (wp_mail fallback skipped).',
+					$user_id,
+					$tier
+				)
+			);
 		}
 
 		if ( ! $sent ) {
@@ -359,59 +379,63 @@ class LPNW_Dispatcher {
 			return is_string( $html ) ? $html : '';
 		}
 
-		return self::build_plain_email( $properties );
+		return self::build_plain_email( $properties, $effective_frequency );
 	}
 
 	/**
-	 * @param array<object> $properties Properties.
+	 * Property card rows (tr elements) for alert emails.
+	 *
+	 * @param array<object> $properties          Property rows.
+	 * @param bool          $include_description Short excerpt when true.
+	 * @param bool          $compact             Tighter typography (weekly-style digest).
 	 */
-	private static function build_plain_email( array $properties ): string {
-		$lines = array( '<h2>Your NW Property Alerts</h2>' );
-
+	private static function build_alert_property_rows_html( array $properties, bool $include_description, bool $compact ): string {
+		$rows = array();
 		foreach ( $properties as $prop ) {
-			$postcode_html = esc_html( $prop->postcode );
-			if ( class_exists( 'LPNW_Property' ) && is_object( $prop ) ) {
-				$cap = LPNW_Property::format_postcode_caption( $prop );
-				if ( '' !== $cap ) {
-					$postcode_html .= ' — ' . esc_html( $cap );
-				}
+			if ( ! is_object( $prop ) ) {
+				continue;
 			}
-			$channel_line = '';
-			$meta_bits    = array();
-			if ( class_exists( 'LPNW_Property' ) && is_object( $prop ) ) {
-				$ch = LPNW_Property::get_listing_channel_label( $prop );
-				if ( '' !== $ch ) {
-					$meta_bits[] = $ch;
-				}
-				$rec = LPNW_Property::get_card_listing_recency( $prop );
-				if ( '' !== ( $rec['label'] ?? '' ) ) {
-					$meta_bits[] = $rec['label'];
-				}
-				$pc = LPNW_Property::format_price_change_summary_line( $prop );
-				if ( '' !== $pc ) {
-					$channel_line = esc_html( $pc ) . '<br>';
-				}
-			}
-			$meta_extra = ! empty( $meta_bits ) ? esc_html( implode( ' · ', $meta_bits ) ) . '<br>' : '';
-			$pcm        = ( class_exists( 'LPNW_Property' ) && is_object( $prop ) && 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) ) ) ? ' pcm' : '';
-			$lines[]    = sprintf(
-				'<div style="margin-bottom:16px;padding:12px;border:1px solid #e5e7eb;border-radius:4px;">
-					<strong>%s</strong><br>
-					%s<br>
-					%s%s%s%s
-					<a href="%s">View details</a>
-				</div>',
-				esc_html( $prop->address ),
-				$postcode_html,
-				$prop->price ? '&pound;' . number_format( (int) $prop->price ) . $pcm . '<br>' : '',
-				$channel_line,
-				$meta_extra,
-				esc_html( ucfirst( $prop->source ) ) . ' | ' . esc_html( $prop->property_type ) . '<br>',
-				esc_url( $prop->source_url )
+			$rows[] = LPNW_Email_Property_Card::render_row(
+				$prop,
+				array(
+					'include_description' => $include_description,
+					'compact'             => $compact,
+				)
 			);
 		}
 
-		return implode( "\n", $lines );
+		return implode( "\n", $rows );
+	}
+
+	/**
+	 * HTML for Mautic `{lpnw_properties_html}` (wrapped table; matches wp_mail card design).
+	 *
+	 * @param array<object> $properties Property rows.
+	 * @param string        $tier       Subscriber tier (free uses compact digest cards).
+	 */
+	private static function build_alert_properties_html_for_mautic_token( array $properties, string $tier ): string {
+		$tier_lower = strtolower( trim( $tier ) );
+		$compact    = ( 'free' === $tier_lower );
+		$inner      = self::build_alert_property_rows_html( $properties, ! $compact, $compact );
+		if ( '' === trim( $inner ) ) {
+			return '';
+		}
+
+		return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">' . $inner . '</table>';
+	}
+
+	/**
+	 * Fallback body when a PHP email template file is missing (minimal shell + property cards).
+	 *
+	 * @param array<object> $properties          Property rows.
+	 * @param string        $effective_frequency weekly uses compact cards without description excerpt.
+	 */
+	private static function build_plain_email( array $properties, string $effective_frequency ): string {
+		$weekly  = ( 'weekly' === $effective_frequency );
+		$inner   = self::build_alert_property_rows_html( $properties, ! $weekly, $weekly );
+		$wrapped = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">' . $inner . '</table>';
+
+		return '<h2 style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;color:#1B2A4A;">' . esc_html__( 'Your NW Property Alerts', 'lpnw-alerts' ) . '</h2>' . $wrapped;
 	}
 
 	/**
@@ -672,7 +696,7 @@ class LPNW_Dispatcher {
 		if ( $user instanceof \WP_User ) {
 			$first = self::get_subscriber_greeting_first_name( $user );
 		}
-		$html = self::build_plain_email( $properties );
+		$html = self::build_alert_properties_html_for_mautic_token( $properties, $tier );
 
 		$postcode_area_lines = array();
 		foreach ( $properties as $p ) {
