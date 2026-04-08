@@ -996,6 +996,15 @@ class LPNW_Property {
 	 * @param object $property Row from lpnw_properties.
 	 */
 	public static function get_listing_channel_label( object $property ): string {
+		$source = isset( $property->source ) ? sanitize_key( (string) $property->source ) : '';
+		if ( '' !== $source && str_starts_with( $source, 'auction_' ) ) {
+			return '';
+		}
+
+		if ( self::is_portal_listing_row( $property ) && self::portal_listing_text_suggests_auction( $property ) ) {
+			return __( 'Auction', 'lpnw-alerts' );
+		}
+
 		$app = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
 		if ( 'rent' === $app ) {
 			return __( 'To let', 'lpnw-alerts' );
@@ -1003,11 +1012,64 @@ class LPNW_Property {
 		if ( 'sale' === $app ) {
 			return __( 'For sale', 'lpnw-alerts' );
 		}
+
+		if ( self::price_frequency_suggests_rent( $property ) ) {
+			return __( 'To let', 'lpnw-alerts' );
+		}
+
 		if ( self::is_portal_listing_row( $property ) ) {
 			return __( 'For sale', 'lpnw-alerts' );
 		}
 
 		return '';
+	}
+
+	/**
+	 * Whether price_frequency text implies a rental (pcm / weekly), when application_type is missing.
+	 *
+	 * @param object $property Row from lpnw_properties.
+	 */
+	private static function price_frequency_suggests_rent( object $property ): bool {
+		if ( ! self::is_portal_listing_row( $property ) ) {
+			return false;
+		}
+
+		$pf = strtolower( trim( (string) ( $property->price_frequency ?? '' ) ) );
+		if ( '' === $pf ) {
+			return false;
+		}
+
+		$needles = array( 'pcm', 'month', 'weekly', 'week', 'pw', 'rent', 'per month', 'per week' );
+		foreach ( $needles as $needle ) {
+			if ( str_contains( $pf, $needle ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Heuristic: portal sale listing marketed as auction (modern method, online auction, etc.).
+	 *
+	 * @param object $property Row from lpnw_properties.
+	 */
+	private static function portal_listing_text_suggests_auction( object $property ): bool {
+		$ptype = strtolower( trim( (string) ( $property->property_type ?? '' ) ) );
+		$desc  = strtolower( wp_strip_all_tags( (string) ( $property->description ?? '' ) ) );
+
+		if ( preg_match( '/\b(not|no)\s+auction\b/', $ptype . ' ' . $desc ) ) {
+			return false;
+		}
+
+		if ( preg_match( '/\bauction\b/', $ptype ) ) {
+			return true;
+		}
+
+		return (bool) preg_match(
+			'/\b(modern\s+method\s+of\s+auction|method\s+of\s+auction|for\s+sale\s+by\s+auction|online\s+auction|sold\s+by\s+auction)\b/',
+			$desc
+		);
 	}
 
 	/**
@@ -1146,6 +1208,16 @@ class LPNW_Property {
 	public static function get_card_listing_recency( object $property ): array {
 		$first   = isset( $property->first_listed_date ) ? trim( (string) $property->first_listed_date ) : '';
 		$created = isset( $property->created_at ) ? trim( (string) $property->created_at ) : '';
+
+		// Fresh price cuts already show PRICE DROP + "Price reduced …" + Was/now; suppress the portal
+		// "First listed …" line so the card is not read as a brand-new listing with a contradictory age.
+		if ( self::is_portal_listing_row( $property ) && self::is_recent_price_reduction( $property ) ) {
+			return array(
+				'label'     => '',
+				'is_urgent' => false,
+				'is_new'    => false,
+			);
+		}
 
 		$label_date = '' !== $first ? $first : $created;
 

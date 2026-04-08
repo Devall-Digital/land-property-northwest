@@ -678,15 +678,15 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 	}
 
 	/**
-	 * First listed date as Y-m-d from firstVisibleDate or listing update date.
+	 * First listed date as Y-m-d from firstVisibleDate only.
+	 *
+	 * Do not use listingUpdate.listingUpdateDate here: it moves on price changes and can make a long-listed
+	 * home look "first listed today" in the database. Description text may still mention the update date separately.
 	 *
 	 * @param array<string, mixed> $raw_item Raw property from Rightmove JSON.
 	 */
 	private function parse_rightmove_first_listed_date_ymd( array $raw_item ): string {
 		$raw = $raw_item['firstVisibleDate'] ?? '';
-		if ( ( '' === $raw || null === $raw ) && isset( $raw_item['listingUpdate'] ) && is_array( $raw_item['listingUpdate'] ) ) {
-			$raw = $raw_item['listingUpdate']['listingUpdateDate'] ?? '';
-		}
 		if ( '' === $raw || null === $raw || ! is_scalar( $raw ) ) {
 			return '';
 		}
