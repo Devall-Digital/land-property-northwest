@@ -31,7 +31,7 @@ class LPNW_Free_Tier_Instant {
 			$settings = array();
 		}
 		$raw = isset( $settings['free_tier_weekly_instant_alerts'] ) ? $settings['free_tier_weekly_instant_alerts'] : 5;
-		$n = absint( $raw );
+		$n   = absint( $raw );
 		if ( $n > 100 ) {
 			$n = 100;
 		}

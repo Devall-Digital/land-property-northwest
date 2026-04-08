@@ -13,7 +13,7 @@ class LPNW_Activator {
 
 	public static function activate(): void {
 		self::create_tables();
-		self::maybe_migrate();
+		self::run_migrations();
 		self::set_default_options();
 		self::schedule_cron();
 		update_option( 'lpnw_version', LPNW_VERSION );
@@ -35,6 +35,8 @@ class LPNW_Activator {
 			latitude DECIMAL(10,7) DEFAULT NULL,
 			longitude DECIMAL(10,7) DEFAULT NULL,
 			price BIGINT UNSIGNED DEFAULT NULL,
+			previous_price BIGINT UNSIGNED DEFAULT NULL,
+			price_changed_at DATETIME DEFAULT NULL,
 			property_type VARCHAR(100) DEFAULT NULL,
 			bedrooms TINYINT UNSIGNED DEFAULT NULL,
 			bathrooms TINYINT UNSIGNED DEFAULT NULL,
@@ -130,13 +132,25 @@ class LPNW_Activator {
 		dbDelta( $sql );
 	}
 
-	private static function maybe_migrate(): void {
+	/**
+	 * Apply incremental DB migrations (safe to call on every request; early-outs when current).
+	 */
+	public static function run_migrations(): void {
 		$current_db_version = get_option( 'lpnw_db_version', '1.0' );
 
-		if ( version_compare( $current_db_version, '2.0', '>=' ) ) {
-			return;
+		if ( version_compare( $current_db_version, '2.0', '<' ) ) {
+			self::migrate_to_2_0();
+			update_option( 'lpnw_db_version', '2.0' );
+			$current_db_version = '2.0';
 		}
 
+		if ( version_compare( $current_db_version, '2.1', '<' ) ) {
+			self::migrate_to_2_1();
+			update_option( 'lpnw_db_version', '2.1' );
+		}
+	}
+
+	private static function migrate_to_2_0(): void {
 		global $wpdb;
 
 		$props_table = $wpdb->prefix . 'lpnw_properties';
@@ -154,12 +168,14 @@ class LPNW_Activator {
 		);
 
 		foreach ( $prop_columns as $col => $definition ) {
-			$exists = $wpdb->get_var( $wpdb->prepare(
-				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
-				DB_NAME,
-				$props_table,
-				$col
-			) );
+			$exists = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
+					DB_NAME,
+					$props_table,
+					$col
+				)
+			);
 			if ( ! $exists ) {
 				$wpdb->query( "ALTER TABLE {$props_table} ADD COLUMN {$col} {$definition} AFTER property_type" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
@@ -172,55 +188,85 @@ class LPNW_Activator {
 		);
 
 		foreach ( $prop_indexes as $idx_name => $idx_col ) {
-			$idx_exists = $wpdb->get_var( $wpdb->prepare(
-				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND INDEX_NAME = %s',
-				DB_NAME,
-				$props_table,
-				$idx_name
-			) );
+			$idx_exists = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND INDEX_NAME = %s',
+					DB_NAME,
+					$props_table,
+					$idx_name
+				)
+			);
 			if ( ! $idx_exists ) {
 				$wpdb->query( "ALTER TABLE {$props_table} ADD INDEX {$idx_name} ({$idx_col})" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 		}
 
 		$pref_columns = array(
-			'min_bedrooms'       => 'TINYINT UNSIGNED DEFAULT NULL',
-			'max_bedrooms'       => 'TINYINT UNSIGNED DEFAULT NULL',
-			'listing_channels'   => 'TEXT DEFAULT NULL',
-			'tenure_preferences' => 'TEXT DEFAULT NULL',
-			'required_features'  => 'TEXT DEFAULT NULL',
+			'min_bedrooms'         => 'TINYINT UNSIGNED DEFAULT NULL',
+			'max_bedrooms'         => 'TINYINT UNSIGNED DEFAULT NULL',
+			'listing_channels'     => 'TEXT DEFAULT NULL',
+			'tenure_preferences'   => 'TEXT DEFAULT NULL',
+			'required_features'    => 'TEXT DEFAULT NULL',
 		);
 
 		foreach ( $pref_columns as $col => $definition ) {
-			$exists = $wpdb->get_var( $wpdb->prepare(
-				'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
-				DB_NAME,
-				$prefs_table,
-				$col
-			) );
+			$exists = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
+					DB_NAME,
+					$prefs_table,
+					$col
+				)
+			);
 			if ( ! $exists ) {
 				$wpdb->query( "ALTER TABLE {$prefs_table} ADD COLUMN {$col} {$definition} AFTER max_price" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 		}
+	}
 
-		update_option( 'lpnw_db_version', '2.0' );
+	/**
+	 * Price-change tracking for portal alerts (previous ask vs current, timestamp of last change).
+	 */
+	private static function migrate_to_2_1(): void {
+		global $wpdb;
+
+		$props_table = $wpdb->prefix . 'lpnw_properties';
+
+		$cols = array(
+			'previous_price'  => 'BIGINT UNSIGNED DEFAULT NULL',
+			'price_changed_at' => 'DATETIME DEFAULT NULL',
+		);
+
+		foreach ( $cols as $col => $definition ) {
+			$exists = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = %s',
+					DB_NAME,
+					$props_table,
+					$col
+				)
+			);
+			if ( ! $exists ) {
+				$wpdb->query( "ALTER TABLE {$props_table} ADD COLUMN {$col} {$definition} AFTER price" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			}
+		}
 	}
 
 	private static function set_default_options(): void {
 		// Launch focus: portals + auctions + alerts. Planning / EPC / Land Registry are optional
 		// "intelligence" feeds; enable in LPNW Settings when running a Land Insight-style product tier.
 		$defaults = array(
-			'planning_enabled'     => false,
-			'portals_enabled'      => true,
-			'epc_enabled'          => false,
-			'epc_api_email'        => '',
-			'epc_api_key'          => '',
-			'landregistry_enabled' => false,
-			'auctions_enabled'     => true,
-			'mautic_api_url'       => '',
-			'mautic_api_user'      => '',
-			'mautic_api_password'  => '',
-			'retention_days'       => 180,
+			'planning_enabled'                => false,
+			'portals_enabled'                 => true,
+			'epc_enabled'                     => false,
+			'epc_api_email'                   => '',
+			'epc_api_key'                     => '',
+			'landregistry_enabled'            => false,
+			'auctions_enabled'                => true,
+			'mautic_api_url'                  => '',
+			'mautic_api_user'                 => '',
+			'mautic_api_password'             => '',
+			'retention_days'                  => 180,
 			'free_tier_weekly_instant_alerts' => 5,
 		);
 

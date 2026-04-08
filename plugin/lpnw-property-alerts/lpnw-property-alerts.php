@@ -3,7 +3,7 @@
  * Plugin Name: LPNW Property Alerts
  * Plugin URI: https://land-property-northwest.co.uk
  * Description: Property intelligence and alert engine for Northwest England. Aggregates planning applications, EPC data, Land Registry transactions, and auction listings into automated subscriber alerts.
- * Version: 1.0.42
+ * Version: 1.0.43
  * Author: Land & Property Northwest
  * Author URI: https://land-property-northwest.co.uk
  * License: Proprietary
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'LPNW_VERSION', '1.0.42' );
+define( 'LPNW_VERSION', '1.0.43' );
 define( 'LPNW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LPNW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'LPNW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -25,10 +25,25 @@ define( 'LPNW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 /**
  * NW England postcode prefixes used for filtering data.
  */
-define( 'LPNW_NW_POSTCODES', array(
-	'M', 'L', 'PR', 'BB', 'LA', 'BL', 'OL', 'SK',
-	'WA', 'WN', 'CW', 'CH', 'CA', 'FY',
-) );
+define(
+	'LPNW_NW_POSTCODES',
+	array(
+		'M',
+		'L',
+		'PR',
+		'BB',
+		'LA',
+		'BL',
+		'OL',
+		'SK',
+		'WA',
+		'WN',
+		'CW',
+		'CH',
+		'CA',
+		'FY',
+	)
+);
 
 require_once LPNW_PLUGIN_DIR . 'includes/class-lpnw-activator.php';
 require_once LPNW_PLUGIN_DIR . 'includes/class-lpnw-deactivator.php';
@@ -141,11 +156,27 @@ final class LPNW_Property_Alerts {
 /**
  * Boot the plugin after all plugins have loaded.
  */
-add_action( 'plugins_loaded', function () {
-	LPNW_Property_Alerts::instance();
-}, 10 );
+add_action(
+	'plugins_loaded',
+	static function () {
+		LPNW_Activator::run_migrations();
+	},
+	5
+);
 
-add_action( 'plugins_loaded', function () {
-	LPNW_Activator::maybe_reschedule_auction_cron();
-	LPNW_Activator::maybe_clear_obsolete_portal_rightmove_cron();
-}, 20 );
+add_action(
+	'plugins_loaded',
+	function () {
+		LPNW_Property_Alerts::instance();
+	},
+	10
+);
+
+add_action(
+	'plugins_loaded',
+	function () {
+		LPNW_Activator::maybe_reschedule_auction_cron();
+		LPNW_Activator::maybe_clear_obsolete_portal_rightmove_cron();
+	},
+	20
+);

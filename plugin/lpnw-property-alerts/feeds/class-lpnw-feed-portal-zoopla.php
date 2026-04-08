@@ -39,23 +39,23 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	 * We search each NW area separately.
 	 */
 	private const NW_AREA_SLUGS = array(
-		'manchester'  => 'Manchester',
-		'liverpool'   => 'Liverpool',
-		'preston'     => 'Preston',
-		'blackpool'   => 'Blackpool',
-		'blackburn'   => 'Blackburn',
-		'bolton'      => 'Bolton',
-		'bury'        => 'Bury',
-		'oldham'      => 'Oldham',
-		'rochdale'    => 'Rochdale',
-		'salford'     => 'Salford',
-		'stockport'   => 'Stockport',
-		'wigan'       => 'Wigan',
-		'warrington'  => 'Warrington',
-		'chester'     => 'Chester',
-		'lancaster'   => 'Lancaster',
-		'burnley'     => 'Burnley',
-		'carlisle'    => 'Carlisle',
+		'manchester' => 'Manchester',
+		'liverpool'  => 'Liverpool',
+		'preston'    => 'Preston',
+		'blackpool'  => 'Blackpool',
+		'blackburn'  => 'Blackburn',
+		'bolton'     => 'Bolton',
+		'bury'       => 'Bury',
+		'oldham'     => 'Oldham',
+		'rochdale'   => 'Rochdale',
+		'salford'    => 'Salford',
+		'stockport'  => 'Stockport',
+		'wigan'      => 'Wigan',
+		'warrington' => 'Warrington',
+		'chester'    => 'Chester',
+		'lancaster'  => 'Lancaster',
+		'burnley'    => 'Burnley',
+		'carlisle'   => 'Carlisle',
 	);
 
 	/**
@@ -89,9 +89,9 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 		foreach ( self::NW_AREA_SLUGS as $slug => $area_name ) {
 			foreach ( array( 'for-sale', 'to-rent' ) as $section ) {
 				$pairs[] = array(
-					'slug'       => $slug,
-					'area_name'  => $area_name,
-					'section'    => $section,
+					'slug'      => $slug,
+					'area_name' => $area_name,
+					'section'   => $section,
 				);
 			}
 		}
@@ -189,7 +189,10 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 	private function fetch_area( string $slug, string $area_name, string $section ): array {
 		$strategies = array();
 
-		foreach ( array( 'www' => self::BASE_URL, 'mobile' => self::MOBILE_BASE_URL ) as $host_label => $base ) {
+		foreach ( array(
+			'www'    => self::BASE_URL,
+			'mobile' => self::MOBILE_BASE_URL,
+		) as $host_label => $base ) {
 			foreach ( self::USER_AGENTS as $ua_label => $ua ) {
 				$strategies[] = array(
 					'host'     => $host_label,
@@ -662,7 +665,7 @@ class LPNW_Feed_Portal_Zoopla extends LPNW_Feed_Base {
 			$raw_item['propertyType'] ?? $raw_item['property_type'] ?? $raw_item['type'] ?? ''
 		);
 
-		$section_raw = (string) ( $raw_item['_section'] ?? '' );
+		$section_raw      = (string) ( $raw_item['_section'] ?? '' );
 		$application_type = 'sale';
 		$desc_prefix      = 'For sale. ';
 		if ( 'to-rent' === $section_raw ) {

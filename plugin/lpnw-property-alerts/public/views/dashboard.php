@@ -10,9 +10,9 @@
 defined( 'ABSPATH' ) || exit;
 
 global $wpdb;
-$user_id     = get_current_user_id();
-$user        = wp_get_current_user();
-$display     = $user && $user->exists() ? $user->display_name : '';
+$user_id      = get_current_user_id();
+$user         = wp_get_current_user();
+$display      = $user && $user->exists() ? $user->display_name : '';
 $week_ago     = gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS );
 $week_matches = (int) $wpdb->get_var(
 	$wpdb->prepare(
@@ -23,7 +23,7 @@ $week_matches = (int) $wpdb->get_var(
 		$week_ago
 	)
 );
-$saved_count = (int) $wpdb->get_var(
+$saved_count  = (int) $wpdb->get_var(
 	$wpdb->prepare(
 		"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_saved_properties WHERE user_id = %d",
 		$user_id
@@ -39,7 +39,7 @@ $tier_key = strtolower( (string) $tier );
 $lpnw_missed_today = 0;
 $lpnw_missed_week  = 0;
 if ( 'free' === $tier_key ) {
-	$since_24h_dash      = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+	$since_24h_dash    = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
 	$lpnw_missed_today = (int) $wpdb->get_var(
 		$wpdb->prepare(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue aq
@@ -49,7 +49,7 @@ if ( 'free' === $tier_key ) {
 			$since_24h_dash
 		)
 	);
-	$lpnw_missed_week = (int) $wpdb->get_var(
+	$lpnw_missed_week  = (int) $wpdb->get_var(
 		$wpdb->prepare(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue aq
 			 INNER JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
@@ -78,13 +78,13 @@ switch ( $tier_key ) {
 		break;
 }
 
-$nw_total        = class_exists( 'LPNW_NW_Postcodes' ) ? count( LPNW_NW_Postcodes::get_all_selectable_codes() ) : count( LPNW_NW_POSTCODES );
-$areas_selected  = ( $prefs && is_array( $prefs->areas ) ) ? count( $prefs->areas ) : 0;
-$types_selected  = ( $prefs && is_array( $prefs->property_types ) ) ? count( $prefs->property_types ) : 0;
-$type_slots      = 6;
-$area_pct        = $areas_selected > 0 ? min( 100, (int) round( 100 * $areas_selected / $nw_total ) ) : 100;
-$type_pct        = $types_selected > 0 ? min( 100, (int) round( 100 * $types_selected / $type_slots ) ) : 100;
-$area_bar_label  = $areas_selected > 0
+$nw_total       = class_exists( 'LPNW_NW_Postcodes' ) ? count( LPNW_NW_Postcodes::get_all_selectable_codes() ) : count( LPNW_NW_POSTCODES );
+$areas_selected = ( $prefs && is_array( $prefs->areas ) ) ? count( $prefs->areas ) : 0;
+$types_selected = ( $prefs && is_array( $prefs->property_types ) ) ? count( $prefs->property_types ) : 0;
+$type_slots     = 6;
+$area_pct       = $areas_selected > 0 ? min( 100, (int) round( 100 * $areas_selected / $nw_total ) ) : 100;
+$type_pct       = $types_selected > 0 ? min( 100, (int) round( 100 * $types_selected / $type_slots ) ) : 100;
+$area_bar_label = $areas_selected > 0
 	? sprintf(
 		/* translators: 1: number of areas, 2: total NW area codes */
 		__( '%1$d of %2$d regions', 'lpnw-alerts' ),
@@ -92,7 +92,7 @@ $area_bar_label  = $areas_selected > 0
 		$nw_total
 	)
 	: __( 'All regions (no filter)', 'lpnw-alerts' );
-$type_bar_label  = $types_selected > 0
+$type_bar_label = $types_selected > 0
 	? sprintf(
 		/* translators: 1: number of selected property types */
 		_n( '%d property type', '%d property types', $types_selected, 'lpnw-alerts' ),

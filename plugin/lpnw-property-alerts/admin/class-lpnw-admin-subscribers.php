@@ -57,8 +57,8 @@ final class LPNW_Admin_Subscribers {
 		$params = array();
 
 		if ( '' !== $search ) {
-			$like   = '%' . $wpdb->esc_like( $search ) . '%';
-			$where .= ' AND (u.user_login LIKE %s OR u.user_email LIKE %s OR u.display_name LIKE %s)';
+			$like     = '%' . $wpdb->esc_like( $search ) . '%';
+			$where   .= ' AND (u.user_login LIKE %s OR u.user_email LIKE %s OR u.display_name LIKE %s)';
 			$params[] = $like;
 			$params[] = $like;
 			$params[] = $like;
@@ -87,11 +87,11 @@ final class LPNW_Admin_Subscribers {
 		$items = array();
 		if ( is_array( $rows ) ) {
 			foreach ( $rows as $row ) {
-				$uid = (int) $row->user_id;
+				$uid          = (int) $row->user_id;
 				$from_billing = LPNW_Subscriber::get_tier_from_billing( $uid );
-				$effective   = LPNW_Subscriber::get_tier( $uid );
-				$override    = get_user_meta( $uid, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE, true );
-				$override    = is_string( $override ) && '' !== $override ? $override : '';
+				$effective    = LPNW_Subscriber::get_tier( $uid );
+				$override     = get_user_meta( $uid, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE, true );
+				$override     = is_string( $override ) && '' !== $override ? $override : '';
 
 				$orders_url = '';
 				if ( class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
@@ -117,25 +117,25 @@ final class LPNW_Admin_Subscribers {
 				$pending    = '1' === (string) get_user_meta( $uid, LPNW_Onboarding::USER_META_REDIRECT_PENDING, true );
 
 				$items[] = array(
-					'user_id'        => $uid,
-					'email'          => (string) $row->user_email,
-					'display_name'   => (string) $row->display_name,
-					'frequency'      => (string) $row->frequency,
-					'is_active'      => (int) $row->is_active,
-					'updated_at'     => (string) $row->updated_at,
-					'created_at'     => isset( $row->created_at ) ? (string) $row->created_at : '',
-					'setup_complete' => $setup_done,
+					'user_id'          => $uid,
+					'email'            => (string) $row->user_email,
+					'display_name'     => (string) $row->display_name,
+					'frequency'        => (string) $row->frequency,
+					'is_active'        => (int) $row->is_active,
+					'updated_at'       => (string) $row->updated_at,
+					'created_at'       => isset( $row->created_at ) ? (string) $row->created_at : '',
+					'setup_complete'   => $setup_done,
 					'redirect_pending' => $pending,
-					'tier'           => $effective,
-					'from_billing'   => $from_billing,
-					'override'       => $override,
-					'orders_url'     => $orders_url,
-					'edit_url'       => get_edit_user_link( $uid ),
+					'tier'             => $effective,
+					'from_billing'     => $from_billing,
+					'override'         => $override,
+					'orders_url'       => $orders_url,
+					'edit_url'         => get_edit_user_link( $uid ),
 				);
 			}
 		}
 
-		$no_profile = 0;
+		$no_profile       = 0;
 		$no_profile_users = array();
 		if ( '' === $search ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared

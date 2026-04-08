@@ -20,8 +20,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$f          = $lpnw_search_form;
-$type_opts  = array(
+$f           = $lpnw_search_form;
+$type_opts   = array(
 	'Detached',
 	'Semi-detached',
 	'Terraced',
@@ -39,14 +39,14 @@ $source_opts = array(
 $build_url = static function ( array $extra = array() ) use ( $f, $lpnw_search_base_url ): string {
 	$args = array_merge(
 		array(
-			'area'       => $f['area'],
-			'type'       => $f['type'],
-			'channel'    => $f['channel'],
-			'min_price'  => $f['min_price'],
-			'max_price'  => $f['max_price'],
-			'source'     => $f['source'],
-			'bedrooms'   => $f['bedrooms'],
-			'tenure'     => $f['tenure'],
+			'area'      => $f['area'],
+			'type'      => $f['type'],
+			'channel'   => $f['channel'],
+			'min_price' => $f['min_price'],
+			'max_price' => $f['max_price'],
+			'source'    => $f['source'],
+			'bedrooms'  => $f['bedrooms'],
+			'tenure'    => $f['tenure'],
 		),
 		$extra
 	);

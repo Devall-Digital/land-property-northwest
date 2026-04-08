@@ -42,9 +42,9 @@ class LPNW_Mautic {
 			'GET',
 			'api/emails',
 			array(
-				'limit'        => $limit,
-				'orderBy'      => 'id',
-				'orderByDir'   => 'DESC',
+				'limit'      => $limit,
+				'orderBy'    => 'id',
+				'orderByDir' => 'DESC',
 			)
 		);
 
@@ -174,11 +174,24 @@ class LPNW_Mautic {
 			array( 'email' => $email ),
 			$data
 		);
+		foreach ( $payload as $k => $v ) {
+			if ( '' === $v || null === $v ) {
+				unset( $payload[ $k ] );
+			}
+		}
 
 		$response = $this->request( 'POST', 'api/contacts/new', $payload );
 
 		if ( $response && isset( $response['contact']['id'] ) ) {
 			return (int) $response['contact']['id'];
+		}
+
+		if ( $response && isset( $response['errors'] ) ) {
+			error_log( 'LPNW Mautic: sync_contact failed for ' . $email . ': ' . wp_json_encode( $response['errors'] ) );
+		} elseif ( is_array( $response ) ) {
+			error_log( 'LPNW Mautic: sync_contact unexpected response for ' . $email . ': ' . wp_json_encode( $response ) );
+		} else {
+			error_log( 'LPNW Mautic: sync_contact no JSON response for ' . $email );
 		}
 
 		return false;
@@ -217,6 +230,7 @@ class LPNW_Mautic {
 		}
 
 		if ( ! $contact_id ) {
+			error_log( 'LPNW Mautic: could not get or create contact for ' . $email );
 			return null;
 		}
 
@@ -276,9 +290,20 @@ class LPNW_Mautic {
 			)
 		);
 
-		if ( $response && ! empty( $response['contacts'] ) ) {
-			$contact = reset( $response['contacts'] );
+		if ( ! $response || empty( $response['contacts'] ) || ! is_array( $response['contacts'] ) ) {
+			return false;
+		}
+
+		$contact = reset( $response['contacts'] );
+		if ( ! is_array( $contact ) ) {
+			return false;
+		}
+
+		if ( isset( $contact['id'] ) ) {
 			return (int) $contact['id'];
+		}
+		if ( isset( $contact['contact']['id'] ) ) {
+			return (int) $contact['contact']['id'];
 		}
 
 		return false;

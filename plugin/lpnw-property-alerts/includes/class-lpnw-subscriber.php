@@ -56,10 +56,12 @@ class LPNW_Subscriber {
 		global $wpdb;
 		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
 
-		$row = $wpdb->get_row( $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE user_id = %d",
-			$user_id
-		) );
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE user_id = %d",
+				$user_id
+			)
+		);
 
 		if ( $row ) {
 			$row->areas              = json_decode( $row->areas, true ) ?: array();
@@ -89,9 +91,9 @@ class LPNW_Subscriber {
 			: 1;
 
 		$row = array(
-			'user_id'        => $user_id,
-			'areas'          => wp_json_encode( $prefs['areas'] ?? array() ),
-			'min_price'      => isset( $prefs['min_price'] ) ? absint( $prefs['min_price'] ) : null,
+			'user_id'            => $user_id,
+			'areas'              => wp_json_encode( $prefs['areas'] ?? array() ),
+			'min_price'          => isset( $prefs['min_price'] ) ? absint( $prefs['min_price'] ) : null,
 			'max_price'          => isset( $prefs['max_price'] ) ? absint( $prefs['max_price'] ) : null,
 			'min_bedrooms'       => isset( $prefs['min_bedrooms'] ) ? absint( $prefs['min_bedrooms'] ) : null,
 			'max_bedrooms'       => isset( $prefs['max_bedrooms'] ) ? absint( $prefs['max_bedrooms'] ) : null,
@@ -99,15 +101,17 @@ class LPNW_Subscriber {
 			'tenure_preferences' => wp_json_encode( $prefs['tenure_preferences'] ?? array() ),
 			'required_features'  => wp_json_encode( $prefs['required_features'] ?? array() ),
 			'property_types'     => wp_json_encode( $prefs['property_types'] ?? array() ),
-			'alert_types'    => wp_json_encode( $prefs['alert_types'] ?? array() ),
-			'frequency'      => sanitize_text_field( $prefs['frequency'] ?? 'weekly' ),
-			'is_active'      => $is_active,
+			'alert_types'        => wp_json_encode( $prefs['alert_types'] ?? array() ),
+			'frequency'          => sanitize_text_field( $prefs['frequency'] ?? 'weekly' ),
+			'is_active'          => $is_active,
 		);
 
-		$existing = $wpdb->get_var( $wpdb->prepare(
-			"SELECT id FROM {$table} WHERE user_id = %d",
-			$user_id
-		) );
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$table} WHERE user_id = %d",
+				$user_id
+			)
+		);
 
 		if ( $existing ) {
 			// $wpdb->update returns int rows affected; 0 means "no change" but is still success.
@@ -142,10 +146,12 @@ class LPNW_Subscriber {
 		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
 
 		if ( $frequency ) {
-			return $wpdb->get_results( $wpdb->prepare(
-				"SELECT * FROM {$table} WHERE is_active = 1 AND frequency = %s",
-				$frequency
-			) );
+			return $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM {$table} WHERE is_active = 1 AND frequency = %s",
+					$frequency
+				)
+			);
 		}
 
 		return $wpdb->get_results(

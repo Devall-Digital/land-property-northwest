@@ -1,0 +1,76 @@
+<!--
+  LPNW — Prospect intro (segment email)
+
+  Subject line (paste into Mautic email settings):
+  Northwest land and property alerts for your inbox
+
+  Before send:
+  1. Contacts → Import your CSV. Map columns to Mautic fields:
+     - Email column     → email (required)
+     - First name       → firstname  (alias must be firstname for tokens below)
+     - Last name        → lastname   (optional)
+     - Company          → company    (optional)
+  2. Segments → New segment e.g. "LPNW directory prospects" → filter by tag or import list.
+  3. Channels → Emails → New → Segment email → paste this HTML in Code mode.
+  4. Send a test to yourself first; unsubscribe tokens only work for real contacts.
+
+  Tokens: Mautic 5.x — https://docs.mautic.org/en/5.2/channels/emails.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Land &amp; Property Northwest</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased;">
+	<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:24px 12px;">
+		<tr>
+			<td align="center">
+				<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:4px;overflow:hidden;border:1px solid #e2e2e4;">
+					<tr>
+						<td style="padding:28px 32px 8px 32px;">
+							<p style="margin:0 0 20px 0;font-size:17px;line-height:1.55;color:#1a1a1a;">
+								Hi {contactfield=firstname|there},
+							</p>
+							<p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#333333;">
+								We run <strong>Land &amp; Property Northwest</strong>: alerts for <strong>new listings, auctions, and related signals</strong> across the Northwest (Greater Manchester, Merseyside, Lancashire, Cheshire, Cumbria, and the rest of the patch we cover).
+							</p>
+							<p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#333333;">
+								If you buy, develop, or advise on property in the region, it is a straightforward way to <strong>see opportunities early</strong> instead of checking portals and auction sites yourself.
+							</p>
+							<p style="margin:0 0 8px 0;font-size:16px;line-height:1.6;color:#333333;">
+								<strong>Free:</strong> weekly digest. <strong>Paid:</strong> instant alerts matched to area and criteria.
+							</p>
+							<p style="margin:0 0 24px 0;font-size:16px;line-height:1.6;color:#333333;">
+								If this fits how you work in the Northwest, we would be glad to have you on the list.
+							</p>
+							<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 28px 0;">
+								<tr>
+									<td style="border-radius:4px;background-color:#1a4d2e;">
+										<a href="https://land-property-northwest.co.uk/" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;font-family:Arial,Helvetica,sans-serif;">View plans and sign up</a>
+									</td>
+								</tr>
+							</table>
+							<p style="margin:0 0 20px 0;font-size:15px;line-height:1.55;color:#555555;">
+								Not relevant? Use the link below and we will not email you again.
+							</p>
+							<p style="margin:0 0 8px 0;font-size:15px;line-height:1.55;color:#333333;">
+								Kind regards,<br>
+								Land &amp; Property Northwest
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<td style="padding:16px 32px 28px 32px;border-top:1px solid #eeeeee;">
+							<p style="margin:0;font-size:13px;line-height:1.5;color:#888888;font-family:Arial,Helvetica,sans-serif;">
+								{unsubscribe_text}
+							</p>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

@@ -199,7 +199,7 @@ class LPNW_Feed_Auction_Allsop extends LPNW_Feed_Base {
 			}
 		}
 
-		$byline = '';
+		$byline   = '';
 		$by_nodes = $xpath->query( ".//h5[contains(@class, '__byline')]//span", $box );
 		if ( $by_nodes && $by_nodes->length ) {
 			$byline = trim( $by_nodes->item( 0 )->textContent );
@@ -209,13 +209,13 @@ class LPNW_Feed_Auction_Allsop extends LPNW_Feed_Base {
 			$address = $byline . ', ' . $address;
 		}
 
-		$raw_price = '';
+		$raw_price   = '';
 		$price_nodes = $xpath->query( ".//h3[contains(@class, '__lot_price_grid')]", $box );
 		if ( $price_nodes && $price_nodes->length ) {
 			$raw_price = trim( html_entity_decode( $price_nodes->item( 0 )->textContent, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
 		}
 
-		$tag_raw = '';
+		$tag_raw   = '';
 		$tag_nodes = $xpath->query( ".//div[contains(@class, '__tag')]", $box );
 		if ( $tag_nodes && $tag_nodes->length ) {
 			$tag_raw = trim( $tag_nodes->item( 0 )->textContent );
@@ -237,14 +237,14 @@ class LPNW_Feed_Auction_Allsop extends LPNW_Feed_Base {
 		}
 
 		return array(
-			'address'        => $address,
-			'raw_price'      => $raw_price,
-			'detail_url'     => $detail_url,
-			'lot_number'     => $lot_number,
-			'auction_raw'    => $tag_raw,
-			'price_digits'   => preg_replace( '/[^0-9]/', '', $raw_price ),
-			'auction_channel'=> $channel,
-			'listing_blurb'  => trim( $address . ' ' . $raw_price . ' ' . $tag_raw ),
+			'address'         => $address,
+			'raw_price'       => $raw_price,
+			'detail_url'      => $detail_url,
+			'lot_number'      => $lot_number,
+			'auction_raw'     => $tag_raw,
+			'price_digits'    => preg_replace( '/[^0-9]/', '', $raw_price ),
+			'auction_channel' => $channel,
+			'listing_blurb'   => trim( $address . ' ' . $raw_price . ' ' . $tag_raw ),
 		);
 	}
 
@@ -272,7 +272,7 @@ class LPNW_Feed_Auction_Allsop extends LPNW_Feed_Base {
 			$price = $this->parse_money_string( (string) $raw_item['raw_price'] );
 		}
 
-		$lot_ref = ! empty( $raw_item['lot_number'] ) ? (string) $raw_item['lot_number'] : md5( $address );
+		$lot_ref      = ! empty( $raw_item['lot_number'] ) ? (string) $raw_item['lot_number'] : md5( $address );
 		$auction_date = $this->normalize_tag_auction_date( (string) ( $raw_item['auction_raw'] ?? '' ) );
 
 		$channel = sanitize_key( (string) ( $raw_item['auction_channel'] ?? '' ) );

@@ -217,9 +217,9 @@ class LPNW_Geocoder {
 					continue;
 				}
 
-				$pc     = strtoupper( $item['query'] );
-				$ir     = $item['result'];
-				$coords = array(
+				$pc       = strtoupper( $item['query'] );
+				$ir       = $item['result'];
+				$coords   = array(
 					'latitude'  => (float) $ir['latitude'],
 					'longitude' => (float) $ir['longitude'],
 				);

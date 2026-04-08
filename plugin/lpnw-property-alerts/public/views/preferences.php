@@ -33,8 +33,8 @@ if ( is_user_logged_in() && isset( $_GET['lpnw_reset_prefs'], $_GET['_wpnonce'] 
 	}
 }
 
-$areas          = $prefs ? $prefs->areas : array();
-$areas          = is_array( $areas ) ? $areas : array();
+$areas = $prefs ? $prefs->areas : array();
+$areas = is_array( $areas ) ? $areas : array();
 if ( isset( $_GET['lpnw_area'] ) ) {
 	$hint = strtoupper( sanitize_text_field( wp_unslash( $_GET['lpnw_area'] ) ) );
 	if ( class_exists( 'LPNW_NW_Postcodes' ) && LPNW_NW_Postcodes::is_valid_area_or_district( $hint ) && ! in_array( $hint, $areas, true ) ) {
@@ -65,15 +65,15 @@ $listing_channels   = ( $prefs && is_array( $prefs->listing_channels ) ) ? $pref
 $tenure_preferences = ( $prefs && is_array( $prefs->tenure_preferences ) ) ? $prefs->tenure_preferences : array();
 $required_features  = ( $prefs && is_array( $prefs->required_features ) ) ? $prefs->required_features : array();
 $lpnw_alerts_active = ! $prefs || ! empty( $prefs->is_active );
-$lpnw_show_welcome   = isset( $_GET['lpnw_welcome'] ) && '1' === (string) $_GET['lpnw_welcome']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$lpnw_setup_needed   = class_exists( 'LPNW_Onboarding' ) && ! LPNW_Onboarding::has_completed_setup( get_current_user_id() );
+$lpnw_show_welcome  = isset( $_GET['lpnw_welcome'] ) && '1' === (string) $_GET['lpnw_welcome']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$lpnw_setup_needed  = class_exists( 'LPNW_Onboarding' ) && ! LPNW_Onboarding::has_completed_setup( get_current_user_id() );
 
-$lpnw_coverage_count     = null;
+$lpnw_coverage_count      = null;
 $lpnw_coverage_sample_cap = 2500;
 if ( class_exists( 'LPNW_Matcher' ) && class_exists( 'LPNW_Property' ) ) {
 	global $wpdb;
-	$since_7d = gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS );
-	$prop_ids = $wpdb->get_col(
+	$since_7d  = gmdate( 'Y-m-d H:i:s', time() - WEEK_IN_SECONDS );
+	$prop_ids  = $wpdb->get_col(
 		$wpdb->prepare(
 			"SELECT id FROM {$wpdb->prefix}lpnw_properties WHERE created_at >= %s ORDER BY id DESC LIMIT %d",
 			$since_7d,
@@ -94,17 +94,17 @@ if ( class_exists( 'LPNW_Matcher' ) && class_exists( 'LPNW_Property' ) ) {
 	$max_p_m = ( $prefs && isset( $prefs->max_price ) && null !== $prefs->max_price && '' !== $prefs->max_price ) ? (int) $prefs->max_price : null;
 
 	$sub_row = (object) array(
-		'user_id'             => get_current_user_id(),
-		'areas'               => wp_json_encode( $areas ),
-		'property_types'      => wp_json_encode( is_array( $property_types ) ? $property_types : array() ),
-		'alert_types'         => wp_json_encode( is_array( $alert_types ) ? $alert_types : array() ),
-		'min_price'           => $min_p_m,
-		'max_price'           => $max_p_m,
-		'listing_channels'    => wp_json_encode( $listing_channels ),
-		'tenure_preferences'  => wp_json_encode( $tenure_preferences ),
-		'required_features'   => wp_json_encode( $required_features ),
-		'min_bedrooms'        => $min_bed_m,
-		'max_bedrooms'        => $max_bed_m,
+		'user_id'            => get_current_user_id(),
+		'areas'              => wp_json_encode( $areas ),
+		'property_types'     => wp_json_encode( is_array( $property_types ) ? $property_types : array() ),
+		'alert_types'        => wp_json_encode( is_array( $alert_types ) ? $alert_types : array() ),
+		'min_price'          => $min_p_m,
+		'max_price'          => $max_p_m,
+		'listing_channels'   => wp_json_encode( $listing_channels ),
+		'tenure_preferences' => wp_json_encode( $tenure_preferences ),
+		'required_features'  => wp_json_encode( $required_features ),
+		'min_bedrooms'       => $min_bed_m,
+		'max_bedrooms'       => $max_bed_m,
 	);
 
 	$matcher = new LPNW_Matcher();
@@ -129,9 +129,9 @@ $listing_channel_options = array(
 );
 
 $tenure_options = array(
-	'freehold'           => __( 'Freehold', 'lpnw-alerts' ),
-	'leasehold'          => __( 'Leasehold', 'lpnw-alerts' ),
-	'share_of_freehold'  => __( 'Share of freehold', 'lpnw-alerts' ),
+	'freehold'          => __( 'Freehold', 'lpnw-alerts' ),
+	'leasehold'         => __( 'Leasehold', 'lpnw-alerts' ),
+	'share_of_freehold' => __( 'Share of freehold', 'lpnw-alerts' ),
 );
 
 $feature_options = array(
@@ -142,16 +142,16 @@ $feature_options = array(
 	'chain_free' => __( 'Chain Free', 'lpnw-alerts' ),
 );
 
-$lpnw_nw_area_labels = LPNW_Property::get_nw_area_labels();
+$lpnw_nw_area_labels      = LPNW_Property::get_nw_area_labels();
 $lpnw_districts_by_bucket = class_exists( 'LPNW_NW_Postcodes' ) ? LPNW_NW_Postcodes::get_districts_by_area() : array();
 
 $available_types = array(
-	'Detached'         => 'Detached',
-	'Semi-detached'    => 'Semi-detached',
-	'Terraced'         => 'Terraced',
-	'Flat/Maisonette'  => 'Flat/Maisonette',
-	'Auction lot'      => 'Auction Lot',
-	'Other'            => 'Other/Land',
+	'Detached'        => 'Detached',
+	'Semi-detached'   => 'Semi-detached',
+	'Terraced'        => 'Terraced',
+	'Flat/Maisonette' => 'Flat/Maisonette',
+	'Auction lot'     => 'Auction Lot',
+	'Other'           => 'Other/Land',
 );
 
 $available_alert_types = array(
@@ -227,7 +227,7 @@ $reset_url = wp_nonce_url( add_query_arg( 'lpnw_reset_prefs', '1', home_url( '/p
 							<input type="checkbox" id="lpnw-all-nw" class="lpnw-all-nw-toggle"
 								<?php
 								$lpnw_all_bucket_codes = LPNW_NW_POSTCODES;
-								$all_selected            = ! empty( $areas ) && empty( array_diff( $lpnw_all_bucket_codes, $areas ) );
+								$all_selected          = ! empty( $areas ) && empty( array_diff( $lpnw_all_bucket_codes, $areas ) );
 								checked( $all_selected );
 								?>
 							>

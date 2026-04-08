@@ -18,9 +18,9 @@ final class LPNW_WooCommerce_Store {
 
 	public const PRODUCT_SLUG_FREE = 'lpnw-free';
 
-	public const PRODUCT_SLUG_PRO  = 'lpnw-pro';
+	public const PRODUCT_SLUG_PRO = 'lpnw-pro';
 
-	public const PRODUCT_SLUG_VIP  = 'lpnw-vip';
+	public const PRODUCT_SLUG_VIP = 'lpnw-vip';
 
 	/**
 	 * @return array<int, string>
@@ -89,8 +89,8 @@ final class LPNW_WooCommerce_Store {
 	/**
 	 * Hide the free product from category and search; still reachable by direct URL.
 	 *
-	 * @param string       $visibility Catalog visibility.
-	 * @param WC_Product   $product    Product.
+	 * @param string     $visibility Catalog visibility.
+	 * @param WC_Product $product    Product.
 	 */
 	public static function filter_catalog_visibility( string $visibility, $product ): string {
 		if ( ! $product instanceof WC_Product ) {
@@ -105,8 +105,8 @@ final class LPNW_WooCommerce_Store {
 	/**
 	 * One unit per line for tier products (simpler checkout and support).
 	 *
-	 * @param bool         $sold       Whether sold individually.
-	 * @param WC_Product   $product    Product.
+	 * @param bool       $sold       Whether sold individually.
+	 * @param WC_Product $product    Product.
 	 */
 	public static function filter_sold_individually( bool $sold, $product ): bool {
 		if ( ! $product instanceof WC_Product ) {

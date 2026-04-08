@@ -15,10 +15,11 @@ class LPNW_Property {
 	 * Insert or update a property record. Returns the property ID.
 	 *
 	 * @param array<string, mixed> $data Normalised property data.
-	 * @param bool|null            $inserted_new If a non-null variable is passed, set to true when a new row was inserted, false when an existing row was updated.
+	 * @param bool|null            $inserted_new       If a non-null variable is passed, set to true when a new row was inserted, false when an existing row was updated.
+	 * @param bool|null            $significant_update If non-null, set true when an existing row price changed (re-queue alerts).
 	 * @return int|false Property ID on success, false on failure.
 	 */
-	public static function upsert( array $data, ?bool &$inserted_new = null ) {
+	public static function upsert( array $data, ?bool &$inserted_new = null, ?bool &$significant_update = null ) {
 		global $wpdb;
 
 		$table  = $wpdb->prefix . 'lpnw_properties';
@@ -28,43 +29,97 @@ class LPNW_Property {
 		if ( null !== $inserted_new ) {
 			$inserted_new = false;
 		}
+		if ( null !== $significant_update ) {
+			$significant_update = false;
+		}
 
 		if ( empty( $source ) || empty( $ref ) ) {
 			return false;
 		}
 
-		$existing = $wpdb->get_var( $wpdb->prepare(
-			"SELECT id FROM {$table} WHERE source = %s AND source_ref = %s",
-			$source,
-			$ref
-		) );
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$table} WHERE source = %s AND source_ref = %s",
+				$source,
+				$ref
+			)
+		);
 
 		if ( ! $existing ) {
 			$existing = self::find_cross_portal_duplicate( $data, $table );
 		}
 
+		$incoming_first = isset( $data['first_listed_date'] ) ? trim( (string) $data['first_listed_date'] ) : '';
+		$old_row        = null;
+
+		if ( $existing ) {
+			$old_row = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT price, first_listed_date, previous_price, price_changed_at FROM {$table} WHERE id = %d",
+					(int) $existing
+				)
+			);
+		}
+
+		$merged_first = null;
+		if ( $existing && $old_row ) {
+			$old_first    = isset( $old_row->first_listed_date ) ? trim( (string) $old_row->first_listed_date ) : '';
+			$merged       = self::merge_earliest_first_listed_yyyymmdd( $old_first, $incoming_first );
+			$merged_first = ( null === $merged || '' === $merged ) ? null : $merged;
+		} elseif ( $existing ) {
+			$merged_first = '' !== $incoming_first ? sanitize_text_field( $incoming_first ) : null;
+		} elseif ( '' !== $incoming_first ) {
+			$merged_first = sanitize_text_field( $incoming_first );
+		}
+
+		$new_price = isset( $data['price'] ) ? absint( $data['price'] ) : 0;
+		$old_price = ( $old_row && isset( $old_row->price ) ) ? absint( $old_row->price ) : 0;
+
+		$previous_price   = null;
+		$price_changed_at = null;
+
+		if ( $existing && $old_row ) {
+			if ( $old_price > 0 && $new_price > 0 && $old_price !== $new_price ) {
+				$previous_price   = $old_price;
+				$price_changed_at = current_time( 'mysql' );
+				if ( null !== $significant_update ) {
+					$significant_update = true;
+				}
+			} else {
+				if ( isset( $old_row->previous_price ) && null !== $old_row->previous_price && '' !== (string) $old_row->previous_price ) {
+					$previous_price = absint( $old_row->previous_price );
+				}
+				$pcat = isset( $old_row->price_changed_at ) ? trim( (string) $old_row->price_changed_at ) : '';
+				if ( '' !== $pcat ) {
+					$price_changed_at = $pcat;
+				}
+			}
+		}
+
 		$row = array(
-			'source'           => $source,
-			'source_ref'       => $ref,
-			'address'          => sanitize_text_field( $data['address'] ?? '' ),
-			'postcode'         => self::clean_postcode( $data['postcode'] ?? '' ),
-			'latitude'         => isset( $data['latitude'] ) ? floatval( $data['latitude'] ) : null,
-			'longitude'        => isset( $data['longitude'] ) ? floatval( $data['longitude'] ) : null,
-			'price'            => isset( $data['price'] ) ? absint( $data['price'] ) : null,
-			'property_type'    => sanitize_text_field( $data['property_type'] ?? '' ),
-			'bedrooms'         => isset( $data['bedrooms'] ) ? absint( $data['bedrooms'] ) : null,
-			'bathrooms'        => isset( $data['bathrooms'] ) ? absint( $data['bathrooms'] ) : null,
-			'tenure_type'      => sanitize_text_field( $data['tenure_type'] ?? '' ),
-			'price_frequency'  => sanitize_text_field( $data['price_frequency'] ?? '' ),
-			'floor_area_sqft'  => isset( $data['floor_area_sqft'] ) ? absint( $data['floor_area_sqft'] ) : null,
-			'first_listed_date' => isset( $data['first_listed_date'] ) ? sanitize_text_field( $data['first_listed_date'] ) : null,
-			'agent_name'       => sanitize_text_field( $data['agent_name'] ?? '' ),
+			'source'            => $source,
+			'source_ref'        => $ref,
+			'address'           => sanitize_text_field( $data['address'] ?? '' ),
+			'postcode'          => self::clean_postcode( $data['postcode'] ?? '' ),
+			'latitude'          => isset( $data['latitude'] ) ? floatval( $data['latitude'] ) : null,
+			'longitude'         => isset( $data['longitude'] ) ? floatval( $data['longitude'] ) : null,
+			'price'             => isset( $data['price'] ) ? absint( $data['price'] ) : null,
+			'previous_price'    => $previous_price,
+			'price_changed_at'  => $price_changed_at,
+			'property_type'     => sanitize_text_field( $data['property_type'] ?? '' ),
+			'bedrooms'          => isset( $data['bedrooms'] ) ? absint( $data['bedrooms'] ) : null,
+			'bathrooms'         => isset( $data['bathrooms'] ) ? absint( $data['bathrooms'] ) : null,
+			'tenure_type'       => sanitize_text_field( $data['tenure_type'] ?? '' ),
+			'price_frequency'   => sanitize_text_field( $data['price_frequency'] ?? '' ),
+			'floor_area_sqft'   => isset( $data['floor_area_sqft'] ) ? absint( $data['floor_area_sqft'] ) : null,
+			'first_listed_date' => $merged_first,
+			'agent_name'        => sanitize_text_field( $data['agent_name'] ?? '' ),
 			'key_features_text' => sanitize_text_field( $data['key_features_text'] ?? '' ),
-			'description'      => wp_kses_post( $data['description'] ?? '' ),
-			'application_type' => sanitize_text_field( $data['application_type'] ?? '' ),
-			'auction_date'     => isset( $data['auction_date'] ) ? sanitize_text_field( $data['auction_date'] ) : null,
-			'source_url'       => esc_url_raw( $data['source_url'] ?? '' ),
-			'raw_data'         => isset( $data['raw_data'] ) ? wp_json_encode( $data['raw_data'] ) : null,
+			'description'       => wp_kses_post( $data['description'] ?? '' ),
+			'application_type'  => sanitize_text_field( $data['application_type'] ?? '' ),
+			'auction_date'      => isset( $data['auction_date'] ) ? sanitize_text_field( $data['auction_date'] ) : null,
+			'source_url'        => esc_url_raw( $data['source_url'] ?? '' ),
+			'raw_data'          => isset( $data['raw_data'] ) ? wp_json_encode( $data['raw_data'] ) : null,
 		);
 
 		if ( $existing ) {
@@ -81,6 +136,40 @@ class LPNW_Property {
 	}
 
 	/**
+	 * When refreshing a listing, keep the earliest known portal first-listed date so a price refresh
+	 * does not look like a brand-new listing if the feed sends a newer date.
+	 *
+	 * @param string $existing_ymd Date already stored (Y-m-d or empty).
+	 * @param string $incoming_ymd Date from the latest feed parse (Y-m-d or empty).
+	 * @return string|null Normalised Y-m-d or null when neither side is usable.
+	 */
+	private static function merge_earliest_first_listed_yyyymmdd( string $existing_ymd, string $incoming_ymd ): ?string {
+		$a = trim( $existing_ymd );
+		$b = trim( $incoming_ymd );
+		if ( '' === $a && '' === $b ) {
+			return null;
+		}
+		if ( '' === $a ) {
+			return '' !== $b ? sanitize_text_field( $b ) : null;
+		}
+		if ( '' === $b ) {
+			return sanitize_text_field( $a );
+		}
+		$ta = strtotime( $a );
+		$tb = strtotime( $b );
+		if ( false === $ta && false === $tb ) {
+			return null;
+		}
+		if ( false === $ta ) {
+			return sanitize_text_field( $b );
+		}
+		if ( false === $tb ) {
+			return sanitize_text_field( $a );
+		}
+		return $ta <= $tb ? sanitize_text_field( $a ) : sanitize_text_field( $b );
+	}
+
+	/**
 	 * Get properties matching given filters.
 	 *
 	 * @param array<string, mixed> $filters Filter criteria.
@@ -91,15 +180,17 @@ class LPNW_Property {
 	public static function query( array $filters = array(), int $limit = 50, int $offset = 0 ): array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'lpnw_properties';
+		$table                       = $wpdb->prefix . 'lpnw_properties';
 		list( $where_clause, $args ) = self::build_filter_where_clause( $filters );
-		$args[] = $limit;
-		$args[] = $offset;
+		$args[]                      = $limit;
+		$args[]                      = $offset;
 
-		return $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE {$where_clause} ORDER BY created_at DESC LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			...$args
-		) );
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE {$where_clause} ORDER BY created_at DESC LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				...$args
+			)
+		);
 	}
 
 	/**
@@ -111,17 +202,19 @@ class LPNW_Property {
 	public static function count_with_filters( array $filters = array() ): int {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'lpnw_properties';
+		$table                       = $wpdb->prefix . 'lpnw_properties';
 		list( $where_clause, $args ) = self::build_filter_where_clause( $filters );
 
 		if ( empty( $args ) ) {
 			return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE {$where_clause}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
-		return (int) $wpdb->get_var( $wpdb->prepare(
-			"SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			...$args
-		) );
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				...$args
+			)
+		);
 	}
 
 	/**
@@ -207,9 +300,9 @@ class LPNW_Property {
 	/**
 	 * Restrict by broad property type category (portal-style wording).
 	 *
-	 * @param string               $category One of Detached, Semi-detached, Terraced, Flat, Other.
-	 * @param array<int, string>   $where    WHERE fragments.
-	 * @param array<int, mixed>    $args     prepare args.
+	 * @param string             $category One of Detached, Semi-detached, Terraced, Flat, Other.
+	 * @param array<int, string> $where    WHERE fragments.
+	 * @param array<int, mixed>  $args     prepare args.
 	 */
 	private static function append_property_type_category_sql( string $category, array &$where, array &$args ): void {
 		$category = trim( $category );
@@ -260,19 +353,19 @@ class LPNW_Property {
 			OR ({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)
 			OR ({$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s OR {$pt} LIKE %s)
 		)";
-		$args[] = '%detached%';
-		$args[] = '%semi%';
-		$args[] = '%semi-detached%';
-		$args[] = '%semi detached%';
-		$args[] = '%semi-detached %';
-		$args[] = '%terraced%';
-		$args[] = '%terrace%';
-		$args[] = '%end of terrace%';
-		$args[] = '%town house%';
-		$args[] = '%flat%';
-		$args[] = '%apartment%';
-		$args[] = '%maisonette%';
-		$args[] = '%penthouse%';
+		$args[]  = '%detached%';
+		$args[]  = '%semi%';
+		$args[]  = '%semi-detached%';
+		$args[]  = '%semi detached%';
+		$args[]  = '%semi-detached %';
+		$args[]  = '%terraced%';
+		$args[]  = '%terrace%';
+		$args[]  = '%end of terrace%';
+		$args[]  = '%town house%';
+		$args[]  = '%flat%';
+		$args[]  = '%apartment%';
+		$args[]  = '%maisonette%';
+		$args[]  = '%penthouse%';
 	}
 
 	/**
@@ -291,18 +384,18 @@ class LPNW_Property {
 		$limit = max( 1, min( absint( $limit ), 100 ) );
 		$table = $wpdb->prefix . 'lpnw_properties';
 
-		$extra_where = '';
+		$extra_where  = '';
 		$prepare_args = array();
 
 		if ( ! empty( $filters['source'] ) ) {
-			$extra_where   = ' AND source = %s';
+			$extra_where    = ' AND source = %s';
 			$prepare_args[] = sanitize_text_field( $filters['source'] );
 		}
 
 		if ( self::db_supports_window_functions() ) {
-			$pc            = 'UPPER(TRIM(p.postcode))';
-			$bucket_case   = self::get_nw_postcode_bucket_case_sql( $pc );
-			$sql           = "SELECT ranked.id, ranked.source, ranked.source_ref, ranked.address, ranked.postcode, ranked.latitude, ranked.longitude, ranked.price, ranked.property_type, ranked.bedrooms, ranked.bathrooms, ranked.tenure_type, ranked.price_frequency, ranked.floor_area_sqft, ranked.first_listed_date, ranked.agent_name, ranked.key_features_text, ranked.description, ranked.application_type, ranked.auction_date, ranked.source_url, ranked.raw_data, ranked.created_at, ranked.updated_at
+			$pc          = 'UPPER(TRIM(p.postcode))';
+			$bucket_case = self::get_nw_postcode_bucket_case_sql( $pc );
+			$sql         = "SELECT ranked.id, ranked.source, ranked.source_ref, ranked.address, ranked.postcode, ranked.latitude, ranked.longitude, ranked.price, ranked.previous_price, ranked.price_changed_at, ranked.property_type, ranked.bedrooms, ranked.bathrooms, ranked.tenure_type, ranked.price_frequency, ranked.floor_area_sqft, ranked.first_listed_date, ranked.agent_name, ranked.key_features_text, ranked.description, ranked.application_type, ranked.auction_date, ranked.source_url, ranked.raw_data, ranked.created_at, ranked.updated_at
 				FROM (
 					SELECT p.*, ROW_NUMBER() OVER (
 						PARTITION BY {$bucket_case}
@@ -338,7 +431,7 @@ class LPNW_Property {
 		global $wpdb;
 
 		$supports = false;
-		$version = $wpdb->get_var( 'SELECT VERSION()' );
+		$version  = $wpdb->get_var( 'SELECT VERSION()' );
 
 		if ( ! is_string( $version ) || '' === $version ) {
 			$supports = false;
@@ -347,8 +440,8 @@ class LPNW_Property {
 
 		if ( preg_match( '/MariaDB/i', $version ) ) {
 			if ( preg_match( '/^(\d+)\.(\d+)/', $version, $m ) ) {
-				$major = (int) $m[1];
-				$minor = (int) $m[2];
+				$major    = (int) $m[1];
+				$minor    = (int) $m[2];
 				$supports = ( $major > 10 ) || ( 10 === $major && $minor >= 2 );
 			}
 		} elseif ( preg_match( '/^(\d+)\.(\d+)/', $version, $m ) ) {
@@ -438,10 +531,10 @@ class LPNW_Property {
 	/**
 	 * One recent property per NW prefix via UNION ALL (MySQL before 8.0, MariaDB before 10.2).
 	 *
-	 * @param string               $table        Full table name.
-	 * @param string               $extra_where  Extra AND clause with placeholders (e.g. " AND source = %s").
-	 * @param array<int, mixed>    $prepare_args Args for extra_where placeholders only.
-	 * @param int                  $limit        Final LIMIT.
+	 * @param string            $table        Full table name.
+	 * @param string            $extra_where  Extra AND clause with placeholders (e.g. " AND source = %s").
+	 * @param array<int, mixed> $prepare_args Args for extra_where placeholders only.
+	 * @param int               $limit        Final LIMIT.
 	 * @return array<int, object>
 	 */
 	private static function query_diverse_union_fallback( string $table, string $extra_where, array $prepare_args, int $limit ): array {
@@ -496,10 +589,12 @@ class LPNW_Property {
 		global $wpdb;
 		$table = $wpdb->prefix . 'lpnw_properties';
 
-		return $wpdb->get_row( $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE id = %d",
-			$id
-		) );
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE id = %d",
+				$id
+			)
+		);
 	}
 
 	/**
@@ -512,11 +607,13 @@ class LPNW_Property {
 		global $wpdb;
 		$table = $wpdb->prefix . 'lpnw_properties';
 
-		$results = $wpdb->get_col( $wpdb->prepare(
-			"SELECT id FROM {$table} WHERE created_at >= %s ORDER BY created_at ASC LIMIT %d",
-			$since,
-			max( 1, $limit )
-		) );
+		$results = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM {$table} WHERE created_at >= %s ORDER BY created_at ASC LIMIT %d",
+				$since,
+				max( 1, $limit )
+			)
+		);
 
 		return array_map( 'intval', $results );
 	}
@@ -554,20 +651,22 @@ class LPNW_Property {
 			return null;
 		}
 
-		$placeholders  = implode( ',', array_fill( 0, count( $other_sources ), '%s' ) );
-		$app_type      = sanitize_text_field( $data['application_type'] ?? '' );
-		$args          = array_merge( $other_sources, array( $postcode, $price, $app_type ) );
+		$placeholders = implode( ',', array_fill( 0, count( $other_sources ), '%s' ) );
+		$app_type     = sanitize_text_field( $data['application_type'] ?? '' );
+		$args         = array_merge( $other_sources, array( $postcode, $price, $app_type ) );
 
-		$match = $wpdb->get_var( $wpdb->prepare(
-			"SELECT id FROM {$table}
+		$match = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$table}
 			 WHERE source IN ({$placeholders})
 			 AND postcode = %s
 			 AND price = %d
 			 AND COALESCE(application_type, '') = %s
 			 AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
 			 LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			...$args
-		) );
+				...$args
+			)
+		);
 
 		return $match ? (int) $match : null;
 	}
@@ -608,14 +707,16 @@ class LPNW_Property {
 		$candidates = array();
 
 		if ( '' !== $postcode ) {
-			$rows = $wpdb->get_results( $wpdb->prepare(
-				"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
 				WHERE postcode = %s AND price = %d AND COALESCE(application_type, '') = %s
 				LIMIT 50", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$postcode,
-				$price,
-				$app_type
-			) );
+					$postcode,
+					$price,
+					$app_type
+				)
+			);
 			if ( is_array( $rows ) ) {
 				foreach ( $rows as $row ) {
 					$candidates[ (int) $row->id ] = $row;
@@ -624,17 +725,19 @@ class LPNW_Property {
 		}
 
 		if ( null !== $lat && null !== $lng ) {
-			$rows2 = $wpdb->get_results( $wpdb->prepare(
-				"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
+			$rows2 = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT id, address, postcode, latitude, longitude, price, application_type FROM {$table}
 				WHERE price = %d AND COALESCE(application_type, '') = %s
 				AND latitude IS NOT NULL AND longitude IS NOT NULL
 				AND ABS(latitude - %f) <= 0.001 AND ABS(longitude - %f) <= 0.001
 				LIMIT 50", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$price,
-				$app_type,
-				$lat,
-				$lng
-			) );
+					$price,
+					$app_type,
+					$lat,
+					$lng
+				)
+			);
 			if ( is_array( $rows2 ) ) {
 				foreach ( $rows2 as $row ) {
 					$candidates[ (int) $row->id ] = $row;
@@ -661,7 +764,7 @@ class LPNW_Property {
 		}
 
 		$matches[] = $property_id;
-		$matches = array_values( array_unique( $matches ) );
+		$matches   = array_values( array_unique( $matches ) );
 		sort( $matches, SORT_NUMERIC );
 
 		return $matches;
@@ -683,10 +786,12 @@ class LPNW_Property {
 
 		$table        = $wpdb->prefix . 'lpnw_properties';
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-		$sources      = $wpdb->get_col( $wpdb->prepare(
-			"SELECT DISTINCT source FROM {$table} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			...$ids
-		) );
+		$sources      = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT source FROM {$table} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				...$ids
+			)
+		);
 
 		if ( ! is_array( $sources ) ) {
 			return array();
@@ -750,10 +855,10 @@ class LPNW_Property {
 	/**
 	 * Restrict a WHERE clause to a broad NW bucket (M/L use regex so LA does not match L).
 	 *
-	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
-	 * @param string              $prefix        Bucket: M, L, PR, BB, etc.
-	 * @param array<int, string>  $where         WHERE fragments (modified).
-	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
+	 * @param string             $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
+	 * @param string             $prefix        Bucket: M, L, PR, BB, etc.
+	 * @param array<int, string> $where         WHERE fragments (modified).
+	 * @param array<int, mixed>  $args          prepare args (modified when placeholders used).
 	 */
 	public static function append_broad_nw_bucket_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
 		$p = strtoupper( trim( sanitize_text_field( $prefix ) ) );
@@ -775,10 +880,10 @@ class LPNW_Property {
 	/**
 	 * Restrict a WHERE clause to an NW bucket or a specific outward district (e.g. OL2, CH41).
 	 *
-	 * @param string              $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
-	 * @param string              $prefix        Broad bucket or district outward code.
-	 * @param array<int, string>  $where         WHERE fragments (modified).
-	 * @param array<int, mixed>   $args          prepare args (modified when placeholders used).
+	 * @param string             $postcode_expr SQL expression, e.g. UPPER(TRIM(postcode)).
+	 * @param string             $prefix        Broad bucket or district outward code.
+	 * @param array<int, string> $where         WHERE fragments (modified).
+	 * @param array<int, mixed>  $args          prepare args (modified when placeholders used).
 	 */
 	public static function append_postcode_prefix_sql( string $postcode_expr, string $prefix, array &$where, array &$args ): void {
 		if ( class_exists( 'LPNW_NW_Postcodes' ) ) {
@@ -886,6 +991,150 @@ class LPNW_Property {
 	}
 
 	/**
+	 * Sale vs rent label for alerts and cards (portals set application_type to sale|rent).
+	 *
+	 * @param object $property Row from lpnw_properties.
+	 */
+	public static function get_listing_channel_label( object $property ): string {
+		$app = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
+		if ( 'rent' === $app ) {
+			return __( 'To let', 'lpnw-alerts' );
+		}
+		if ( 'sale' === $app ) {
+			return __( 'For sale', 'lpnw-alerts' );
+		}
+		if ( self::is_portal_listing_row( $property ) ) {
+			return __( 'For sale', 'lpnw-alerts' );
+		}
+
+		return '';
+	}
+
+	/**
+	 * True when we recently recorded a lower asking price than the previous snapshot (portal price drop).
+	 *
+	 * @param object $property        Row with price, previous_price, price_changed_at.
+	 * @param int    $max_age_seconds Freshness window (default 10 days, aligned with card price lines and emails).
+	 */
+	public static function is_recent_price_reduction( object $property, int $max_age_seconds = 864000 ): bool {
+		$prev = isset( $property->previous_price ) ? absint( $property->previous_price ) : 0;
+		$cur  = isset( $property->price ) ? absint( $property->price ) : 0;
+		if ( $prev <= 0 || $cur <= 0 || $cur >= $prev ) {
+			return false;
+		}
+
+		$at = isset( $property->price_changed_at ) ? trim( (string) $property->price_changed_at ) : '';
+		if ( '' === $at ) {
+			return false;
+		}
+
+		$ts = strtotime( $at . ( strlen( $at ) <= 10 ? ' 12:00:00' : '' ) );
+		if ( false === $ts ) {
+			return false;
+		}
+
+		return ( time() - $ts ) >= 0 && ( time() - $ts ) <= $max_age_seconds;
+	}
+
+	/**
+	 * One-line summary for emails: previous vs current price after a tracked change.
+	 *
+	 * @param object $property Row from lpnw_properties.
+	 */
+	public static function format_price_change_summary_line( object $property ): string {
+		if ( ! self::is_recent_price_reduction( $property, 10 * DAY_IN_SECONDS ) ) {
+			return '';
+		}
+
+		$prev = isset( $property->previous_price ) ? absint( $property->previous_price ) : 0;
+		$cur  = isset( $property->price ) ? absint( $property->price ) : 0;
+		if ( $prev <= 0 || $cur <= 0 ) {
+			return '';
+		}
+
+		/* translators: 1: previous price formatted with grouping, 2: current price formatted with grouping. */
+		return sprintf(
+			__( 'Was £%1$s, now £%2$s', 'lpnw-alerts' ),
+			number_format_i18n( $prev ),
+			number_format_i18n( $cur )
+		);
+	}
+
+	/**
+	 * Card line: when the asking price was cut, relative to price_changed_at (same window as Was/now line).
+	 *
+	 * @param object   $property        Row with price, previous_price, price_changed_at.
+	 * @param int|null $max_age_seconds Default 10 days, aligned with format_price_change_summary_line().
+	 */
+	public static function format_price_reduction_recency_line( object $property, ?int $max_age_seconds = null ): string {
+		if ( null === $max_age_seconds ) {
+			$max_age_seconds = 10 * (int) DAY_IN_SECONDS;
+		}
+
+		if ( ! self::is_recent_price_reduction( $property, $max_age_seconds ) ) {
+			return '';
+		}
+
+		$at = isset( $property->price_changed_at ) ? trim( (string) $property->price_changed_at ) : '';
+		if ( '' === $at ) {
+			return '';
+		}
+
+		$ts = strtotime( $at . ( strlen( $at ) <= 10 ? ' 12:00:00' : '' ) );
+		if ( false === $ts ) {
+			return '';
+		}
+
+		$now  = time();
+		$diff = $now - $ts;
+		if ( $diff < 0 ) {
+			return '';
+		}
+
+		if ( $diff < HOUR_IN_SECONDS ) {
+			$mins = max( 1, (int) floor( $diff / 60 ) );
+			if ( $mins < 5 ) {
+				return __( 'Price reduced just now', 'lpnw-alerts' );
+			}
+			return sprintf(
+				/* translators: %d: number of minutes */
+				_n( 'Price reduced %d minute ago', 'Price reduced %d minutes ago', $mins, 'lpnw-alerts' ),
+				$mins
+			);
+		}
+
+		if ( $diff < DAY_IN_SECONDS ) {
+			$hours = max( 1, (int) floor( $diff / HOUR_IN_SECONDS ) );
+			return sprintf(
+				/* translators: %d: number of hours */
+				_n( 'Price reduced %d hour ago', 'Price reduced %d hours ago', $hours, 'lpnw-alerts' ),
+				$hours
+			);
+		}
+
+		$tz         = wp_timezone();
+		$changed_dt = date_create_immutable( wp_date( 'Y-m-d', $ts ), $tz );
+		$today_dt   = date_create_immutable( current_time( 'Y-m-d' ), $tz );
+		if ( ! $changed_dt || ! $today_dt || $changed_dt > $today_dt ) {
+			return '';
+		}
+
+		$cal_days = (int) $changed_dt->diff( $today_dt )->days;
+		if ( 0 === $cal_days ) {
+			return __( 'Price reduced today', 'lpnw-alerts' );
+		}
+		if ( 1 === $cal_days ) {
+			return __( 'Price reduced yesterday', 'lpnw-alerts' );
+		}
+
+		return sprintf(
+			/* translators: %d: number of days */
+			_n( 'Price reduced %d day ago', 'Price reduced %d days ago', $cal_days, 'lpnw-alerts' ),
+			$cal_days
+		);
+	}
+
+	/**
 	 * Recency for property cards: NEW / JUST LISTED badges follow portal first-listed date when present,
 	 * so we do not mark a week-old Rightmove listing "new" just because we only ingested it today.
 	 *
@@ -895,14 +1144,14 @@ class LPNW_Property {
 	 * @return array{label: string, is_urgent: bool, is_new: bool}
 	 */
 	public static function get_card_listing_recency( object $property ): array {
-		$first = isset( $property->first_listed_date ) ? trim( (string) $property->first_listed_date ) : '';
+		$first   = isset( $property->first_listed_date ) ? trim( (string) $property->first_listed_date ) : '';
 		$created = isset( $property->created_at ) ? trim( (string) $property->created_at ) : '';
 
 		$label_date = '' !== $first ? $first : $created;
 
 		if ( self::is_portal_listing_row( $property ) ) {
 			if ( '' !== $first ) {
-				return self::get_listed_label( $first );
+				return self::get_first_listed_age_label_for_portal( $first );
 			}
 
 			if ( '' === $created ) {
@@ -937,6 +1186,91 @@ class LPNW_Property {
 		}
 
 		return self::get_listed_label( $label_date );
+	}
+
+	/**
+	 * Portal first-listed date on cards: same urgency flags as get_listed_label() but wording
+	 * uses "First listed …" so it is not read as "this just happened" when the feed surfaced
+	 * the row because of a price change or refresh.
+	 *
+	 * @param string $date_string Portal first_listed_date (Y-m-d or datetime).
+	 * @return array{label: string, is_urgent: bool, is_new: bool}
+	 */
+	private static function get_first_listed_age_label_for_portal( string $date_string ): array {
+		$result = array(
+			'label'     => '',
+			'is_urgent' => false,
+			'is_new'    => false,
+		);
+
+		if ( '' === trim( $date_string ) ) {
+			return $result;
+		}
+
+		$ts = strtotime( $date_string );
+		if ( false === $ts ) {
+			return $result;
+		}
+
+		$now  = time();
+		$diff = $now - $ts;
+
+		if ( $diff < 0 ) {
+			return $result;
+		}
+
+		$result['is_new'] = $diff < ( 2 * DAY_IN_SECONDS );
+
+		if ( $diff < 3600 ) {
+			$mins = max( 1, (int) floor( $diff / 60 ) );
+			if ( $mins < 5 ) {
+				$result['label'] = __( 'Just listed', 'lpnw-alerts' );
+			} else {
+				$result['label'] = sprintf(
+					/* translators: %d: number of minutes */
+					_n( '%d minute ago', '%d minutes ago', $mins, 'lpnw-alerts' ),
+					$mins
+				);
+			}
+			$result['is_urgent'] = true;
+			return $result;
+		}
+
+		if ( $diff < DAY_IN_SECONDS ) {
+			$hours           = max( 1, (int) floor( $diff / 3600 ) );
+			$result['label'] = sprintf(
+				/* translators: %d: number of hours */
+				_n( '%d hour ago', '%d hours ago', $hours, 'lpnw-alerts' ),
+				$hours
+			);
+			$result['is_urgent'] = ( $hours <= 4 );
+			return $result;
+		}
+
+		$tz        = wp_timezone();
+		$listed_dt = date_create_immutable( wp_date( 'Y-m-d', $ts ), $tz );
+		$today_dt  = date_create_immutable( current_time( 'Y-m-d' ), $tz );
+
+		if ( ! $listed_dt || ! $today_dt || $listed_dt > $today_dt ) {
+			return $result;
+		}
+
+		$cal_days = (int) $listed_dt->diff( $today_dt )->days;
+
+		if ( 0 === $cal_days ) {
+			$result['label']     = __( 'First listed today', 'lpnw-alerts' );
+			$result['is_urgent'] = true;
+		} elseif ( 1 === $cal_days ) {
+			$result['label'] = __( 'First listed yesterday', 'lpnw-alerts' );
+		} elseif ( $cal_days > 1 ) {
+			$result['label'] = sprintf(
+				/* translators: %d: number of days since the property was first listed on the portal */
+				_n( 'First listed %d day ago', 'First listed %d days ago', $cal_days, 'lpnw-alerts' ),
+				$cal_days
+			);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -976,7 +1310,7 @@ class LPNW_Property {
 		if ( $diff < 3600 ) {
 			$mins = max( 1, (int) floor( $diff / 60 ) );
 			if ( $mins < 5 ) {
-				$result['label']     = __( 'Just listed', 'lpnw-alerts' );
+				$result['label'] = __( 'Just listed', 'lpnw-alerts' );
 			} else {
 				$result['label'] = sprintf(
 					/* translators: %d: number of minutes */
@@ -989,7 +1323,7 @@ class LPNW_Property {
 		}
 
 		if ( $diff < DAY_IN_SECONDS ) {
-			$hours = max( 1, (int) floor( $diff / 3600 ) );
+			$hours           = max( 1, (int) floor( $diff / 3600 ) );
 			$result['label'] = sprintf(
 				/* translators: %d: number of hours */
 				_n( '%d hour ago', '%d hours ago', $hours, 'lpnw-alerts' ),

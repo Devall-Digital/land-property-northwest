@@ -71,15 +71,15 @@ final class LPNW_Onboarding {
 		LPNW_Subscriber::save_preferences(
 			$user_id,
 			array(
-				'areas'                => $areas,
-				'property_types'       => array(),
-				'alert_types'          => array( 'listing' ),
-				'listing_channels'     => array(),
-				'tenure_preferences'   => array(),
-				'required_features'    => array(),
-				'frequency'            => $freq,
-				'is_active'            => 1,
-				'mark_setup_incomplete'=> true,
+				'areas'                 => $areas,
+				'property_types'        => array(),
+				'alert_types'           => array( 'listing' ),
+				'listing_channels'      => array(),
+				'tenure_preferences'    => array(),
+				'required_features'     => array(),
+				'frequency'             => $freq,
+				'is_active'             => 1,
+				'mark_setup_incomplete' => true,
 			)
 		);
 	}

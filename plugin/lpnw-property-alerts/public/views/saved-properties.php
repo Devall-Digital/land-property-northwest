@@ -59,17 +59,18 @@ if ( empty( $saved ) ) : ?>
 
 			$agent_line = trim( (string) ( $item->agent_name ?? '' ) );
 
-			$lpnw_recency = class_exists( 'LPNW_Property' )
+			$lpnw_recency   = class_exists( 'LPNW_Property' )
 				? LPNW_Property::get_card_listing_recency( $item )
 				: array(
 					'label'     => '',
 					'is_urgent' => false,
 					'is_new'    => false,
 				);
-			$listed_label   = $lpnw_recency['label'];
-			$is_new_listing = $lpnw_recency['is_new'];
-			$is_urgent      = $lpnw_recency['is_urgent'];
-			$listed_class   = $is_urgent
+			$listed_label     = $lpnw_recency['label'];
+			$lpnw_price_drop  = class_exists( 'LPNW_Property' ) && LPNW_Property::is_recent_price_reduction( $item );
+			$is_new_listing   = ! $lpnw_price_drop && $lpnw_recency['is_new'];
+			$is_urgent        = ! $lpnw_price_drop && $lpnw_recency['is_urgent'];
+			$listed_class     = $is_urgent
 				? 'lpnw-property-card__listed lpnw-property-card__listed--urgent'
 				: ( $is_new_listing
 					? 'lpnw-property-card__listed lpnw-property-card__listed--recent'
@@ -77,11 +78,12 @@ if ( empty( $saved ) ) : ?>
 
 			$price_raw   = isset( $item->price ) ? (int) $item->price : 0;
 			$is_pcm      = 'rent' === strtolower( trim( (string) ( $item->application_type ?? '' ) ) );
+			$lpnw_ch_lab = class_exists( 'LPNW_Property' ) ? LPNW_Property::get_listing_channel_label( $item ) : '';
 			$source      = sanitize_key( $item->source ?? '' );
 			$source_root = '' !== $source ? explode( '_', $source, 2 )[0] : '';
 			$is_auction  = ( '' !== $source && str_starts_with( $source, 'auction_' ) );
 
-			$lpnw_ctx          = class_exists( 'LPNW_Property' ) ? LPNW_Property::get_card_context( $item ) : array(
+			$lpnw_ctx         = class_exists( 'LPNW_Property' ) ? LPNW_Property::get_card_context( $item ) : array(
 				'raw'               => array(),
 				'image_url'         => '',
 				'is_off_market'     => false,
@@ -90,13 +92,13 @@ if ( empty( $saved ) ) : ?>
 				'contact_email'     => '',
 				'contact_tel_href'  => '',
 			);
-			$raw               = $lpnw_ctx['raw'];
-			$image_url         = $lpnw_ctx['image_url'];
-			$is_off_market     = $lpnw_ctx['is_off_market'];
-			$off_contact       = $lpnw_ctx['agent_contact'];
-			$off_reason        = $lpnw_ctx['off_market_reason'];
-			$contact_email     = $lpnw_ctx['contact_email'];
-			$contact_tel_href  = $lpnw_ctx['contact_tel_href'];
+			$raw              = $lpnw_ctx['raw'];
+			$image_url        = $lpnw_ctx['image_url'];
+			$is_off_market    = $lpnw_ctx['is_off_market'];
+			$off_contact      = $lpnw_ctx['agent_contact'];
+			$off_reason       = $lpnw_ctx['off_market_reason'];
+			$contact_email    = $lpnw_ctx['contact_email'];
+			$contact_tel_href = $lpnw_ctx['contact_tel_href'];
 
 			$view_label = __( 'View source', 'lpnw-alerts' );
 			if ( 'rightmove' === $source ) {
@@ -117,7 +119,7 @@ if ( empty( $saved ) ) : ?>
 
 			$source_badge_label = ucwords( str_replace( '_', ' ', $source ) );
 			if ( $is_auction ) {
-				$ah_suffix = preg_replace( '/^auction_/', '', $source );
+				$ah_suffix          = preg_replace( '/^auction_/', '', $source );
 				$source_badge_label = '' !== $ah_suffix ? strtoupper( $ah_suffix ) : $source_badge_label;
 			}
 			$type_label = trim( (string) ( $item->property_type ?? '' ) );
@@ -130,7 +132,7 @@ if ( empty( $saved ) ) : ?>
 					}
 					$lpnw_ad_candidate = trim( (string) $raw[ $lpnw_ad_key ] );
 					try {
-						$lpnw_ad_dt = new DateTimeImmutable( $lpnw_ad_candidate, wp_timezone() );
+						$lpnw_ad_dt       = new DateTimeImmutable( $lpnw_ad_candidate, wp_timezone() );
 						$auction_date_raw = $lpnw_ad_dt->format( 'Y-m-d' );
 						break;
 					} catch ( Exception $e ) {
@@ -170,7 +172,9 @@ if ( empty( $saved ) ) : ?>
 			<li class="lpnw-property-list__item">
 				<article class="lpnw-property-card<?php echo $is_off_market ? ' lpnw-property-card--off-market' : ''; ?>" aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
 					<div class="lpnw-property-card__image">
-						<?php if ( $is_urgent ) : ?>
+						<?php if ( $lpnw_price_drop ) : ?>
+							<span class="lpnw-new-badge lpnw-new-badge--price-drop"><?php esc_html_e( 'PRICE DROP', 'lpnw-alerts' ); ?></span>
+						<?php elseif ( $is_urgent ) : ?>
 							<span class="lpnw-new-badge lpnw-new-badge--urgent"><?php esc_html_e( 'JUST LISTED', 'lpnw-alerts' ); ?></span>
 						<?php elseif ( $is_new_listing ) : ?>
 							<span class="lpnw-new-badge"><?php esc_html_e( 'NEW', 'lpnw-alerts' ); ?></span>
@@ -204,6 +208,9 @@ if ( empty( $saved ) ) : ?>
 							<?php endif; ?>
 							<?php if ( '' !== $tenure_badge_label ) : ?>
 								<span class="lpnw-tenure-badge"><?php echo esc_html( $tenure_badge_label ); ?></span>
+							<?php endif; ?>
+							<?php if ( '' !== $lpnw_ch_lab ) : ?>
+								<span class="lpnw-channel-badge"><?php echo esc_html( $lpnw_ch_lab ); ?></span>
 							<?php endif; ?>
 						</div>
 						<?php if ( $price_raw > 0 ) : ?>
@@ -292,6 +299,17 @@ if ( empty( $saved ) ) : ?>
 
 					<?php if ( $is_off_market && '' !== $off_reason ) : ?>
 						<p class="lpnw-property-card__off-market-note"><?php echo esc_html( $off_reason ); ?></p>
+					<?php endif; ?>
+
+					<?php
+					$lpnw_price_recency   = class_exists( 'LPNW_Property' ) ? LPNW_Property::format_price_reduction_recency_line( $item ) : '';
+					$lpnw_price_change_ln = class_exists( 'LPNW_Property' ) ? LPNW_Property::format_price_change_summary_line( $item ) : '';
+					?>
+					<?php if ( '' !== $lpnw_price_recency ) : ?>
+						<p class="lpnw-property-card__price-reduced-at"><?php echo esc_html( $lpnw_price_recency ); ?></p>
+					<?php endif; ?>
+					<?php if ( '' !== $lpnw_price_change_ln ) : ?>
+						<p class="lpnw-property-card__price-change"><?php echo esc_html( $lpnw_price_change_ln ); ?></p>
 					<?php endif; ?>
 
 					<?php if ( '' !== $listed_label ) : ?>

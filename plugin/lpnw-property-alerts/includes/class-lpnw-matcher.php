@@ -172,7 +172,7 @@ class LPNW_Matcher {
 			return true;
 		}
 
-		$app = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
+		$app     = strtolower( trim( (string) ( $property->application_type ?? '' ) ) );
 		$allowed = array();
 		foreach ( $channels as $ch ) {
 			$allowed[] = strtolower( trim( (string) $ch ) );
@@ -444,11 +444,14 @@ class LPNW_Matcher {
 	private function queue_alert( int $subscriber_id, int $property_id, string $tier ): void {
 		global $wpdb;
 
-		$existing = $wpdb->get_var( $wpdb->prepare(
-			"SELECT id FROM {$wpdb->prefix}lpnw_alert_queue WHERE subscriber_id = %d AND property_id = %d",
-			$subscriber_id,
-			$property_id
-		) );
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}lpnw_alert_queue WHERE subscriber_id = %d AND property_id = %d AND status = %s",
+				$subscriber_id,
+				$property_id,
+				'queued'
+			)
+		);
 
 		if ( $existing ) {
 			return;

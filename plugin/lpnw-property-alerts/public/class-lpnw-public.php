@@ -53,11 +53,15 @@ class LPNW_Public {
 			true
 		);
 
-		wp_localize_script( 'lpnw-public', 'lpnwData', array(
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'lpnw_public' ),
-			'homeUrl' => home_url(),
-		) );
+		wp_localize_script(
+			'lpnw-public',
+			'lpnwData',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'lpnw_public' ),
+				'homeUrl' => home_url(),
+			)
+		);
 	}
 
 	/**
@@ -257,11 +261,14 @@ class LPNW_Public {
 	public static function render_latest_properties( array $atts = array() ): string {
 		defined( 'DONOTCACHEPAGE' ) || define( 'DONOTCACHEPAGE', true );
 
-		$atts = shortcode_atts( array(
-			'limit'             => 5,
-			'source'            => '',
-			'postcode_prefix'   => '',
-		), $atts );
+		$atts = shortcode_atts(
+			array(
+				'limit'           => 5,
+				'source'          => '',
+				'postcode_prefix' => '',
+			),
+			$atts
+		);
 
 		$filters = array();
 		if ( ! empty( $atts['source'] ) ) {
@@ -407,8 +414,8 @@ class LPNW_Public {
 			$page = $total_pages;
 		}
 
-		$properties    = array();
-		$gate_overlay  = $gated && $total > 0;
+		$properties   = array();
+		$gate_overlay = $gated && $total > 0;
 		if ( $gate_overlay ) {
 			// Guests on page 2+ still see the first page of results (blurred) as a preview.
 			$properties = LPNW_Property::query( $filters, $per_page, 0 );
@@ -438,26 +445,26 @@ class LPNW_Public {
 		}
 
 		return array(
-			'form_values' => array(
-				'area'       => $area,
-				'type'       => $type,
-				'channel'    => $channel,
-				'min_price'  => $min_price,
-				'max_price'  => $max_price,
-				'source'     => $source,
-				'bedrooms'   => $bedrooms,
-				'tenure'     => $tenure,
+			'form_values'  => array(
+				'area'      => $area,
+				'type'      => $type,
+				'channel'   => $channel,
+				'min_price' => $min_price,
+				'max_price' => $max_price,
+				'source'    => $source,
+				'bedrooms'  => $bedrooms,
+				'tenure'    => $tenure,
 			),
-			'filters'     => $filters,
-			'properties'  => $properties,
-			'total'       => $total,
-			'page'        => $gated ? $raw_page : $page,
+			'filters'      => $filters,
+			'properties'   => $properties,
+			'total'        => $total,
+			'page'         => $gated ? $raw_page : $page,
 			'total_pages'  => $total_pages,
 			'gated'        => $gated,
 			'gate_overlay' => $gate_overlay,
 			'range_start'  => $range_start,
-			'range_end'   => $range_end,
-			'base_url'    => $base_url,
+			'range_end'    => $range_end,
+			'base_url'     => $base_url,
 		);
 	}
 
@@ -517,40 +524,40 @@ class LPNW_Public {
 		$user_id = get_current_user_id();
 		$tier    = LPNW_Subscriber::get_tier( $user_id );
 
-		$listing_raw = self::normalize_post_string_array(
+		$listing_raw      = self::normalize_post_string_array(
 			isset( $_POST['listing_channels'] ) ? wp_unslash( $_POST['listing_channels'] ) : array()
 		);
-		$allowed_listing = array( 'sale', 'rent' );
+		$allowed_listing  = array( 'sale', 'rent' );
 		$listing_channels = array_values( array_intersect( $allowed_listing, array_map( 'sanitize_text_field', $listing_raw ) ) );
 
-		$tenure_raw = self::normalize_post_string_array(
+		$tenure_raw         = self::normalize_post_string_array(
 			isset( $_POST['tenure_preferences'] ) ? wp_unslash( $_POST['tenure_preferences'] ) : array()
 		);
-		$allowed_tenure = array( 'freehold', 'leasehold', 'share_of_freehold' );
+		$allowed_tenure     = array( 'freehold', 'leasehold', 'share_of_freehold' );
 		$tenure_preferences = array_values( array_intersect( $allowed_tenure, array_map( 'sanitize_text_field', $tenure_raw ) ) );
 
-		$features_raw = self::normalize_post_string_array(
+		$features_raw      = self::normalize_post_string_array(
 			isset( $_POST['required_features'] ) ? wp_unslash( $_POST['required_features'] ) : array()
 		);
-		$allowed_features = array( 'garden', 'parking', 'garage', 'new_build', 'chain_free' );
+		$allowed_features  = array( 'garden', 'parking', 'garage', 'new_build', 'chain_free' );
 		$required_features = array_values( array_intersect( $allowed_features, array_map( 'sanitize_text_field', $features_raw ) ) );
 
 		$allowed_alert_types = array( 'listing', 'planning', 'epc', 'price', 'auction' );
 		if ( 'vip' === $tier ) {
 			$allowed_alert_types[] = 'off_market';
 		}
-		$alert_raw = self::normalize_post_string_array(
+		$alert_raw             = self::normalize_post_string_array(
 			isset( $_POST['alert_types'] ) ? wp_unslash( $_POST['alert_types'] ) : array()
 		);
 		$alert_types_sanitized = array_values( array_intersect( $allowed_alert_types, array_map( 'sanitize_text_field', $alert_raw ) ) );
 
-		$areas_raw = self::normalize_post_string_array(
+		$areas_raw                = self::normalize_post_string_array(
 			isset( $_POST['areas'] ) ? wp_unslash( $_POST['areas'] ) : array()
 		);
-		$areas_sanitized = class_exists( 'LPNW_NW_Postcodes' )
+		$areas_sanitized          = class_exists( 'LPNW_NW_Postcodes' )
 			? LPNW_NW_Postcodes::sanitize_areas_array( $areas_raw )
 			: array_values( array_intersect( array_map( 'sanitize_text_field', $areas_raw ), LPNW_NW_POSTCODES ) );
-		$ptypes_raw = self::normalize_post_string_array(
+		$ptypes_raw               = self::normalize_post_string_array(
 			isset( $_POST['property_types'] ) ? wp_unslash( $_POST['property_types'] ) : array()
 		);
 		$property_types_sanitized = LPNW_Subscriber::sanitize_preference_property_types( $ptypes_raw );
@@ -559,19 +566,19 @@ class LPNW_Public {
 		$alerts_on = isset( $_POST['lpnw_alerts_active'] ) && '1' === (string) wp_unslash( $_POST['lpnw_alerts_active'] );
 
 		$prefs = array(
-			'areas'                => $areas_sanitized,
-			'min_price'            => absint( $_POST['min_price'] ?? 0 ),
-			'max_price'            => absint( $_POST['max_price'] ?? 0 ),
-			'property_types'       => $property_types_sanitized,
-			'alert_types'          => $alert_types_sanitized,
-			'listing_channels'     => $listing_channels,
-			'tenure_preferences'   => $tenure_preferences,
-			'required_features'    => $required_features,
-			'frequency'            => self::clamp_frequency_for_tier(
+			'areas'              => $areas_sanitized,
+			'min_price'          => absint( $_POST['min_price'] ?? 0 ),
+			'max_price'          => absint( $_POST['max_price'] ?? 0 ),
+			'property_types'     => $property_types_sanitized,
+			'alert_types'        => $alert_types_sanitized,
+			'listing_channels'   => $listing_channels,
+			'tenure_preferences' => $tenure_preferences,
+			'required_features'  => $required_features,
+			'frequency'          => self::clamp_frequency_for_tier(
 				sanitize_text_field( wp_unslash( $_POST['frequency'] ?? 'weekly' ) ),
 				$tier
 			),
-			'is_active'            => $alerts_on ? 1 : 0,
+			'is_active'          => $alerts_on ? 1 : 0,
 		);
 
 		$min_bedrooms_raw = isset( $_POST['min_bedrooms'] ) ? sanitize_text_field( wp_unslash( $_POST['min_bedrooms'] ) ) : '';

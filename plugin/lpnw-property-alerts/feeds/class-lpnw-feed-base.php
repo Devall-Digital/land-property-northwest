@@ -89,13 +89,16 @@ abstract class LPNW_Feed_Base {
 						continue;
 					}
 
-					$inserted_new = false;
-					$property_id  = LPNW_Property::upsert( $parsed, $inserted_new );
+					$inserted_new       = false;
+					$significant_update = false;
+					$property_id        = LPNW_Property::upsert( $parsed, $inserted_new, $significant_update );
 
 					if ( $property_id ) {
 						++$upsert_ok;
 						if ( $inserted_new ) {
-							$new_ids[]         = $property_id;
+							$new_ids[] = $property_id;
+						}
+						if ( $inserted_new || $significant_update ) {
 							$ids_for_matcher[] = $property_id;
 						}
 					}

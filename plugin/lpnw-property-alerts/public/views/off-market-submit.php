@@ -9,14 +9,14 @@
 defined( 'ABSPATH' ) || exit;
 
 $messages = array(
-	'ok'       => __( 'Thank you. Your opportunity was submitted and matching VIP alerts are being queued.', 'lpnw-alerts' ),
-	'missing'  => __( 'Please enter the address and postcode.', 'lpnw-alerts' ),
-	'postcode' => __( 'Postcode must be in our Northwest coverage area.', 'lpnw-alerts' ),
-	'type'     => __( 'Please choose a property type.', 'lpnw-alerts' ),
-	'fail'     => __( 'We could not save that submission. Please try again or contact support.', 'lpnw-alerts' ),
-	'rate'     => __( 'Too many submissions in a short time. Please wait an hour and try again.', 'lpnw-alerts' ),
-	'bad_nonce'=> __( 'Your session expired. Refresh the page and try again.', 'lpnw-alerts' ),
-	'not_vip'  => __( 'Off-market submissions require an Investor VIP subscription.', 'lpnw-alerts' ),
+	'ok'        => __( 'Thank you. Your opportunity was submitted and matching VIP alerts are being queued.', 'lpnw-alerts' ),
+	'missing'   => __( 'Please enter the address and postcode.', 'lpnw-alerts' ),
+	'postcode'  => __( 'Postcode must be in our Northwest coverage area.', 'lpnw-alerts' ),
+	'type'      => __( 'Please choose a property type.', 'lpnw-alerts' ),
+	'fail'      => __( 'We could not save that submission. Please try again or contact support.', 'lpnw-alerts' ),
+	'rate'      => __( 'Too many submissions in a short time. Please wait an hour and try again.', 'lpnw-alerts' ),
+	'bad_nonce' => __( 'Your session expired. Refresh the page and try again.', 'lpnw-alerts' ),
+	'not_vip'   => __( 'Off-market submissions require an Investor VIP subscription.', 'lpnw-alerts' ),
 );
 
 $flash = isset( $_GET['lpnw_om'] ) ? sanitize_key( wp_unslash( $_GET['lpnw_om'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended

@@ -146,9 +146,9 @@ class LPNW_Feed_EPC extends LPNW_Feed_Base {
 	/**
 	 * Fetch all pages for one postcode prefix using search-after pagination.
 	 *
-	 * @param string              $prefix      Postcode prefix (e.g. M, PR).
-	 * @param array<string, int>  $date_args   from-year, from-month, to-year, to-month.
-	 * @param string              $auth_header Full Authorization header value.
+	 * @param string             $prefix      Postcode prefix (e.g. M, PR).
+	 * @param array<string, int> $date_args   from-year, from-month, to-year, to-month.
+	 * @param string             $auth_header Full Authorization header value.
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function lpnw_fetch_by_postcode( string $prefix, array $date_args, string $auth_header ): array {

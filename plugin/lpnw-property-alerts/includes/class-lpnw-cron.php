@@ -40,7 +40,7 @@ class LPNW_Cron {
 			'interval' => 900,
 			'display'  => __( 'Every 15 Minutes', 'lpnw-alerts' ),
 		);
-		$schedules['lpnw_six_hours'] = array(
+		$schedules['lpnw_six_hours']   = array(
 			'interval' => 21600,
 			'display'  => __( 'Every 6 Hours', 'lpnw-alerts' ),
 		);
@@ -194,26 +194,32 @@ class LPNW_Cron {
 		$queue_table = $wpdb->prefix . 'lpnw_alert_queue';
 		$saved_table = $wpdb->prefix . 'lpnw_saved_properties';
 
-		$deleted_queue = $wpdb->query( $wpdb->prepare(
-			"DELETE q FROM {$queue_table} q
+		$deleted_queue = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE q FROM {$queue_table} q
 			INNER JOIN {$props_table} p ON q.property_id = p.id
 			WHERE p.created_at < DATE_SUB(NOW(), INTERVAL %d DAY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$retention_days
-		) );
+				$retention_days
+			)
+		);
 		$deleted_queue = false !== $deleted_queue ? (int) $deleted_queue : 0;
 
-		$deleted_saved = $wpdb->query( $wpdb->prepare(
-			"DELETE s FROM {$saved_table} s
+		$deleted_saved = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE s FROM {$saved_table} s
 			INNER JOIN {$props_table} p ON s.property_id = p.id
 			WHERE p.created_at < DATE_SUB(NOW(), INTERVAL %d DAY)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$retention_days
-		) );
+				$retention_days
+			)
+		);
 		$deleted_saved = false !== $deleted_saved ? (int) $deleted_saved : 0;
 
-		$deleted_props = $wpdb->query( $wpdb->prepare(
-			"DELETE FROM {$props_table} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-			$retention_days
-		) );
+		$deleted_props = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$props_table} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				$retention_days
+			)
+		);
 		$deleted_props = false !== $deleted_props ? (int) $deleted_props : 0;
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Operational cron diagnostics.

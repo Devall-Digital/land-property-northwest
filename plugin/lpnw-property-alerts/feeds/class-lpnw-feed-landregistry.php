@@ -205,8 +205,8 @@ class LPNW_Feed_LandRegistry extends LPNW_Feed_Base {
 			return $results;
 		}
 
-		$line        = 0;
-		$matched     = 0;
+		$line         = 0;
+		$matched      = 0;
 		$max_line_len = 65536;
 
 		try {

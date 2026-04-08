@@ -130,16 +130,18 @@ class LPNW_Dispatcher {
 
 		$table = $wpdb->prefix . 'lpnw_alert_queue';
 
-		$queued = $wpdb->get_results( $wpdb->prepare(
-			"SELECT aq.*, sp.user_id
+		$queued = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT aq.*, sp.user_id
 			 FROM {$table} aq
 			 INNER JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
 			 WHERE aq.tier = %s AND aq.status = 'queued'
 			 ORDER BY aq.queued_at ASC
 			 LIMIT %d",
-			$tier,
-			$this->batch_size
-		) );
+				$tier,
+				$this->batch_size
+			)
+		);
 
 		if ( empty( $queued ) ) {
 			return;
@@ -156,10 +158,10 @@ class LPNW_Dispatcher {
 	}
 
 	/**
-	 * @param int          $user_id WordPress user ID.
+	 * @param int           $user_id WordPress user ID.
 	 * @param array<object> $alerts  Alert queue rows.
-	 * @param string       $tier    Subscription tier.
-	 * @param string|null  $force_frequency If set, overrides tier-based frequency (instant, daily, weekly).
+	 * @param string        $tier    Subscription tier.
+	 * @param string|null   $force_frequency If set, overrides tier-based frequency (instant, daily, weekly).
 	 * @return bool True if the message was sent successfully.
 	 */
 	private function send_alert_email( int $user_id, array $alerts, string $tier, ?string $force_frequency = null ): bool {
@@ -170,11 +172,13 @@ class LPNW_Dispatcher {
 			$orphan_ids = array_map( static fn( $a ) => (int) $a->id, $alerts );
 			if ( ! empty( $orphan_ids ) ) {
 				$placeholders = implode( ',', array_fill( 0, count( $orphan_ids ), '%d' ) );
-				$wpdb->query( $wpdb->prepare(
-					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NULL WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					'failed',
-					...$orphan_ids
-				) );
+				$wpdb->query(
+					$wpdb->prepare(
+						"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NULL WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						'failed',
+						...$orphan_ids
+					)
+				);
 			}
 			error_log( sprintf( 'LPNW Dispatcher: no WP user for user_id %d; marked %d queue row(s) failed.', $user_id, count( $orphan_ids ) ) );
 			return false;
@@ -189,16 +193,21 @@ class LPNW_Dispatcher {
 		}
 
 		if ( empty( $properties ) ) {
-			$ids = array_map( static function ( $a ) {
-				return (int) $a->id;
-			}, $alerts );
+			$ids = array_map(
+				static function ( $a ) {
+					return (int) $a->id;
+				},
+				$alerts
+			);
 			if ( ! empty( $ids ) ) {
 				$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-				$wpdb->query( $wpdb->prepare(
-					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NULL WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					'failed',
-					...$ids
-				) );
+				$wpdb->query(
+					$wpdb->prepare(
+						"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = NULL WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						'failed',
+						...$ids
+					)
+				);
 			}
 			return false;
 		}
@@ -206,7 +215,7 @@ class LPNW_Dispatcher {
 		$sent       = false;
 		$mautic_tpl = null;
 
-		$prefs = LPNW_Subscriber::get_preferences( $user_id );
+		$prefs      = LPNW_Subscriber::get_preferences( $user_id );
 		$freq_allow = array( 'instant', 'daily', 'weekly' );
 		if ( is_string( $force_frequency ) && in_array( $force_frequency, $freq_allow, true ) ) {
 			$effective_frequency = $force_frequency;
@@ -245,17 +254,21 @@ class LPNW_Dispatcher {
 			$sent_at_sql  = ( 'sent' === $status ) ? 'NOW()' : 'NULL';
 			if ( 'sent' === $status && null !== $mautic_tpl && $mautic_tpl > 0 ) {
 				$mid_sql = $wpdb->prepare( '%s', (string) $mautic_tpl );
-				$wpdb->query( $wpdb->prepare(
-					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql}, mautic_email_id = {$mid_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					$status,
-					...$ids
-				) );
+				$wpdb->query(
+					$wpdb->prepare(
+						"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql}, mautic_email_id = {$mid_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$status,
+						...$ids
+					)
+				);
 			} else {
-				$wpdb->query( $wpdb->prepare(
-					"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					$status,
-					...$ids
-				) );
+				$wpdb->query(
+					$wpdb->prepare(
+						"UPDATE {$wpdb->prefix}lpnw_alert_queue SET status = %s, sent_at = {$sent_at_sql} WHERE id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+						$status,
+						...$ids
+					)
+				);
 			}
 		}
 
@@ -308,9 +321,9 @@ class LPNW_Dispatcher {
 	/**
 	 * Build HTML body for alert emails (same templates as wp_mail delivery).
 	 *
-	 * @param \WP_User      $user                 WordPress user.
-	 * @param array<object> $properties           Properties to include.
-	 * @param string        $effective_frequency One of instant, daily, weekly.
+	 * @param \WP_User              $user                 WordPress user.
+	 * @param array<object>         $properties           Properties to include.
+	 * @param string                $effective_frequency One of instant, daily, weekly.
 	 * @param array<string, string> $template_context Optional: preheader, subscriber_first_name.
 	 */
 	public static function build_alert_email_html( \WP_User $user, array $properties, string $effective_frequency, array $template_context = array() ): string {
@@ -336,11 +349,11 @@ class LPNW_Dispatcher {
 
 		if ( file_exists( $template_path ) ) {
 			ob_start();
-			$alert_properties       = $properties;
-			$subscriber_first_name  = isset( $template_context['subscriber_first_name'] ) ? (string) $template_context['subscriber_first_name'] : self::get_subscriber_greeting_first_name( $user );
-			$email_preheader        = isset( $template_context['preheader'] ) ? (string) $template_context['preheader'] : '';
-			$dashboard_url          = home_url( '/dashboard/' );
-			$unsubscribe_url        = add_query_arg( 'tab', 'preferences', $dashboard_url );
+			$alert_properties      = $properties;
+			$subscriber_first_name = isset( $template_context['subscriber_first_name'] ) ? (string) $template_context['subscriber_first_name'] : self::get_subscriber_greeting_first_name( $user );
+			$email_preheader       = isset( $template_context['preheader'] ) ? (string) $template_context['preheader'] : '';
+			$dashboard_url         = home_url( '/dashboard/' );
+			$unsubscribe_url       = add_query_arg( 'tab', 'preferences', $dashboard_url );
 			include $template_path;
 			$html = ob_get_clean();
 			return is_string( $html ) ? $html : '';
@@ -363,16 +376,36 @@ class LPNW_Dispatcher {
 					$postcode_html .= ' — ' . esc_html( $cap );
 				}
 			}
-			$lines[] = sprintf(
+			$channel_line = '';
+			$meta_bits    = array();
+			if ( class_exists( 'LPNW_Property' ) && is_object( $prop ) ) {
+				$ch = LPNW_Property::get_listing_channel_label( $prop );
+				if ( '' !== $ch ) {
+					$meta_bits[] = $ch;
+				}
+				$rec = LPNW_Property::get_card_listing_recency( $prop );
+				if ( '' !== ( $rec['label'] ?? '' ) ) {
+					$meta_bits[] = $rec['label'];
+				}
+				$pc = LPNW_Property::format_price_change_summary_line( $prop );
+				if ( '' !== $pc ) {
+					$channel_line = esc_html( $pc ) . '<br>';
+				}
+			}
+			$meta_extra = ! empty( $meta_bits ) ? esc_html( implode( ' · ', $meta_bits ) ) . '<br>' : '';
+			$pcm        = ( class_exists( 'LPNW_Property' ) && is_object( $prop ) && 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) ) ) ? ' pcm' : '';
+			$lines[]    = sprintf(
 				'<div style="margin-bottom:16px;padding:12px;border:1px solid #e5e7eb;border-radius:4px;">
 					<strong>%s</strong><br>
 					%s<br>
-					%s%s
+					%s%s%s%s
 					<a href="%s">View details</a>
 				</div>',
 				esc_html( $prop->address ),
 				$postcode_html,
-				$prop->price ? '&pound;' . number_format( (int) $prop->price ) . '<br>' : '',
+				$prop->price ? '&pound;' . number_format( (int) $prop->price ) . $pcm . '<br>' : '',
+				$channel_line,
+				$meta_extra,
 				esc_html( ucfirst( $prop->source ) ) . ' | ' . esc_html( $prop->property_type ) . '<br>',
 				esc_url( $prop->source_url )
 			);
@@ -402,7 +435,7 @@ class LPNW_Dispatcher {
 		if ( '' === $pc ) {
 			return '';
 		}
-		$two = substr( $pc, 0, 2 );
+		$two        = substr( $pc, 0, 2 );
 		$two_letter = array( 'BB', 'BL', 'CA', 'CH', 'CW', 'FY', 'LA', 'OL', 'PR', 'SK', 'WA', 'WN' );
 		if ( in_array( $two, $two_letter, true ) ) {
 			return $two;
@@ -469,6 +502,10 @@ class LPNW_Dispatcher {
 		if ( ! empty( $prop->price ) ) {
 			$price = ' - GBP ' . number_format( (int) $prop->price );
 		}
+		if ( class_exists( 'LPNW_Property' ) && LPNW_Property::is_recent_price_reduction( $prop ) ) {
+			/* translators: 1: property type, 2: area (e.g. Manchester, M14), 3: optional price suffix such as " - GBP 225,000". */
+			return sprintf( __( 'Price drop: %1$s in %2$s%3$s', 'lpnw-alerts' ), $type, $area, $price );
+		}
 		/* translators: 1: property type, 2: area (e.g. Manchester, M14), 3: optional price suffix such as " - GBP 225,000". */
 		return sprintf( __( 'New %1$s in %2$s%3$s', 'lpnw-alerts' ), $type, $area, $price );
 	}
@@ -526,9 +563,13 @@ class LPNW_Dispatcher {
 	 * Instant alert preheader.
 	 */
 	private static function build_preheader_instant( object $prop ): string {
-		$type = self::format_property_type_for_subject( $prop );
-		$area = self::format_area_segment_for_email( $prop );
+		$type       = self::format_property_type_for_subject( $prop );
+		$area       = self::format_area_segment_for_email( $prop );
 		$type_lower = function_exists( 'mb_strtolower' ) ? mb_strtolower( $type, 'UTF-8' ) : strtolower( $type );
+		if ( class_exists( 'LPNW_Property' ) && LPNW_Property::is_recent_price_reduction( $prop ) ) {
+			/* translators: 1: property type (lowercase), 2: area. */
+			return sprintf( __( 'Asking price reduced on a %1$s in %2$s. Open the email for details.', 'lpnw-alerts' ), $type_lower, $area );
+		}
 		/* translators: 1: property type (lowercase), 2: area. */
 		return sprintf( __( 'A new %1$s just listed in %2$s. View details and act fast.', 'lpnw-alerts' ), $type_lower, $area );
 	}
@@ -556,8 +597,8 @@ class LPNW_Dispatcher {
 	 * Free: weekly for scheduled digest; the dispatcher may force instant for a capped weekly sample.
 	 * Pro: daily or instant. VIP: instant or daily (weekly coerced to daily).
 	 *
-	 * @param string        $tier  Subscription tier.
-	 * @param object|null   $prefs Row from LPNW_Subscriber::get_preferences().
+	 * @param string      $tier  Subscription tier.
+	 * @param object|null $prefs Row from LPNW_Subscriber::get_preferences().
 	 * @return string One of instant, daily, weekly.
 	 */
 	public static function get_effective_alert_frequency( string $tier, ?object $prefs ): string {
@@ -607,8 +648,12 @@ class LPNW_Dispatcher {
 			$parts = preg_split( '/\s+/u', $dn, 2 );
 			$last  = isset( $parts[1] ) ? trim( (string) $parts[1] ) : '';
 		}
+		// Mautic's API often rejects blank firstname; keep a harmless placeholder.
+		if ( '' === $first || 'there' === $first ) {
+			$first = 'Subscriber';
+		}
 		$fields = array(
-			'firstname' => ( 'there' === $first ) ? '' : $first,
+			'firstname' => $first,
 			'lastname'  => $last,
 		);
 

@@ -27,16 +27,16 @@ class LPNW_Admin {
 
 	/** @var array<string, string> */
 	private static array $manual_feed_class_map = array(
-		'rightmove'       => LPNW_Feed_Portal_Rightmove::class,
-		'zoopla'          => LPNW_Feed_Portal_Zoopla::class,
-		'onthemarket'     => LPNW_Feed_Portal_OnTheMarket::class,
-		'planning'        => LPNW_Feed_Planning::class,
-		'epc'             => LPNW_Feed_EPC::class,
-		'landregistry'    => LPNW_Feed_LandRegistry::class,
-		'auction_pugh'    => LPNW_Feed_Auction_Pugh::class,
-		'auction_sdl'     => LPNW_Feed_Auction_SDL::class,
-		'auction_ahnw'    => LPNW_Feed_Auction_AHNW::class,
-		'auction_allsop'  => LPNW_Feed_Auction_Allsop::class,
+		'rightmove'      => LPNW_Feed_Portal_Rightmove::class,
+		'zoopla'         => LPNW_Feed_Portal_Zoopla::class,
+		'onthemarket'    => LPNW_Feed_Portal_OnTheMarket::class,
+		'planning'       => LPNW_Feed_Planning::class,
+		'epc'            => LPNW_Feed_EPC::class,
+		'landregistry'   => LPNW_Feed_LandRegistry::class,
+		'auction_pugh'   => LPNW_Feed_Auction_Pugh::class,
+		'auction_sdl'    => LPNW_Feed_Auction_SDL::class,
+		'auction_ahnw'   => LPNW_Feed_Auction_AHNW::class,
+		'auction_allsop' => LPNW_Feed_Auction_Allsop::class,
 	);
 
 	public static function init(): void {
@@ -273,7 +273,7 @@ class LPNW_Admin {
 			return;
 		}
 
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$screen          = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		$on_wp_dashboard = $screen && 'dashboard' === $screen->id;
 		$on_lpnw         = isset( $_GET['page'] ) && 'lpnw-dashboard' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$on_settings     = isset( $_GET['page'] ) && 'lpnw-settings' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -387,7 +387,7 @@ class LPNW_Admin {
 
 		$property_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties" );
 
-		$since_24h = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) - DAY_IN_SECONDS );
+		$since_24h      = date( 'Y-m-d H:i:s', (int) current_time( 'timestamp' ) - DAY_IN_SECONDS );
 		$properties_24h = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_properties WHERE created_at >= %s",
@@ -403,7 +403,7 @@ class LPNW_Admin {
 			? LPNW_Subscriber::count_customers_with_paid_tier_order()
 			: 0;
 
-		$today_start = date( 'Y-m-d 00:00:00', (int) current_time( 'timestamp' ) );
+		$today_start       = date( 'Y-m-d 00:00:00', (int) current_time( 'timestamp' ) );
 		$alerts_sent_today = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = %s AND sent_at IS NOT NULL AND sent_at >= %s",
@@ -431,12 +431,12 @@ class LPNW_Admin {
 		}
 
 		return array(
-			'property_count'        => $property_count,
-			'properties_24h'        => $properties_24h,
-			'subscriber_count'      => $subscriber_count,
-			'paid_customer_count'   => $paid_customer_count,
-			'alerts_sent_today'     => $alerts_sent_today,
-			'last_feed'             => $last_feed,
+			'property_count'      => $property_count,
+			'properties_24h'      => $properties_24h,
+			'subscriber_count'    => $subscriber_count,
+			'paid_customer_count' => $paid_customer_count,
+			'alerts_sent_today'   => $alerts_sent_today,
+			'last_feed'           => $last_feed,
 		);
 	}
 
@@ -589,7 +589,7 @@ class LPNW_Admin {
 			$order = 'DESC';
 		}
 
-		$paged = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$paged    = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$per_page = self::FEED_LOG_PER_PAGE;
 		$offset   = ( $paged - 1 ) * $per_page;
 
@@ -629,9 +629,9 @@ class LPNW_Admin {
 	 */
 	public static function feed_log_sort_url( string $column, ?string $current_orderby = null, ?string $current_order = null ): string {
 		if ( null === $current_orderby || null === $current_order ) {
-			$page              = self::get_feed_log_page();
-			$current_orderby   = $page['orderby'];
-			$current_order     = $page['order'];
+			$page            = self::get_feed_log_page();
+			$current_orderby = $page['orderby'];
+			$current_order   = $page['order'];
 		}
 
 		$desc_default = array( 'started_at', 'completed_at', 'properties_found', 'properties_new', 'errors' );
@@ -654,10 +654,14 @@ class LPNW_Admin {
 	}
 
 	public static function register_settings(): void {
-		register_setting( 'lpnw_settings_group', 'lpnw_settings', array(
-			'type'              => 'array',
-			'sanitize_callback' => array( __CLASS__, 'sanitize_settings' ),
-		) );
+		register_setting(
+			'lpnw_settings_group',
+			'lpnw_settings',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_settings' ),
+			)
+		);
 
 		add_settings_section(
 			'lpnw_feeds_section',
@@ -710,7 +714,10 @@ class LPNW_Admin {
 				array( __CLASS__, 'render_field' ),
 				'lpnw-settings',
 				'lpnw_feeds_section',
-				array( 'key' => $key, 'type' => $type )
+				array(
+					'key'  => $key,
+					'type' => $type,
+				)
 			);
 		}
 
@@ -731,7 +738,10 @@ class LPNW_Admin {
 				array( __CLASS__, 'render_field' ),
 				'lpnw-settings',
 				'lpnw_mautic_section',
-				array( 'key' => $key, 'type' => $type )
+				array(
+					'key'  => $key,
+					'type' => $type,
+				)
 			);
 		}
 
@@ -741,7 +751,10 @@ class LPNW_Admin {
 			array( __CLASS__, 'render_field' ),
 			'lpnw-settings',
 			'lpnw_billing_section',
-			array( 'key' => 'tier_use_subscriptions', 'type' => 'checkbox' )
+			array(
+				'key'  => 'tier_use_subscriptions',
+				'type' => 'checkbox',
+			)
 		);
 
 		add_settings_field(
@@ -750,7 +763,10 @@ class LPNW_Admin {
 			array( __CLASS__, 'render_field' ),
 			'lpnw-settings',
 			'lpnw_billing_section',
-			array( 'key' => 'subscription_on_hold_grace_days', 'type' => 'number' )
+			array(
+				'key'  => 'subscription_on_hold_grace_days',
+				'type' => 'number',
+			)
 		);
 
 		add_settings_field(
@@ -759,7 +775,10 @@ class LPNW_Admin {
 			array( __CLASS__, 'render_field' ),
 			'lpnw-settings',
 			'lpnw_alerts_section',
-			array( 'key' => 'free_tier_weekly_instant_alerts', 'type' => 'number' )
+			array(
+				'key'  => 'free_tier_weekly_instant_alerts',
+				'type' => 'number',
+			)
 		);
 	}
 
@@ -834,8 +853,13 @@ class LPNW_Admin {
 		$sanitized['epc_api_email'] = sanitize_email( $input['epc_api_email'] ?? '' );
 
 		$text_fields = array(
-			'epc_api_key', 'mautic_api_url', 'mautic_api_user', 'mautic_api_password',
-			'mautic_email_vip', 'mautic_email_pro', 'mautic_email_free',
+			'epc_api_key',
+			'mautic_api_url',
+			'mautic_api_user',
+			'mautic_api_password',
+			'mautic_email_vip',
+			'mautic_email_pro',
+			'mautic_email_free',
 		);
 		foreach ( $text_fields as $key ) {
 			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
@@ -912,14 +936,14 @@ class LPNW_Admin {
 	}
 
 	public static function render_dashboard(): void {
-		$snapshot   = self::get_dashboard_snapshot();
-		$feed_log   = self::get_feed_log_page();
-		$cron_rows  = self::get_cron_schedule_summary();
-		$mautic     = self::get_mautic_connection_status();
+		$snapshot    = self::get_dashboard_snapshot();
+		$feed_log    = self::get_feed_log_page();
+		$cron_rows   = self::get_cron_schedule_summary();
+		$mautic      = self::get_mautic_connection_status();
 		$wp_cron_off = self::is_wp_cron_disabled();
 
 		global $wpdb;
-		$alerts_queued = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'queued'" );
+		$alerts_queued   = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'queued'" );
 		$alerts_sent_all = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue WHERE status = 'sent'" );
 
 		$lpnw_cron_ping_url = class_exists( 'LPNW_Cron_Request' ) ? LPNW_Cron_Request::get_external_ping_url() : '';
@@ -977,7 +1001,7 @@ class LPNW_Admin {
 
 		$redirect_base = admin_url( 'admin.php?page=lpnw-off-market' );
 
-		$address = isset( $_POST['lpnw_address'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_address'] ) ) : '';
+		$address  = isset( $_POST['lpnw_address'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_address'] ) ) : '';
 		$postcode = isset( $_POST['lpnw_postcode'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_postcode'] ) ) : '';
 
 		if ( '' === $address || '' === $postcode ) {
@@ -1010,7 +1034,7 @@ class LPNW_Admin {
 		}
 
 		$allowed_tenure = array( '', 'freehold', 'leasehold', 'share of freehold' );
-		$tenure = isset( $_POST['lpnw_tenure'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_tenure'] ) ) : '';
+		$tenure         = isset( $_POST['lpnw_tenure'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_tenure'] ) ) : '';
 		if ( ! in_array( $tenure, $allowed_tenure, true ) ) {
 			$tenure = '';
 		}
@@ -1033,11 +1057,11 @@ class LPNW_Admin {
 			$bathrooms = min( 50, max( 0, absint( $_POST['lpnw_bathrooms'] ) ) );
 		}
 
-		$description = isset( $_POST['lpnw_description'] ) ? wp_kses_post( wp_unslash( $_POST['lpnw_description'] ) ) : '';
-		$agent_name = isset( $_POST['lpnw_agent_name'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_agent_name'] ) ) : '';
+		$description   = isset( $_POST['lpnw_description'] ) ? wp_kses_post( wp_unslash( $_POST['lpnw_description'] ) ) : '';
+		$agent_name    = isset( $_POST['lpnw_agent_name'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_agent_name'] ) ) : '';
 		$agent_contact = isset( $_POST['lpnw_agent_contact'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_agent_contact'] ) ) : '';
-		$off_reason = isset( $_POST['lpnw_off_market_reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['lpnw_off_market_reason'] ) ) : '';
-		$image_url = isset( $_POST['lpnw_image_url'] ) ? esc_url_raw( trim( wp_unslash( $_POST['lpnw_image_url'] ) ) ) : '';
+		$off_reason    = isset( $_POST['lpnw_off_market_reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['lpnw_off_market_reason'] ) ) : '';
+		$image_url     = isset( $_POST['lpnw_image_url'] ) ? esc_url_raw( trim( wp_unslash( $_POST['lpnw_image_url'] ) ) ) : '';
 
 		$raw_payload = array(
 			'lpnw_off_market'   => true,
@@ -1051,21 +1075,21 @@ class LPNW_Admin {
 		$source_ref = function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'om_', true );
 
 		$data = array(
-			'source'           => 'off_market',
-			'source_ref'       => $source_ref,
-			'address'          => $address,
-			'postcode'         => $postcode,
-			'price'            => $price,
-			'property_type'    => $property_type,
-			'bedrooms'         => $bedrooms,
-			'bathrooms'        => $bathrooms,
-			'tenure_type'      => $tenure,
-			'description'      => $description,
-			'application_type' => $application_type,
-			'agent_name'       => $agent_name,
+			'source'            => 'off_market',
+			'source_ref'        => $source_ref,
+			'address'           => $address,
+			'postcode'          => $postcode,
+			'price'             => $price,
+			'property_type'     => $property_type,
+			'bedrooms'          => $bedrooms,
+			'bathrooms'         => $bathrooms,
+			'tenure_type'       => $tenure,
+			'description'       => $description,
+			'application_type'  => $application_type,
+			'agent_name'        => $agent_name,
 			'key_features_text' => '',
-			'source_url'       => '',
-			'raw_data'         => $raw_payload,
+			'source_url'        => '',
+			'raw_data'          => $raw_payload,
 		);
 
 		if ( 'rent' === $application_type ) {

@@ -99,7 +99,7 @@ class LPNW_Feed_Auction_Pugh extends LPNW_Feed_Base {
 	 */
 	private function enrich_nw_lots_from_detail_pages( array $lots ): array {
 		foreach ( $lots as $i => $lot ) {
-			$address = isset( $lot['address'] ) ? (string) $lot['address'] : '';
+			$address  = isset( $lot['address'] ) ? (string) $lot['address'] : '';
 			$postcode = $this->lpnw_postcode_from_address( $address );
 			if ( '' === $postcode || ! $this->is_nw_postcode( $postcode ) ) {
 				continue;
@@ -108,7 +108,7 @@ class LPNW_Feed_Auction_Pugh extends LPNW_Feed_Base {
 			if ( '' === $url || ! str_contains( $url, 'pugh-auctions.com' ) ) {
 				continue;
 			}
-			$extras = $this->fetch_pugh_property_extras( $url );
+			$extras     = $this->fetch_pugh_property_extras( $url );
 			$lots[ $i ] = array_merge( $lot, $extras );
 		}
 
@@ -120,8 +120,8 @@ class LPNW_Feed_Auction_Pugh extends LPNW_Feed_Base {
 	 */
 	private function fetch_pugh_property_extras( string $property_url ): array {
 		$out = array(
-			'detail_auction_date' => '',
-			'detail_property_type' => '',
+			'detail_auction_date'        => '',
+			'detail_property_type'       => '',
 			'detail_description_snippet' => '',
 		);
 
@@ -224,8 +224,8 @@ class LPNW_Feed_Auction_Pugh extends LPNW_Feed_Base {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function extract_lots( string $html ): array {
-		$lots  = array();
-		$seen  = array();
+		$lots = array();
+		$seen = array();
 
 		if ( empty( $html ) ) {
 			return $lots;

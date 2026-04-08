@@ -115,9 +115,9 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		foreach ( self::NW_AREA_REGIONS as $region_id => $area_name ) {
 			foreach ( array( 'BUY', 'RENT' ) as $channel ) {
 				$pairs[] = array(
-					'region_id'  => $region_id,
-					'area_name'  => $area_name,
-					'channel'    => $channel,
+					'region_id' => $region_id,
+					'area_name' => $area_name,
+					'channel'   => $channel,
 				);
 			}
 		}
@@ -139,11 +139,11 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 			$last_processed = -1;
 		}
 
-		$start_index    = ( $last_processed + 1 ) % $total_pairs;
-		$batch_size     = $this->get_batch_size();
-		$time_started   = microtime( true );
-		$processed      = 0;
-		$new_last       = $last_processed;
+		$start_index  = ( $last_processed + 1 ) % $total_pairs;
+		$batch_size   = $this->get_batch_size();
+		$time_started = microtime( true );
+		$processed    = 0;
+		$new_last     = $last_processed;
 
 		for ( $n = 0; $n < $batch_size; $n++ ) {
 			if ( ( microtime( true ) - $time_started ) >= self::TIME_BUDGET_SECONDS ) {
@@ -199,7 +199,7 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 
 			$new_last = $idx;
 			update_option( self::OPTION_CURSOR, $new_last, false );
-			$processed++;
+			++$processed;
 		}
 
 		$all_properties = $this->deduplicate( $all_properties );
@@ -250,11 +250,14 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		$headers            = $this->get_search_request_headers();
 		$headers['Referer'] = 'https://www.rightmove.co.uk/';
 
-		$response = wp_remote_get( $url, array(
-			'timeout'    => 30,
-			'headers'    => $headers,
-			'decompress' => true,
-		) );
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout'    => 30,
+				'headers'    => $headers,
+				'decompress' => true,
+			)
+		);
 
 		if ( is_wp_error( $response ) ) {
 			error_log(
@@ -514,18 +517,18 @@ class LPNW_Feed_Portal_Rightmove extends LPNW_Feed_Base {
 		$description = $desc_prefix . implode( '. ', $desc_parts );
 
 		$out = array(
-			'source'             => $this->get_source_name(),
-			'source_ref'         => 'rm-' . $rm_id,
-			'address'            => $address,
-			'postcode'           => $postcode,
-			'latitude'           => $lat,
-			'longitude'          => $lng,
-			'price'              => $price > 0 ? $price : null,
-			'property_type'      => $type,
-			'description'        => $description,
-			'application_type'   => $application_type,
-			'source_url'         => esc_url_raw( $property_url ),
-			'raw_data'           => $raw_item,
+			'source'           => $this->get_source_name(),
+			'source_ref'       => 'rm-' . $rm_id,
+			'address'          => $address,
+			'postcode'         => $postcode,
+			'latitude'         => $lat,
+			'longitude'        => $lng,
+			'price'            => $price > 0 ? $price : null,
+			'property_type'    => $type,
+			'description'      => $description,
+			'application_type' => $application_type,
+			'source_url'       => esc_url_raw( $property_url ),
+			'raw_data'         => $raw_item,
 		);
 
 		if ( isset( $raw_item['bedrooms'] ) ) {

@@ -4,6 +4,8 @@ node_modules/
 
 # One-shot browser automation (never commit)
 tools/.browser_wp_creds_tmp.txt
+tools/mautic-campaign-ready.csv
+tools/mautic-import-from-sqlite.csv
 
 # Environment & secrets
 .env

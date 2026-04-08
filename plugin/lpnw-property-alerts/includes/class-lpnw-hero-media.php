@@ -252,7 +252,7 @@ class LPNW_Hero_Media {
 			return '';
 		}
 
-		$v = esc_attr( self::VERSION );
+		$v    = esc_attr( self::VERSION );
 		$html = '<div class="lpnw-hero__photos" data-lpnw-hero-photos="' . $v . '" aria-hidden="true">';
 
 		foreach ( $slides as $i => $slide ) {

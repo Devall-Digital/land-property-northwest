@@ -54,7 +54,7 @@ class LPNW_Dashboard {
 			LPNW_Onboarding::bootstrap_default_preferences( $user_id );
 			$prefs = LPNW_Subscriber::get_preferences( $user_id );
 		}
-		$tier    = LPNW_Subscriber::get_tier( $user_id );
+		$tier = LPNW_Subscriber::get_tier( $user_id );
 
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/preferences.php';
@@ -72,14 +72,16 @@ class LPNW_Dashboard {
 		global $wpdb;
 		$user_id = get_current_user_id();
 
-		$saved = $wpdb->get_results( $wpdb->prepare(
-			"SELECT sp.*, p.address, p.postcode, p.price, p.source, p.property_type, p.application_type, p.source_url, p.description, p.raw_data, p.bedrooms, p.bathrooms, p.tenure_type, p.agent_name, p.first_listed_date, p.created_at, p.key_features_text
+		$saved = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT sp.*, p.address, p.postcode, p.price, p.source, p.property_type, p.application_type, p.source_url, p.description, p.raw_data, p.bedrooms, p.bathrooms, p.tenure_type, p.agent_name, p.first_listed_date, p.created_at, p.key_features_text
 			 FROM {$wpdb->prefix}lpnw_saved_properties sp
 			 INNER JOIN {$wpdb->prefix}lpnw_properties p ON p.id = sp.property_id
 			 WHERE sp.user_id = %d
 			 ORDER BY sp.saved_at DESC",
-			$user_id
-		) );
+				$user_id
+			)
+		);
 
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/saved-properties.php';
@@ -126,7 +128,7 @@ class LPNW_Dashboard {
 			}
 		}
 
-		$frequency = LPNW_Dispatcher::get_effective_alert_frequency( $tier, $prefs );
+		$frequency  = LPNW_Dispatcher::get_effective_alert_frequency( $tier, $prefs );
 		$freq_label = self::frequency_layout_label( $frequency );
 
 		$email_preview_body_html = '';
@@ -134,8 +136,8 @@ class LPNW_Dashboard {
 			$email_preview_body_html = LPNW_Dispatcher::build_alert_email_html( $user, $matching, $frequency );
 		}
 
-		$email_preview_matching    = $matching;
-		$email_preview_freq_label  = $freq_label;
+		$email_preview_matching   = $matching;
+		$email_preview_freq_label = $freq_label;
 
 		ob_start();
 		include LPNW_PLUGIN_DIR . 'public/views/email-preview.php';
@@ -149,11 +151,11 @@ class LPNW_Dashboard {
 	 * @param object|null $prefs From {@see LPNW_Subscriber::get_preferences()}.
 	 */
 	private static function subscriber_row_for_matcher( ?object $prefs ): object {
-		$areas    = array();
-		$types    = array();
-		$alerts   = array();
-		$min      = null;
-		$max      = null;
+		$areas  = array();
+		$types  = array();
+		$alerts = array();
+		$min    = null;
+		$max    = null;
 
 		if ( $prefs ) {
 			$areas  = is_array( $prefs->areas ?? null ) ? $prefs->areas : array();
@@ -177,17 +179,17 @@ class LPNW_Dashboard {
 		}
 
 		return (object) array(
-			'user_id'             => get_current_user_id(),
-			'areas'               => wp_json_encode( $areas ),
-			'property_types'      => wp_json_encode( $types ),
-			'alert_types'         => wp_json_encode( $alerts ),
-			'min_price'           => $min,
-			'max_price'           => $max,
-			'listing_channels'    => wp_json_encode( $listing_ch ),
-			'tenure_preferences'  => wp_json_encode( $tenure_p ),
-			'required_features'   => wp_json_encode( $req_feat ),
-			'min_bedrooms'        => $min_bed,
-			'max_bedrooms'        => $max_bed,
+			'user_id'            => get_current_user_id(),
+			'areas'              => wp_json_encode( $areas ),
+			'property_types'     => wp_json_encode( $types ),
+			'alert_types'        => wp_json_encode( $alerts ),
+			'min_price'          => $min,
+			'max_price'          => $max,
+			'listing_channels'   => wp_json_encode( $listing_ch ),
+			'tenure_preferences' => wp_json_encode( $tenure_p ),
+			'required_features'  => wp_json_encode( $req_feat ),
+			'min_bedrooms'       => $min_bed,
+			'max_bedrooms'       => $max_bed,
 		);
 	}
 

@@ -141,7 +141,7 @@ class LPNW_Off_Market_Submit {
 		$contact     = isset( $_POST['lpnw_om_contact'] ) ? sanitize_text_field( wp_unslash( $_POST['lpnw_om_contact'] ) ) : '';
 		$off_reason  = isset( $_POST['lpnw_om_reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['lpnw_om_reason'] ) ) : '';
 
-		$user = wp_get_current_user();
+		$user      = wp_get_current_user();
 		$submitter = $user && $user->exists() ? $user->display_name : '';
 		if ( '' === $contact && is_email( $user->user_email ) ) {
 			$contact = $user->user_email;

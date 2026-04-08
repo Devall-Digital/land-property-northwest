@@ -140,12 +140,12 @@ final class LPNW_Setup_WooCommerce {
 				'price' => '0',
 				'desc'  => '<p>Weekly digest email covering property and planning highlights across Northwest England. A simple way to stay in the loop without instant notifications.</p>',
 			),
-			'lpnw-pro' => array(
+			'lpnw-pro'  => array(
 				'name'  => 'Pro Property Alerts',
 				'price' => '19.99',
 				'desc'  => '<p>Instant alerts when new opportunities match your criteria, plus full filtering over areas, price, and property types so you only see what you care about.</p>',
 			),
-			'lpnw-vip' => array(
+			'lpnw-vip'  => array(
 				'name'  => 'Investor VIP Alerts',
 				'price' => '79.99',
 				'desc'  => '<p>Priority alerts and curated off-market style intelligence for investors who want the signal first, with room for higher-touch deal flow.</p>',
@@ -383,7 +383,7 @@ final class LPNW_Setup_WooCommerce {
 		self::empty_nav_menu_items( (int) $primary_menu_id );
 
 		self::add_primary_menu_items( (int) $primary_menu_id );
-		$menus['primary_menu_id']                          = (int) $primary_menu_id;
+		$menus['primary_menu_id']                        = (int) $primary_menu_id;
 		$menus['woocommerce_items_cleared_from_primary'] = $wc_on_primary_before;
 
 		$subscriber_menu_id = self::get_or_create_nav_menu( self::MENU_SUBSCRIBER );

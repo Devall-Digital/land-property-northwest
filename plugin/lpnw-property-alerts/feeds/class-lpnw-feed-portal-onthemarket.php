@@ -35,23 +35,23 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @var array<string, string>
 	 */
 	private const NW_AREA_SLUGS = array(
-		'manchester'  => 'Manchester',
-		'liverpool'   => 'Liverpool',
-		'bolton'      => 'Bolton',
-		'bury'        => 'Bury',
-		'oldham'      => 'Oldham',
-		'rochdale'    => 'Rochdale',
-		'salford'     => 'Salford',
-		'stockport'   => 'Stockport',
-		'wigan'       => 'Wigan',
-		'blackpool'   => 'Blackpool',
-		'blackburn'   => 'Blackburn',
-		'preston'     => 'Preston',
-		'chester'     => 'Chester',
-		'warrington'  => 'Warrington',
-		'lancaster'   => 'Lancaster',
-		'burnley'     => 'Burnley',
-		'carlisle'    => 'Carlisle',
+		'manchester' => 'Manchester',
+		'liverpool'  => 'Liverpool',
+		'bolton'     => 'Bolton',
+		'bury'       => 'Bury',
+		'oldham'     => 'Oldham',
+		'rochdale'   => 'Rochdale',
+		'salford'    => 'Salford',
+		'stockport'  => 'Stockport',
+		'wigan'      => 'Wigan',
+		'blackpool'  => 'Blackpool',
+		'blackburn'  => 'Blackburn',
+		'preston'    => 'Preston',
+		'chester'    => 'Chester',
+		'warrington' => 'Warrington',
+		'lancaster'  => 'Lancaster',
+		'burnley'    => 'Burnley',
+		'carlisle'   => 'Carlisle',
 	);
 
 	private const OPTION_CURSOR = 'lpnw_otm_cursor';
@@ -185,7 +185,10 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 */
 	private function fetch_area_section( string $slug, string $label, string $section ): array {
 		$strategies = array();
-		foreach ( array( 'www' => self::BASE_URL, 'mobile' => self::MOBILE_BASE_URL ) as $host_label => $base ) {
+		foreach ( array(
+			'www'    => self::BASE_URL,
+			'mobile' => self::MOBILE_BASE_URL,
+		) as $host_label => $base ) {
 			foreach ( self::USER_AGENTS as $ua_label => $ua ) {
 				$strategies[] = array(
 					'host'     => $host_label,
@@ -405,7 +408,10 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 	 * @return array{listings: array<int, array<string, mixed>>, method: string}
 	 */
 	private function extract_from_next_data( string $html, string $label, string $section, string $slug, int $html_len ): array {
-		$empty = array( 'listings' => array(), 'method' => '' );
+		$empty = array(
+			'listings' => array(),
+			'method'   => '',
+		);
 
 		if ( ! preg_match( '/<script\s+id="__NEXT_DATA__"[^>]*type="application\/json"[^>]*>(.*?)<\/script>/s', $html, $matches ) ) {
 			if ( ! preg_match( '/<script\s+id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s', $html, $matches ) ) {
@@ -428,7 +434,10 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 		$data = json_decode( $matches[1], true );
 		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $data ) ) {
 			$this->lpnw_diag_log( '__NEXT_DATA__ JSON decode error: ' . json_last_error_msg(), 0, $html_len );
-			return array( 'listings' => array(), 'method' => '__NEXT_DATA___decode_failed' );
+			return array(
+				'listings' => array(),
+				'method'   => '__NEXT_DATA___decode_failed',
+			);
 		}
 
 		$list = $data['props']['initialReduxState']['results']['list'] ?? null;
@@ -447,7 +456,10 @@ class LPNW_Feed_Portal_OnTheMarket extends LPNW_Feed_Base {
 				0,
 				$html_len
 			);
-			return array( 'listings' => array(), 'method' => '__NEXT_DATA__' );
+			return array(
+				'listings' => array(),
+				'method'   => '__NEXT_DATA__',
+			);
 		}
 
 		return array(

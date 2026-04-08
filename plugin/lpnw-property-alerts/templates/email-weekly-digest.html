@@ -95,11 +95,7 @@
 			}
 		}
 
-		$is_new_listing = false;
-		if ( ! empty( $prop->first_listed_date ) ) {
-			$listed_ts_new  = strtotime( (string) $prop->first_listed_date );
-			$is_new_listing = $listed_ts_new && ( time() - $listed_ts_new ) < 2 * DAY_IN_SECONDS;
-		}
+		$lpnw_channel_label = class_exists( 'LPNW_Property' ) ? LPNW_Property::get_listing_channel_label( $prop ) : '';
 		?>
 		<tr>
 			<td style="padding:8px 32px;">
@@ -113,11 +109,12 @@
 					<?php endif; ?>
 					<tr>
 						<td style="padding:16px 18px 18px;">
-							<?php if ( $is_new_listing ) : ?>
-							<p style="margin:0 0 8px;">
-								<span style="display:inline-block;padding:4px 10px;background:#059669;color:#FFFFFF;font-size:11px;font-weight:700;letter-spacing:0.06em;border-radius:4px;"><?php esc_html_e( 'NEW', 'lpnw-alerts' ); ?></span>
-							</p>
-							<?php endif; ?>
+							<?php
+							$lpnw_portal_ctx = LPNW_PLUGIN_DIR . 'templates/email-portal-context.php';
+							if ( file_exists( $lpnw_portal_ctx ) ) {
+								include $lpnw_portal_ctx;
+							}
+							?>
 							<h3 style="margin:0 0 6px;font-size:16px;line-height:1.3;color:#1B2A4A;font-weight:700;">
 								<?php echo esc_html( $prop->address ); ?>
 							</h3>
@@ -133,6 +130,12 @@
 								?>
 								<?php if ( $prop->price ) : ?>
 									&bull; &pound;<?php echo esc_html( number_format( (int) $prop->price ) ); ?>
+									<?php if ( 'rent' === strtolower( trim( (string) ( $prop->application_type ?? '' ) ) ) ) : ?>
+										<?php esc_html_e( 'pcm', 'lpnw-alerts' ); ?>
+									<?php endif; ?>
+								<?php endif; ?>
+								<?php if ( '' !== $lpnw_channel_label ) : ?>
+									&bull; <?php echo esc_html( $lpnw_channel_label ); ?>
 								<?php endif; ?>
 								&bull; <?php echo esc_html( ucfirst( str_replace( '_', ' ', $prop->source ) ) ); ?>
 								<?php if ( '' !== $tenure_badge_label ) : ?>

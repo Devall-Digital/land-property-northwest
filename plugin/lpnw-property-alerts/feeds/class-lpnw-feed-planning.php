@@ -234,11 +234,11 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 	 * @return array{entities: array<int, array<string, mixed>>, last_http: int, last_len: int}
 	 */
 	private function fetch_planning_application_pages( array $query_base, int $lpa_entity, string $lpa_name, string $mode ): array {
-		$results    = array();
-		$offset     = 0;
-		$limit      = 500;
-		$last_http  = 0;
-		$last_len   = 0;
+		$results   = array();
+		$offset    = 0;
+		$limit     = 500;
+		$last_http = 0;
+		$last_len  = 0;
 
 		$headers = array(
 			'User-Agent' => 'LPNW-PropertyAlerts/1.0 (+https://land-property-northwest.co.uk)',
@@ -326,9 +326,9 @@ class LPNW_Feed_Planning extends LPNW_Feed_Base {
 		} while ( $has_more );
 
 		return array(
-			'entities'   => $results,
-			'last_http'  => $last_http,
-			'last_len'   => $last_len,
+			'entities'  => $results,
+			'last_http' => $last_http,
+			'last_len'  => $last_len,
 		);
 	}
 

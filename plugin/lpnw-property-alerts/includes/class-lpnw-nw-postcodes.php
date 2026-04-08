@@ -197,10 +197,10 @@ class LPNW_NW_Postcodes {
 	/**
 	 * SQL fragment: property postcode matches this broad bucket or exact outward district.
 	 *
-	 * @param string              $postcode_expr e.g. UPPER(TRIM(postcode)).
-	 * @param string              $code          Broad (M, OL) or district (OL2).
-	 * @param array<int, string>  $where         WHERE fragments.
-	 * @param array<int, mixed>   $args          prepare args.
+	 * @param string             $postcode_expr e.g. UPPER(TRIM(postcode)).
+	 * @param string             $code          Broad (M, OL) or district (OL2).
+	 * @param array<int, string> $where         WHERE fragments.
+	 * @param array<int, mixed>  $args          prepare args.
 	 */
 	public static function append_area_filter_sql( string $postcode_expr, string $code, array &$where, array &$args ): void {
 		$c = strtoupper( trim( sanitize_text_field( $code ) ) );
@@ -217,10 +217,10 @@ class LPNW_NW_Postcodes {
 	/**
 	 * Match only properties in this outward district (not OL20 when filtering OL2).
 	 *
-	 * @param string              $postcode_expr SQL expression.
-	 * @param string              $outward       Normalised outward, e.g. OL2.
-	 * @param array<int, string>  $where         WHERE fragments.
-	 * @param array<int, mixed>   $args          prepare args.
+	 * @param string             $postcode_expr SQL expression.
+	 * @param string             $outward       Normalised outward, e.g. OL2.
+	 * @param array<int, string> $where         WHERE fragments.
+	 * @param array<int, mixed>  $args          prepare args.
 	 */
 	public static function append_exact_outward_sql( string $postcode_expr, string $outward, array &$where, array &$args ): void {
 		$o = strtoupper( trim( $outward ) );

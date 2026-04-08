@@ -11,14 +11,14 @@
 defined( 'ABSPATH' ) || exit;
 
 /** @var array<string, mixed> $data */
-$items              = $data['items'];
-$total              = (int) $data['total'];
-$paged              = (int) $data['paged'];
-$per_page           = (int) $data['per_page'];
-$search             = (string) $data['search'];
-$tier_counts        = $data['tier_counts'];
-$no_profile_count   = isset( $data['no_profile_count'] ) ? (int) $data['no_profile_count'] : 0;
-$no_profile_sample  = isset( $data['no_profile_sample'] ) && is_array( $data['no_profile_sample'] ) ? $data['no_profile_sample'] : array();
+$items             = $data['items'];
+$total             = (int) $data['total'];
+$paged             = (int) $data['paged'];
+$per_page          = (int) $data['per_page'];
+$search            = (string) $data['search'];
+$tier_counts       = $data['tier_counts'];
+$no_profile_count  = isset( $data['no_profile_count'] ) ? (int) $data['no_profile_count'] : 0;
+$no_profile_sample = isset( $data['no_profile_sample'] ) && is_array( $data['no_profile_sample'] ) ? $data['no_profile_sample'] : array();
 
 $total_pages = (int) max( 1, ceil( $total / $per_page ) );
 $base_url    = admin_url( 'admin.php?page=lpnw-subscribers' );

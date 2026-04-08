@@ -28,8 +28,8 @@ final class LPNW_User_Tier_Profile {
 		}
 
 		$from_billing = class_exists( 'LPNW_Subscriber' ) ? LPNW_Subscriber::get_tier_from_billing( (int) $user->ID ) : 'free';
-		$current     = get_user_meta( $user->ID, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE, true );
-		$current     = is_string( $current ) ? $current : '';
+		$current      = get_user_meta( $user->ID, LPNW_Subscriber::USER_META_ADMIN_TIER_OVERRIDE, true );
+		$current      = is_string( $current ) ? $current : '';
 
 		$disabled_note = '';
 		if ( in_array( $from_billing, array( 'pro', 'vip' ), true ) ) {

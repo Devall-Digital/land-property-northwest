@@ -15,17 +15,19 @@ $offset   = ( $page - 1 ) * $per_page;
 
 $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_alert_queue" );
 
-$alerts = $wpdb->get_results( $wpdb->prepare(
-	"SELECT aq.*, p.address, p.postcode, p.source as property_source, u.user_email
+$alerts = $wpdb->get_results(
+	$wpdb->prepare(
+		"SELECT aq.*, p.address, p.postcode, p.source as property_source, u.user_email
 	 FROM {$wpdb->prefix}lpnw_alert_queue aq
 	 LEFT JOIN {$wpdb->prefix}lpnw_properties p ON p.id = aq.property_id
 	 LEFT JOIN {$wpdb->prefix}lpnw_subscriber_preferences sp ON sp.id = aq.subscriber_id
 	 LEFT JOIN {$wpdb->users} u ON u.ID = sp.user_id
 	 ORDER BY aq.queued_at DESC
 	 LIMIT %d OFFSET %d",
-	$per_page,
-	$offset
-) );
+		$per_page,
+		$offset
+	)
+);
 
 $total_pages = ceil( $total / $per_page );
 
@@ -82,11 +84,12 @@ $queued_total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_
 				<th><?php esc_html_e( 'Status', 'lpnw-alerts' ); ?></th>
 				<th><?php esc_html_e( 'Queued', 'lpnw-alerts' ); ?></th>
 				<th><?php esc_html_e( 'Sent', 'lpnw-alerts' ); ?></th>
+				<th><?php esc_html_e( 'Delivery', 'lpnw-alerts' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php if ( empty( $alerts ) ) : ?>
-				<tr><td colspan="7"><?php esc_html_e( 'No alerts in the queue yet.', 'lpnw-alerts' ); ?></td></tr>
+				<tr><td colspan="8"><?php esc_html_e( 'No alerts in the queue yet.', 'lpnw-alerts' ); ?></td></tr>
 			<?php else : ?>
 				<?php foreach ( $alerts as $alert ) : ?>
 					<tr>
@@ -107,6 +110,21 @@ $queued_total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_
 						</td>
 						<td><?php echo esc_html( $alert->queued_at ); ?></td>
 						<td><?php echo $alert->sent_at ? esc_html( $alert->sent_at ) : '-'; ?></td>
+						<td>
+							<?php
+							if ( 'sent' !== $alert->status ) {
+								echo esc_html( '-' );
+							} elseif ( ! empty( $alert->mautic_email_id ) ) {
+								printf(
+									/* translators: %s: Mautic template ID stored on the queue row. */
+									esc_html__( 'Mautic (template %s)', 'lpnw-alerts' ),
+									esc_html( (string) $alert->mautic_email_id )
+								);
+							} else {
+								esc_html_e( 'WordPress mail', 'lpnw-alerts' );
+							}
+							?>
+						</td>
 					</tr>
 				<?php endforeach; ?>
 			<?php endif; ?>
@@ -117,12 +135,14 @@ $queued_total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}lpnw_
 		<div class="tablenav">
 			<div class="tablenav-pages">
 				<?php
-				echo paginate_links( array( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo paginate_links(
+					array( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					'base'    => add_query_arg( 'paged', '%#%' ),
 					'format'  => '',
 					'current' => $page,
 					'total'   => $total_pages,
-				) );
+					)
+				);
 				?>
 			</div>
 		</div>

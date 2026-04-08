@@ -48,7 +48,7 @@ class LPNW_Outcode_Labels {
 			return self::$map;
 		}
 
-		$decoded = json_decode( $json, true );
+		$decoded   = json_decode( $json, true );
 		self::$map = is_array( $decoded ) ? $decoded : array();
 
 		return self::$map;

@@ -509,11 +509,11 @@ HTML;
 	 * @return string HTML.
 	 */
 	public static function get_terms_content(): string {
-		$site_name   = esc_html( get_bloginfo( 'name' ) );
-		$site_url    = esc_url( home_url( '/' ) );
-		$privacy_id  = (int) get_option( 'wp_page_for_privacy_policy' );
-		$privacy     = $privacy_id ? esc_url( get_permalink( $privacy_id ) ) : esc_url( home_url( '/privacy-policy/' ) );
-		$contact     = esc_url( home_url( '/contact/' ) );
+		$site_name  = esc_html( get_bloginfo( 'name' ) );
+		$site_url   = esc_url( home_url( '/' ) );
+		$privacy_id = (int) get_option( 'wp_page_for_privacy_policy' );
+		$privacy    = $privacy_id ? esc_url( get_permalink( $privacy_id ) ) : esc_url( home_url( '/privacy-policy/' ) );
+		$contact    = esc_url( home_url( '/contact/' ) );
 
 		return <<<HTML
 <div class="lpnw-page-legal">

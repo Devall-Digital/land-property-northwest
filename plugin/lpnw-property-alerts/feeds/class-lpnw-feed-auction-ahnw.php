@@ -165,14 +165,14 @@ class LPNW_Feed_Auction_AHNW extends LPNW_Feed_Base {
 		}
 
 		return array(
-			'address'        => $address,
-			'raw_price'      => $raw_price,
-			'detail_url'     => $detail_url,
-			'lot_number'     => $lot_number,
-			'price_digits'   => preg_replace( '/[^0-9]/', '', $raw_price ),
-			'auction_raw'    => '',
-			'auction_channel'=> $channel,
-			'listing_blurb'  => $listing_blurb,
+			'address'         => $address,
+			'raw_price'       => $raw_price,
+			'detail_url'      => $detail_url,
+			'lot_number'      => $lot_number,
+			'price_digits'    => preg_replace( '/[^0-9]/', '', $raw_price ),
+			'auction_raw'     => '',
+			'auction_channel' => $channel,
+			'listing_blurb'   => $listing_blurb,
 		);
 	}
 
@@ -203,8 +203,8 @@ class LPNW_Feed_Auction_AHNW extends LPNW_Feed_Base {
 	 */
 	private function fetch_lot_detail_extras( string $detail_url ): array {
 		$out = array(
-			'auction_raw'     => '',
-			'detail_blurb'    => '',
+			'auction_raw'  => '',
+			'detail_blurb' => '',
 		);
 
 		if ( '' === $detail_url || ! preg_match( '#auctionhouse\.co\.uk#i', $detail_url ) ) {
@@ -339,7 +339,7 @@ class LPNW_Feed_Auction_AHNW extends LPNW_Feed_Base {
 			$price = $this->parse_money_string( $raw_price );
 		}
 
-		$lot_ref = ! empty( $raw_item['lot_number'] ) ? (string) $raw_item['lot_number'] : md5( $address );
+		$lot_ref      = ! empty( $raw_item['lot_number'] ) ? (string) $raw_item['lot_number'] : md5( $address );
 		$auction_date = $this->normalize_auction_date( (string) ( $raw_item['auction_raw'] ?? '' ) );
 
 		$channel = sanitize_key( (string) ( $raw_item['auction_channel'] ?? '' ) );

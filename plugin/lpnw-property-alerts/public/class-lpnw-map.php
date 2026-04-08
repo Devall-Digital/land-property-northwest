@@ -126,10 +126,12 @@ class LPNW_Map {
 		$args[]    = $offset;
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- placeholders built above.
-		return $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d",
-			...$args
-		) );
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d",
+				...$args
+			)
+		);
 	}
 
 	/**
@@ -239,7 +241,7 @@ class LPNW_Map {
 		}
 
 		list( $rows, $has_more ) = self::fetch_map_page( $source, $limit, $offset, $pc_prefix );
-		$markers                  = self::rows_to_markers( $rows );
+		$markers                 = self::rows_to_markers( $rows );
 
 		wp_send_json_success(
 			array(
@@ -418,14 +420,14 @@ JS;
 	public static function render_map( array $atts = array() ): string {
 		$atts = shortcode_atts(
 			array(
-				'height'           => '500px',
-				'source'           => '',
-				'limit'            => 500,
-				'batch_size'       => 500,
-				'lat'              => '',
-				'lng'              => '',
-				'zoom'             => '',
-				'postcode_prefix'  => '',
+				'height'          => '500px',
+				'source'          => '',
+				'limit'           => 500,
+				'batch_size'      => 500,
+				'lat'             => '',
+				'lng'             => '',
+				'zoom'            => '',
+				'postcode_prefix' => '',
 			),
 			$atts,
 			'lpnw_property_map'
@@ -451,8 +453,8 @@ JS;
 			}
 		}
 
-		$initial_lat = null;
-		$initial_lng = null;
+		$initial_lat  = null;
+		$initial_lng  = null;
 		$initial_zoom = null;
 		if ( '' !== $atts['lat'] && '' !== $atts['lng'] && is_numeric( $atts['lat'] ) && is_numeric( $atts['lng'] ) ) {
 			$initial_lat  = round( (float) $atts['lat'], 6 );
@@ -478,28 +480,49 @@ JS;
 		}
 
 		$config = array(
-			'mapId'            => $map_id,
-			'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-			'nonce'            => wp_create_nonce( 'lpnw_map' ),
-			'batchSize'        => $batch,
-			'maxTotalMarkers'  => $max_total,
-			'initialSource'    => $source_filter,
-			'initialMarkers'   => $markers,
-			'initialHasMore'   => $initial_has_more,
-			'postcodePrefix'   => $postcode_prefix,
-			'initialLat'       => $initial_lat,
-			'initialLng'       => $initial_lng,
-			'initialZoom'      => $initial_zoom,
+			'mapId'           => $map_id,
+			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+			'nonce'           => wp_create_nonce( 'lpnw_map' ),
+			'batchSize'       => $batch,
+			'maxTotalMarkers' => $max_total,
+			'initialSource'   => $source_filter,
+			'initialMarkers'  => $markers,
+			'initialHasMore'  => $initial_has_more,
+			'postcodePrefix'  => $postcode_prefix,
+			'initialLat'      => $initial_lat,
+			'initialLng'      => $initial_lng,
+			'initialZoom'     => $initial_zoom,
 		);
 
 		$legend_items = array(
-			array( 'color' => '#2563eb', 'label' => __( 'Rightmove', 'lpnw-alerts' ) ),
-			array( 'color' => '#16a34a', 'label' => __( 'Zoopla', 'lpnw-alerts' ) ),
-			array( 'color' => '#9333ea', 'label' => __( 'OnTheMarket', 'lpnw-alerts' ) ),
-			array( 'color' => '#ea580c', 'label' => __( 'Planning', 'lpnw-alerts' ) ),
-			array( 'color' => '#dc2626', 'label' => __( 'Auction', 'lpnw-alerts' ) ),
-			array( 'color' => '#0d9488', 'label' => __( 'EPC', 'lpnw-alerts' ) ),
-			array( 'color' => '#6b7280', 'label' => __( 'Land Registry', 'lpnw-alerts' ) ),
+			array(
+				'color' => '#2563eb',
+				'label' => __( 'Rightmove', 'lpnw-alerts' ),
+			),
+			array(
+				'color' => '#16a34a',
+				'label' => __( 'Zoopla', 'lpnw-alerts' ),
+			),
+			array(
+				'color' => '#9333ea',
+				'label' => __( 'OnTheMarket', 'lpnw-alerts' ),
+			),
+			array(
+				'color' => '#ea580c',
+				'label' => __( 'Planning', 'lpnw-alerts' ),
+			),
+			array(
+				'color' => '#dc2626',
+				'label' => __( 'Auction', 'lpnw-alerts' ),
+			),
+			array(
+				'color' => '#0d9488',
+				'label' => __( 'EPC', 'lpnw-alerts' ),
+			),
+			array(
+				'color' => '#6b7280',
+				'label' => __( 'Land Registry', 'lpnw-alerts' ),
+			),
 		);
 
 		ob_start();
