@@ -17,10 +17,14 @@ class LPNW_Mautic {
 	private string $password = '';
 
 	public function __construct() {
-		$settings       = get_option( 'lpnw_settings', array() );
-		$this->api_url  = trailingslashit( $settings['mautic_api_url'] ?? '' );
-		$this->username = $settings['mautic_api_user'] ?? '';
-		$this->password = $settings['mautic_api_password'] ?? '';
+		$settings = get_option( 'lpnw_settings', array() );
+		$base     = isset( $settings['mautic_api_url'] ) ? trim( (string) $settings['mautic_api_url'] ) : '';
+		// Mautic REST lives at /api; strip accidental UI paths like /s/dashboard.
+		$base = preg_replace( '#/s(?:/.*)?$#', '', $base );
+		$base = is_string( $base ) ? trim( $base ) : '';
+		$this->api_url  = '' !== $base ? trailingslashit( $base ) : '';
+		$this->username = isset( $settings['mautic_api_user'] ) ? (string) $settings['mautic_api_user'] : '';
+		$this->password = isset( $settings['mautic_api_password'] ) ? (string) $settings['mautic_api_password'] : '';
 	}
 
 	public function is_configured(): bool {
@@ -180,10 +184,17 @@ class LPNW_Mautic {
 			}
 		}
 
-		$response = $this->request( 'POST', 'api/contacts/new', $payload );
+		// decode_4xx_json: duplicate / validation errors may return HTTP 4xx with JSON; we still need to recover by ID lookup.
+		$response = $this->request( 'POST', 'api/contacts/new', $payload, true );
 
-		if ( $response && isset( $response['contact']['id'] ) ) {
-			return (int) $response['contact']['id'];
+		$new_id = $this->parse_contact_id_from_api_payload( $response );
+		if ( $new_id > 0 ) {
+			return $new_id;
+		}
+
+		$retry_lookup = $this->get_contact_id_by_email( $email );
+		if ( $retry_lookup ) {
+			return $retry_lookup;
 		}
 
 		if ( $response && isset( $response['errors'] ) ) {
@@ -282,11 +293,17 @@ class LPNW_Mautic {
 	 * @return int|false
 	 */
 	private function get_contact_id_by_email( string $email ) {
+		$norm = strtolower( trim( $email ) );
+		if ( '' === $norm ) {
+			return false;
+		}
+
 		$response = $this->request(
 			'GET',
 			'api/contacts',
 			array(
 				'search' => 'email:' . $email,
+				'limit'  => 10,
 			)
 		);
 
@@ -294,19 +311,81 @@ class LPNW_Mautic {
 			return false;
 		}
 
-		$contact = reset( $response['contacts'] );
-		if ( ! is_array( $contact ) ) {
-			return false;
-		}
+		foreach ( $response['contacts'] as $row_key => $contact ) {
+			if ( ! is_array( $contact ) ) {
+				continue;
+			}
+			$cid = $this->extract_lead_id_from_contact_row( $contact, $row_key );
+			if ( $cid < 1 ) {
+				continue;
+			}
+			$row_email = $this->extract_email_from_contact_row( $contact );
+			if ( '' !== $row_email && strtolower( trim( $row_email ) ) !== $norm ) {
+				continue;
+			}
 
-		if ( isset( $contact['id'] ) ) {
-			return (int) $contact['id'];
-		}
-		if ( isset( $contact['contact']['id'] ) ) {
-			return (int) $contact['contact']['id'];
+			return $cid;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Pull contact id from Mautic list/detail shapes (varies by version and serializer groups).
+	 *
+	 * @param mixed $row_key Associative key from the contacts map (often the numeric lead id).
+	 */
+	private function extract_lead_id_from_contact_row( array $contact, $row_key = null ): int {
+		if ( isset( $contact['id'] ) && is_numeric( $contact['id'] ) ) {
+			return (int) $contact['id'];
+		}
+		if ( isset( $contact['contact']['id'] ) && is_numeric( $contact['contact']['id'] ) ) {
+			return (int) $contact['contact']['id'];
+		}
+		if ( is_string( $row_key ) && is_numeric( $row_key ) ) {
+			return (int) $row_key;
+		}
+		if ( is_int( $row_key ) ) {
+			return $row_key;
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Best-effort email read from API contact row (for verifying search results).
+	 */
+	private function extract_email_from_contact_row( array $contact ): string {
+		if ( isset( $contact['fields']['all']['email'] ) && is_scalar( $contact['fields']['all']['email'] ) ) {
+			return trim( (string) $contact['fields']['all']['email'] );
+		}
+		if ( isset( $contact['contact']['fields']['all']['email'] ) && is_scalar( $contact['contact']['fields']['all']['email'] ) ) {
+			return trim( (string) $contact['contact']['fields']['all']['email'] );
+		}
+		if ( isset( $contact['core']['email'] ) && is_scalar( $contact['core']['email'] ) ) {
+			return trim( (string) $contact['core']['email'] );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Extract new/edited contact id from POST /contacts/new JSON (shape differs across Mautic versions).
+	 *
+	 * @param array<string, mixed>|null $response Decoded JSON.
+	 */
+	private function parse_contact_id_from_api_payload( ?array $response ): int {
+		if ( ! $response ) {
+			return 0;
+		}
+		if ( isset( $response['contact']['id'] ) && is_numeric( $response['contact']['id'] ) ) {
+			return (int) $response['contact']['id'];
+		}
+		if ( isset( $response['contact']['contact']['id'] ) && is_numeric( $response['contact']['contact']['id'] ) ) {
+			return (int) $response['contact']['contact']['id'];
+		}
+
+		return 0;
 	}
 
 	/**
@@ -329,9 +408,10 @@ class LPNW_Mautic {
 	 * @param string               $method HTTP method.
 	 * @param string               $endpoint API endpoint (relative to base URL).
 	 * @param array<string, mixed> $data     Request data.
+	 * @param bool                 $decode_4xx_json When true, JSON-decode 4xx bodies (contact create validation) instead of returning null.
 	 * @return array<string, mixed>|null
 	 */
-	private function request( string $method, string $endpoint, array $data = array() ): ?array {
+	private function request( string $method, string $endpoint, array $data = array(), bool $decode_4xx_json = false ): ?array {
 		$url = $this->api_url . $endpoint;
 
 		$args = array(
@@ -362,9 +442,19 @@ class LPNW_Mautic {
 
 		if ( $code < 200 || $code >= 300 ) {
 			error_log( sprintf( 'LPNW Mautic API HTTP %d: %s', $code, $body ) );
+			if ( $decode_4xx_json && $code >= 400 && $code < 500 ) {
+				$decoded = json_decode( $body, true );
+				return is_array( $decoded ) ? $decoded : null;
+			}
+
 			return null;
 		}
 
-		return json_decode( $body, true );
+		$decoded = json_decode( $body, true );
+		if ( null === $decoded && '' !== trim( $body ) ) {
+			error_log( 'LPNW Mautic API: response was not valid JSON for ' . $method . ' ' . $endpoint );
+		}
+
+		return is_array( $decoded ) ? $decoded : null;
 	}
 }
