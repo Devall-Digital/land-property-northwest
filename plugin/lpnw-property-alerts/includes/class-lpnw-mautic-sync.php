@@ -57,6 +57,27 @@ class LPNW_Mautic_Sync {
 	}
 
 	/**
+	 * If VIP/Pro/Free Mautic template IDs are missing, pull them from the API before sending alerts.
+	 *
+	 * Called from LPNW_Dispatcher::process_queue() so cron does not fatal on a missing method
+	 * and leave rows stuck in "queued".
+	 */
+	public static function ensure_alert_email_ids_when_missing(): void {
+		$settings = get_option( 'lpnw_settings', array() );
+		if ( ! is_array( $settings ) ) {
+			$settings = array();
+		}
+		foreach ( array( 'vip', 'pro', 'free' ) as $tier ) {
+			$key = 'mautic_email_' . $tier;
+			$id  = isset( $settings[ $key ] ) ? (int) $settings[ $key ] : 0;
+			if ( $id < 1 ) {
+				self::sync_if_needed( true );
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Pull template IDs from Mautic and merge into lpnw_settings.
 	 *
 	 * @param bool $force Skip transient when true (admin LPNW pages).
