@@ -211,6 +211,89 @@
 	text-align: center;
 }
 
+/* Text-first shop cards (woocommerce/content-product.php) */
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 100%;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__link {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	text-decoration: none;
+	color: inherit;
+	padding: 1rem 1rem 0;
+	min-height: 44px;
+	box-sizing: border-box;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card .woocommerce-loop-product__title {
+	margin: 0 0 0.35rem;
+	padding: 0;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__period {
+	margin: 0 0 0.5rem;
+	font-size: 0.875rem;
+	color: var(--lpnw-grey-dark, #374151);
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__features {
+	margin: 0 0 0.85rem;
+	padding: 0 0 0 1.15rem;
+	font-size: 0.875rem;
+	line-height: 1.45;
+	color: var(--lpnw-grey-dark, #374151);
+	list-style: disc;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__features li {
+	margin: 0 0 0.35rem;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__features--rich {
+	margin: 0 0 0.85rem;
+	font-size: 0.875rem;
+	line-height: 1.45;
+	color: var(--lpnw-grey-dark, #374151);
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__features--rich ul {
+	margin: 0.35rem 0 0;
+	padding-left: 1.15rem;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__summary {
+	margin: 0 0 0.85rem;
+	font-size: 0.875rem;
+	line-height: 1.45;
+	color: var(--lpnw-grey-dark, #374151);
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__price-wrap {
+	padding: 0 1rem;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__price-wrap .price {
+	margin: 0 0 0.75rem;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__actions {
+	margin-top: auto;
+	padding: 0 1rem 1rem;
+}
+
+.lpnw-woocommerce .woocommerce ul.products li.product .lpnw-wc-shop-card__actions .button {
+	margin: 0;
+	width: 100%;
+	box-sizing: border-box;
+}
+
 .lpnw-woocommerce .woocommerce span.onsale {
 	position: absolute;
 	top: 0.75rem;
