@@ -87,6 +87,11 @@ final class LPNW_Property_Alerts {
 		require_once $includes . 'class-lpnw-onboarding.php';
 		require_once $includes . 'class-lpnw-woocommerce-store.php';
 		require_once $includes . 'class-lpnw-woo-subscription-tier.php';
+		require_once $includes . 'class-lpnw-stripe-api.php';
+		require_once $includes . 'class-lpnw-stripe-subscription-repository.php';
+		require_once $includes . 'class-lpnw-stripe-subscription-tier.php';
+		require_once $includes . 'class-lpnw-stripe-subscription-service.php';
+		require_once $includes . 'class-lpnw-stripe-webhook-controller.php';
 		require_once $includes . 'class-lpnw-user-tier-profile.php';
 		require_once $includes . 'class-lpnw-free-tier-instant.php';
 		require_once $includes . 'class-lpnw-matcher.php';
@@ -137,6 +142,8 @@ final class LPNW_Property_Alerts {
 		LPNW_Page_Content_Sync::init();
 		LPNW_WooCommerce_Notices::init();
 		LPNW_WooCommerce_Store::init();
+		LPNW_Stripe_Subscription_Service::init();
+		LPNW_Stripe_Webhook_Controller::init();
 		LPNW_User_Tier_Profile::init();
 		LPNW_Off_Market_Submit::init();
 

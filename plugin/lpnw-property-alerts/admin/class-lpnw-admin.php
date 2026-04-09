@@ -770,6 +770,66 @@ class LPNW_Admin {
 		);
 
 		add_settings_field(
+			'stripe_recurring_enabled',
+			__( 'Stripe recurring (no Woo Subscriptions plugin)', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array(
+				'key'  => 'stripe_recurring_enabled',
+				'type' => 'checkbox',
+			)
+		);
+
+		add_settings_field(
+			'stripe_price_id_pro',
+			__( 'Stripe Price ID for Pro (recurring monthly)', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array(
+				'key'  => 'stripe_price_id_pro',
+				'type' => 'text',
+			)
+		);
+
+		add_settings_field(
+			'stripe_price_id_vip',
+			__( 'Stripe Price ID for VIP (recurring monthly)', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array(
+				'key'  => 'stripe_price_id_vip',
+				'type' => 'text',
+			)
+		);
+
+		add_settings_field(
+			'stripe_webhook_secret',
+			__( 'Stripe webhook signing secret', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array(
+				'key'  => 'stripe_webhook_secret',
+				'type' => 'password',
+			)
+		);
+
+		add_settings_field(
+			'stripe_api_secret',
+			__( 'Stripe secret key override (optional)', 'lpnw-alerts' ),
+			array( __CLASS__, 'render_field' ),
+			'lpnw-settings',
+			'lpnw_billing_section',
+			array(
+				'key'  => 'stripe_api_secret',
+				'type' => 'password',
+			)
+		);
+
+		add_settings_field(
 			'free_tier_weekly_instant_alerts',
 			__( 'Free tier: instant sample emails per week', 'lpnw-alerts' ),
 			array( __CLASS__, 'render_field' ),
@@ -787,6 +847,10 @@ class LPNW_Admin {
 	 */
 	public static function render_billing_section_intro(): void {
 		$wcs = class_exists( 'LPNW_Woo_Subscription_Tier' ) && LPNW_Woo_Subscription_Tier::is_available();
+		$webhook_url = '';
+		if ( function_exists( 'rest_url' ) ) {
+			$webhook_url = (string) rest_url( 'lpnw/v1/stripe-webhook' );
+		}
 		echo '<p class="description">';
 		if ( $wcs ) {
 			esc_html_e(
@@ -795,11 +859,16 @@ class LPNW_Admin {
 			);
 		} else {
 			esc_html_e(
-				'Install and activate WooCommerce Subscriptions to sell monthly Pro/VIP with renewals and trials. Until then, tier can follow completed/processing orders only.',
+				'Without WooCommerce Subscriptions, you can still bill monthly by enabling Stripe recurring below (create matching recurring Prices in Stripe, then paste their Price IDs). Woo checkout collects the first payment; LPNW starts a Stripe subscription on a short trial so the next charge lines up with the billing period.',
 				'lpnw-alerts'
 			);
 		}
 		echo '</p>';
+		if ( '' !== $webhook_url ) {
+			echo '<p class="description"><strong>' . esc_html__( 'Stripe webhook endpoint', 'lpnw-alerts' ) . '</strong>: <code>' . esc_html( $webhook_url ) . '</code>. ';
+			esc_html_e( 'Subscribe to customer.subscription.updated and customer.subscription.deleted (invoice.paid is optional).', 'lpnw-alerts' );
+			echo '</p>';
+		}
 	}
 
 	/**
@@ -845,6 +914,7 @@ class LPNW_Admin {
 			'landregistry_enabled',
 			'auctions_enabled',
 			'tier_use_subscriptions',
+			'stripe_recurring_enabled',
 		);
 		foreach ( $checkboxes as $key ) {
 			$sanitized[ $key ] = ! empty( $input[ $key ] );
@@ -856,6 +926,8 @@ class LPNW_Admin {
 			'epc_api_key',
 			'mautic_api_url',
 			'mautic_api_user',
+			'stripe_price_id_pro',
+			'stripe_price_id_vip',
 		);
 		foreach ( $text_fields as $key ) {
 			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
@@ -875,6 +947,14 @@ class LPNW_Admin {
 		$sanitized['mautic_email_vip']  = isset( $input['mautic_email_vip'] ) ? absint( $input['mautic_email_vip'] ) : 0;
 		$sanitized['mautic_email_pro']  = isset( $input['mautic_email_pro'] ) ? absint( $input['mautic_email_pro'] ) : 0;
 		$sanitized['mautic_email_free'] = isset( $input['mautic_email_free'] ) ? absint( $input['mautic_email_free'] ) : 0;
+
+		$stripe_secrets = array(
+			'stripe_webhook_secret',
+			'stripe_api_secret',
+		);
+		foreach ( $stripe_secrets as $key ) {
+			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
+		}
 
 		$ft_instant = isset( $input['free_tier_weekly_instant_alerts'] ) ? absint( $input['free_tier_weekly_instant_alerts'] ) : 0;
 		if ( $ft_instant > 100 ) {
@@ -916,6 +996,9 @@ class LPNW_Admin {
 			if ( 'tier_use_subscriptions' === $key && class_exists( 'LPNW_Woo_Subscription_Tier' ) && ! LPNW_Woo_Subscription_Tier::is_available() ) {
 				echo ' <span class="description">' . esc_html__( '(WooCommerce Subscriptions is not active.)', 'lpnw-alerts' ) . '</span>';
 			}
+			if ( 'stripe_recurring_enabled' === $key ) {
+				echo ' <span class="description">' . esc_html__( '(Requires Stripe Price IDs and webhook secret. Uses the same Stripe secret key as the plugin API: LPNW_STRIPE_SECRET_KEY / STRIPE_SECRET_KEY or the override field below.)', 'lpnw-alerts' ) . '</span>';
+			}
 		} elseif ( 'password' === $type ) {
 			printf(
 				'<input type="password" name="lpnw_settings[%s]" value="" class="regular-text" autocomplete="new-password" />',
@@ -943,12 +1026,27 @@ class LPNW_Admin {
 				);
 			}
 		} else {
-			printf(
-				'<input type="%s" name="lpnw_settings[%s]" value="%s" class="regular-text" />',
-				esc_attr( $type ),
-				esc_attr( $key ),
-				esc_attr( $value )
-			);
+			if ( in_array( $key, array( 'stripe_webhook_secret', 'stripe_api_secret' ), true ) ) {
+				printf(
+					'<input type="%s" name="lpnw_settings[%s]" value="%s" class="regular-text" autocomplete="new-password" />',
+					esc_attr( $type ),
+					esc_attr( $key ),
+					esc_attr( $value )
+				);
+				if ( 'stripe_api_secret' === $key ) {
+					echo '<p class="description">' . esc_html__( 'Leave blank to use LPNW_STRIPE_SECRET_KEY, STRIPE_SECRET_KEY, or your hosting secret store.', 'lpnw-alerts' ) . '</p>';
+				}
+			} else {
+				printf(
+					'<input type="%s" name="lpnw_settings[%s]" value="%s" class="regular-text" />',
+					esc_attr( $type ),
+					esc_attr( $key ),
+					esc_attr( $value )
+				);
+				if ( str_starts_with( $key, 'stripe_price_id_' ) ) {
+					echo '<p class="description">' . esc_html__( 'Must look like price_xxxxxxxx. Create a monthly recurring GBP price in Stripe for each tier.', 'lpnw-alerts' ) . '</p>';
+				}
+			}
 		}
 	}
 
