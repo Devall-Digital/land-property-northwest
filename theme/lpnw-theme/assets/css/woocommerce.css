@@ -161,8 +161,9 @@ body.lpnw-site.lpnw-woocommerce .lpnw-wc-main a:not(.button):not(.added_to_cart)
  * ------------------------------------------------------------------------- */
 .lpnw-woocommerce .lpnw-wc-main .woocommerce-breadcrumb {
 	margin-bottom: 1.25rem;
-	font-size: 0.875rem;
-	color: var(--lpnw-grey-dark, #374151);
+	font-size: 0.9375rem;
+	font-weight: 500;
+	color: var(--lpnw-navy, #0f1d35);
 }
 
 .lpnw-woocommerce .lpnw-wc-main .woocommerce-breadcrumb a {
@@ -175,7 +176,8 @@ body.lpnw-site.lpnw-woocommerce .lpnw-wc-main a:not(.button):not(.added_to_cart)
 .lpnw-woocommerce .lpnw-wc-main .woocommerce-ordering {
 	margin-bottom: 1rem;
 	font-size: 0.9375rem;
-	color: var(--lpnw-grey-dark, #374151);
+	font-weight: 600;
+	color: var(--lpnw-navy, #0f1d35);
 }
 
 .lpnw-woocommerce .lpnw-wc-main .woocommerce-ordering select {
@@ -258,16 +260,33 @@ body.lpnw-site.lpnw-woocommerce .lpnw-wc-main a:not(.button):not(.added_to_cart)
 	color: var(--lpnw-navy, #0f1d35);
 }
 
+/* Navy on white meets contrast; amber accent on single product only */
 .lpnw-woocommerce .lpnw-wc-main ul.products li.product .price .woocommerce-Price-amount {
-	color: var(--lpnw-amber-dark, #c58700);
+	color: var(--lpnw-navy, #0f1d35);
 }
 
 .lpnw-woocommerce .lpnw-wc-main ul.products li.product .button {
 	margin: auto 1rem 1rem;
-	align-self: flex-start;
+	align-self: stretch;
 	width: calc(100% - 2rem);
 	max-width: 100%;
 	text-align: center;
+}
+
+/* WooCommerce loop buttons omit .alt; treat add to cart as primary CTA */
+.lpnw-woocommerce .lpnw-wc-main ul.products li.product a.add_to_cart_button,
+.lpnw-woocommerce .lpnw-wc-main ul.products li.product button.add_to_cart_button {
+	background: var(--lpnw-amber, #f0a500) !important;
+	color: #fff !important;
+	border: none !important;
+	box-shadow: 0 4px 14px rgba(240, 165, 0, 0.35) !important;
+	font-weight: 700 !important;
+}
+
+.lpnw-woocommerce .lpnw-wc-main ul.products li.product a.add_to_cart_button:hover,
+.lpnw-woocommerce .lpnw-wc-main ul.products li.product button.add_to_cart_button:hover {
+	filter: brightness(0.95);
+	box-shadow: 0 6px 18px rgba(240, 165, 0, 0.45) !important;
 }
 
 .lpnw-woocommerce .lpnw-wc-main span.onsale {
