@@ -4,9 +4,23 @@ Use **Mautic → Channels → Emails** (segment / template emails). Publish each
 
 After plugin **1.0.9+**, the Settings screen lists **recent emails from the API** so you can copy IDs without hunting in Mautic.
 
-## Seeded templates (API)
+## Recommended: browser setup (production)
 
-If the instance was empty, three **template** emails were created via `tools/mautic-seed-alert-emails.php` using `MAUTIC_URL` / `MAUTIC_USER` / `MAUTIC_PASS`:
+The reliable approach is to **edit each template in the Mautic UI** (Theme → Code Mode if you use themes, then **Advanced → HTML Code**), **paste** the full HTML, and **Save**. You (or an agent using the browser) can confirm what is stored and avoid silent API or credential mismatches.
+
+To **generate** the three alert bodies for pasting (no Mautic API required), run locally:
+
+```bash
+php tools/mautic-seed-alert-emails.php --dump-html
+```
+
+Copy the block under `---VIP---`, `---PRO---`, and `---FREE---` into the matching email. Marketing / prospect copy: `docs/mautic-prospect-intro-email.html`.
+
+On each alert template, leave **Contact segment** empty unless every subscriber is in that segment (otherwise WordPress API sends can fail). Keep **Published** on.
+
+## Optional: seed new emails via API
+
+If the instance was **empty**, you can create three **template** emails via `tools/mautic-seed-alert-emails.php` using `MAUTIC_URL` / `MAUTIC_USER` / `MAUTIC_PASS`:
 
 
 | Field in WordPress   | Typical Mautic ID | Email name                |
@@ -44,12 +58,104 @@ Create **three** emails (or reuse one with shared layout): one for VIP, one for 
 
 ## Prospect intro (one-off segment blast)
 
-This is **not** wired from WordPress. Build it only in Mautic.
+This is **not** wired from WordPress.
+
+**On the live instance (as of setup pass):**
+
+| Item | Typical ID / alias | Notes |
+|------|--------------------|--------|
+| Import pool segment | **1** · `lpnw-campaign-import-2026` | Tag `lpnw-campaign-2026` (raw import). **Do not** blast this alone without exclusions. |
+| Mailable segment for intro | **2** · `lpnw-mailable-prospects-intro` | Same tag pool; **refine in UI** (exclude bounces, DNC, bad emails) before big sends. Rebuild segment after edits. |
+| Segment email | **5** · `LPNW Prospect intro` | Published, uses `docs/mautic-prospect-intro-email.html` and `{unsubscribe_text}`. |
+
+**Why two segments that sound similar?**
+
+- **`lpnw-campaign-import-2026`** = the **big pool**: everyone who was imported with tag `lpnw-campaign-2026`. It is **not** meant to be emailed in one go without checks (wrong emails, bounces, unsubscribes, etc.).
+- **`lpnw-mailable-prospects-intro`** = a **smaller, safer list** built from that same tag but **tightened in the Mautic UI** (filters/exclusions you add before a real send). Think: “import bucket” vs “who we actually mail.”
+
+**Do segments “clean themselves” when people bounce or unsubscribe?**
+
+**No, not just because you sent mail.** Sending does not shrink a segment by itself.
+
+- A segment only changes when its **rules** match different contacts after **rebuilds** (and when bounces/unsubscribes are **recorded in Mautic**).
+- If the rule is only “has tag X”, people can stay in the segment even after they unsubscribe, unless you **exclude** “do not contact” / bounces (wording in the UI varies by version) or remove the tag.
+- **Bounce handling** needs the bounce mailbox + **`mautic:email:fetch`** cron; otherwise Mautic may never mark those contacts as bounced.
+- So: the “mailable” segment is **not** inherently magic. It is safer only if you **add the right filters** and keep **segments updated** (`mautic:segments:update` on a schedule).
+
+**Segment with only you (test send)**
+
+1. **Segments** → **New** (or **+ New**).
+2. Name it clearly, e.g. `LPNW test – admin only`.
+3. On the **Filters** tab, add a condition: **Email** → **equals** → `admin@codevall.co.uk` (use your real address; fix typos like `.couk` → `.co.uk`).
+4. **Save and close**, then **Rebuild** the segment if Mautic shows that option.
+5. Open **Contacts** and confirm the segment contact count is **1**.
+
+**See the email in the builder (preview)**
+
+1. **Channels** → **Emails**.
+2. Click the **name** of the email (e.g. `LPNW Prospect intro`). You are now on that email’s page.
+3. Click **Edit** (or the pencil / builder entry point Mautic shows for that email).
+4. Inside the builder, use **Preview** (often top or sidebar). That is only a **browser preview**; some tokens look wrong until a real send.
+5. For a **real** test: send that email to the **one-person segment** above (not the whole import segment).
+
+**“Duplicate” / copy an email (optional)**
+
+On the **Emails** list, open the row menu for an email and choose **Clone** or **Duplicate** (wording varies). That makes a **second copy** you can change without breaking the original. Optional; skip if you only want one intro email.
+
+**WordPress alert log says “WordPress mail” instead of Mautic**
+
+The plugin sends via **Mautic** when: Mautic API credentials are saved **and** VIP / Pro / Free template IDs are set **and** the Mautic API accepts the send. Otherwise it falls back to **`wp_mail`**. The log line **“WordPress mail”** means that row was sent with the fallback (empty `mautic_email_id`).
+
+Checklist:
+
+1. **LPNW Alert Settings**: Mautic URL, API user, API password; VIP / Pro / Free email IDs filled (or open **Dashboard / Settings** once so template IDs can sync from Mautic by name).
+2. Mautic templates must match the names the sync looks for (see table at top of this doc): **LPNW Alert — VIP**, **LPNW Alert — Pro**, **LPNW Weekly Digest — Free**.
+3. If it still falls back, check the server **PHP error log** for lines starting with `LPNW Mautic:` (API errors or send refusals).
+
+### “Send example” does nothing (no email arrives)
+
+In **Mautic 5**, outbound mail is often **queued** first. If nothing is processing the queue, **Send example**, tests, and real sends can appear to do nothing.
+
+**Fix (on the server that hosts `marketing.land-property-northwest.co.uk`):**
+
+1. Confirm the **Mautic install path** (20i File Manager or support: where `bin/console` lives for that app).
+2. Add a **cron job** every **5–15 minutes** (example; adjust PHP path and install path):
+
+```bash
+php /path/to/mautic/bin/console messenger:consume email --time-limit=160 --no-interaction --no-ansi
+```
+
+Official reference: [Mautic 5 cron jobs](https://docs.mautic.org/en/5.2/configuration/cron_jobs.html) (see **Process Email queue**). Also keep **`mautic:segments:update`**, **`mautic:email:fetch`** (bounces), and for big sends **`mautic:broadcasts:send`** on sensible staggered schedules.
+
+3. In **Configuration → Email Settings**, use **Send test email** after cron is in place. If that works, **Send example** on an email should start working too.
+4. Check spam/junk for `hello@land-property-northwest.co.uk` (or whatever **From** is set to).
+
+Until the queue consumer runs, **do not assume** Mautic has “sent” anything just because the UI accepted a click.
+
+**Recreate the email on another Mautic (or after delete):**
+
+```bash
+php tools/mautic-seed-prospect-intro-email.php
+```
+
+Uses `.env` `MAUTIC_*` and `curl`. Set `MAUTIC_PROSPECT_SEGMENT_ID` if your mailable segment ID is not discovered automatically.
+
+**Manual steps (if you prefer the UI):**
 
 1. **Subject:** `Northwest land and property alerts for your inbox`
-2. **HTML:** paste the contents of `**docs/mautic-prospect-intro-email.html`** (use Code view; do not paste the `<!-- ... -->` comment block into the body if Mautic strips it anyway).
+2. **HTML:** paste the contents of `docs/mautic-prospect-intro-email.html` (Code view; omit the `<!-- ... -->` comment block if Mautic strips it).
 3. **Import:** map CSV columns to **email**, **firstname**, **lastname**, **company** (aliases must match tokens in that file).
-4. **Segment** your imported contacts, then **send** the segment email. Test on yourself first; `{unsubscribe_text}` behaves correctly only for real contacts, not generic preview.
+4. **Segment** contacts, then send the segment email. Test on yourself first; `{unsubscribe_text}` only works for real contacts, not preview.
+
+### Bounces and unsubscribe
+
+- **Unsubscribe:** `{unsubscribe_text}` is in the prospect template footer. Global wording lives under **Settings → Configuration → Email Settings** (unsubscribe token text).
+- **Bounces (production):** use a dedicated mailbox (e.g. `bounces@land-property-northwest.co.uk`) on **Settings → Configuration → Email Settings → Monitored Inbox Settings**:
+  - **Custom return path (bounce) address:** same bounce address so receiving MTAs can return bounces there (depends on your SMTP allowing custom envelope).
+  - **Default mailbox:** IMAP host **`imap.stackmail.com`** (20i Stackmail TLS cert is `*.stackmail.com`; using `imap.land-property-northwest.co.uk` often fails with “hostname mismatch” in strict clients like Mautic). Port **993**, encryption **SSL/TLS**. **Username** = full mailbox address (e.g. `bounces@land-property-northwest.co.uk`), password = mailbox password.
+  - **Bounces → Folder to check:** set explicitly to **`INBOX`** if bounces arrive in the main inbox. Leave **Contact replies** / **Unsubscribe requests** folder fields empty unless you use separate mailboxes or folders for those monitors.
+  - **Cron:** Mautic must run **`bin/console mautic:email:fetch`** on a schedule (e.g. every 5–15 minutes) or bounces will not be processed. On 20i, add a cron job pointing at your Mautic install’s PHP/console path (see Mautic 5 cron docs).
+- **Never** commit mailbox passwords to the repo. Rotate any password pasted into chat.
 
 ### Bulk import from `email_automation` SQLite (`contacts.db`)
 

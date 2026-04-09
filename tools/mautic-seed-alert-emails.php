@@ -1,12 +1,14 @@
 <?php
 /**
- * One-off: create three Mautic template emails for LPNW (uses MAUTIC_* env vars).
- * Run: MAUTIC_URL=... MAUTIC_USER=... MAUTIC_PASS=... php tools/mautic-seed-alert-emails.php
+ * Mautic alert template HTML (single source of truth) plus optional API seed.
  *
- * Dump HTML only (no API): php tools/mautic-seed-alert-emails.php --dump-html
+ * Recommended: run `php tools/mautic-seed-alert-emails.php --dump-html` locally, copy each
+ * `---VIP---` / `---PRO---` / `---FREE---` block into Mautic → edit email → Advanced → HTML Code,
+ * then Save. Use the browser with a teammate or agent so you see what Mautic actually stores.
  *
- * Note: Creating new emails yields new IDs. To refresh styling on existing templates,
- * paste the HTML from lpnw_mautic_email_shell_*() into Mautic Code mode or PATCH via API.
+ * Optional (empty Mautic only): `MAUTIC_URL=... MAUTIC_USER=... MAUTIC_PASS=... php tools/mautic-seed-alert-emails.php`
+ * creates three new template emails via the API. That assigns new numeric IDs; update WordPress
+ * LPNW settings to match. Do not re-run on production if templates already exist unless you intend to.
  *
  * @package LPNW_Tools
  */
