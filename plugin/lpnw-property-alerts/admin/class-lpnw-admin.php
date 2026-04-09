@@ -856,14 +856,25 @@ class LPNW_Admin {
 			'epc_api_key',
 			'mautic_api_url',
 			'mautic_api_user',
-			'mautic_api_password',
-			'mautic_email_vip',
-			'mautic_email_pro',
-			'mautic_email_free',
 		);
 		foreach ( $text_fields as $key ) {
 			$sanitized[ $key ] = sanitize_text_field( $input[ $key ] ?? '' );
 		}
+
+		// Empty password field on save must not wipe the stored secret (common after any settings change).
+		$pw_raw = isset( $input['mautic_api_password'] ) ? (string) wp_unslash( $input['mautic_api_password'] ) : '';
+		$pw_raw = trim( $pw_raw );
+		if ( '' !== $pw_raw ) {
+			$sanitized['mautic_api_password'] = sanitize_text_field( $pw_raw );
+		} elseif ( ! empty( $prev['mautic_api_password'] ) && is_string( $prev['mautic_api_password'] ) ) {
+			$sanitized['mautic_api_password'] = $prev['mautic_api_password'];
+		} else {
+			$sanitized['mautic_api_password'] = '';
+		}
+
+		$sanitized['mautic_email_vip']  = isset( $input['mautic_email_vip'] ) ? absint( $input['mautic_email_vip'] ) : 0;
+		$sanitized['mautic_email_pro']  = isset( $input['mautic_email_pro'] ) ? absint( $input['mautic_email_pro'] ) : 0;
+		$sanitized['mautic_email_free'] = isset( $input['mautic_email_free'] ) ? absint( $input['mautic_email_free'] ) : 0;
 
 		$ft_instant = isset( $input['free_tier_weekly_instant_alerts'] ) ? absint( $input['free_tier_weekly_instant_alerts'] ) : 0;
 		if ( $ft_instant > 100 ) {
@@ -905,6 +916,12 @@ class LPNW_Admin {
 			if ( 'tier_use_subscriptions' === $key && class_exists( 'LPNW_Woo_Subscription_Tier' ) && ! LPNW_Woo_Subscription_Tier::is_available() ) {
 				echo ' <span class="description">' . esc_html__( '(WooCommerce Subscriptions is not active.)', 'lpnw-alerts' ) . '</span>';
 			}
+		} elseif ( 'password' === $type ) {
+			printf(
+				'<input type="password" name="lpnw_settings[%s]" value="" class="regular-text" autocomplete="new-password" />',
+				esc_attr( $key )
+			);
+			echo '<p class="description">' . esc_html__( 'Leave blank to keep the current API password. Enter a new value only when rotating credentials.', 'lpnw-alerts' ) . '</p>';
 		} elseif ( 'number' === $type ) {
 			if ( 'subscription_on_hold_grace_days' === $key ) {
 				$num = '' !== $value && is_numeric( $value ) ? absint( $value ) : 14;
