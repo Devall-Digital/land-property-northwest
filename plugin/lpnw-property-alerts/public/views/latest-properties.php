@@ -54,7 +54,10 @@ if ( empty( $properties ) ) : ?>
 			$agent_line = trim( (string) ( $prop->agent_name ?? '' ) );
 
 			$lpnw_listed_info = class_exists( 'LPNW_Property' )
-				? LPNW_Property::get_card_listing_recency( $prop )
+				? LPNW_Property::get_card_listing_recency(
+					$prop,
+					array( 'activity_feed_ui' => true )
+				)
 				: array(
 					'label'     => '',
 					'is_urgent' => false,

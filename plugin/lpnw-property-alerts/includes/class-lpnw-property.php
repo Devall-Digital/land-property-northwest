@@ -12,6 +12,16 @@ defined( 'ABSPATH' ) || exit;
 class LPNW_Property {
 
 	/**
+	 * When the portal reports first_listed_date much newer than we stored, treat as a relist and keep
+	 * the newer date (avoids "listed 72 days ago" while the portal shows listed today). Smaller
+	 * forward moves still use the earlier date so minor feed noise does not fake a new listing.
+	 */
+	private const PORTAL_FIRST_LISTED_RELIST_MIN_GAP_SECONDS = 1814400; // 21 days.
+
+	/** Beyond this many calendar days we avoid "First listed 4529 days ago" and show softer copy instead. */
+	private const PORTAL_FIRST_LISTED_EXTREME_CALENDAR_DAYS = 730;
+
+	/**
 	 * Insert or update a property record. Returns the property ID.
 	 *
 	 * @param array<string, mixed> $data Normalised property data.
@@ -136,8 +146,9 @@ class LPNW_Property {
 	}
 
 	/**
-	 * When refreshing a listing, keep the earliest known portal first-listed date so a price refresh
-	 * does not look like a brand-new listing if the feed sends a newer date.
+	 * Merge portal first-listed dates: normally keep the earliest so a noisy newer date from a price
+	 * refresh does not look like a brand-new listing. If the incoming date jumps forward by at least
+	 * PORTAL_FIRST_LISTED_RELIST_MIN_GAP_SECONDS, treat as a relist and adopt the newer date.
 	 *
 	 * @param string $existing_ymd Date already stored (Y-m-d or empty).
 	 * @param string $incoming_ymd Date from the latest feed parse (Y-m-d or empty).
@@ -166,6 +177,11 @@ class LPNW_Property {
 		if ( false === $tb ) {
 			return sanitize_text_field( $a );
 		}
+
+		if ( $tb > $ta && ( $tb - $ta ) >= self::PORTAL_FIRST_LISTED_RELIST_MIN_GAP_SECONDS ) {
+			return sanitize_text_field( $b );
+		}
+
 		return $ta <= $tb ? sanitize_text_field( $a ) : sanitize_text_field( $b );
 	}
 
@@ -1288,17 +1304,177 @@ class LPNW_Property {
 	}
 
 	/**
+	 * Calendar days between a portal first-listed date and "today" in site timezone.
+	 *
+	 * @param string $date_string Y-m-d or datetime.
+	 * @return int 0 if listed today or invalid/future; otherwise whole days.
+	 */
+	private static function portal_first_listed_calendar_days_ago( string $date_string ): int {
+		$ts = strtotime( $date_string );
+		if ( false === $ts ) {
+			return 0;
+		}
+
+		$tz        = wp_timezone();
+		$listed_dt = date_create_immutable( wp_date( 'Y-m-d', $ts ), $tz );
+		$today_dt  = date_create_immutable( current_time( 'Y-m-d' ), $tz );
+
+		if ( ! $listed_dt || ! $today_dt || $listed_dt > $today_dt ) {
+			return 0;
+		}
+
+		return (int) $listed_dt->diff( $today_dt )->days;
+	}
+
+	/**
+	 * Neutral relative-time fragment (no "Listed" wording) for "Listing updated …" lines.
+	 *
+	 * @param string $date_string MySQL datetime.
+	 * @return array{label: string, is_urgent: bool, is_new: bool}
+	 */
+	private static function get_neutral_relative_time_label( string $date_string ): array {
+		$result = array(
+			'label'     => '',
+			'is_urgent' => false,
+			'is_new'    => false,
+		);
+
+		if ( '' === trim( $date_string ) ) {
+			return $result;
+		}
+
+		$ts = strtotime( $date_string );
+		if ( false === $ts ) {
+			return $result;
+		}
+
+		$now  = time();
+		$diff = $now - $ts;
+
+		if ( $diff < 0 ) {
+			return $result;
+		}
+
+		$result['is_new'] = $diff < ( 2 * DAY_IN_SECONDS );
+
+		if ( $diff < HOUR_IN_SECONDS ) {
+			$mins = max( 1, (int) floor( $diff / 60 ) );
+			if ( $mins < 5 ) {
+				$result['label']     = __( 'just now', 'lpnw-alerts' );
+				$result['is_urgent'] = true;
+			} else {
+				$result['label'] = sprintf(
+					/* translators: %d: number of minutes */
+					_n( '%d minute ago', '%d minutes ago', $mins, 'lpnw-alerts' ),
+					$mins
+				);
+				$result['is_urgent'] = true;
+			}
+			return $result;
+		}
+
+		if ( $diff < DAY_IN_SECONDS ) {
+			$hours           = max( 1, (int) floor( $diff / HOUR_IN_SECONDS ) );
+			$result['label'] = sprintf(
+				/* translators: %d: number of hours */
+				_n( '%d hour ago', '%d hours ago', $hours, 'lpnw-alerts' ),
+				$hours
+			);
+			$result['is_urgent'] = ( $hours <= 4 );
+			return $result;
+		}
+
+		$tz       = wp_timezone();
+		$event_dt = date_create_immutable( wp_date( 'Y-m-d', $ts ), $tz );
+		$today_dt = date_create_immutable( current_time( 'Y-m-d' ), $tz );
+		if ( ! $event_dt || ! $today_dt || $event_dt > $today_dt ) {
+			return $result;
+		}
+
+		$cal_days = (int) $event_dt->diff( $today_dt )->days;
+
+		if ( 0 === $cal_days ) {
+			$result['label']     = __( 'today', 'lpnw-alerts' );
+			$result['is_urgent'] = true;
+		} elseif ( 1 === $cal_days ) {
+			$result['label'] = __( 'yesterday', 'lpnw-alerts' );
+		} elseif ( $cal_days > 1 ) {
+			$result['label'] = sprintf(
+				/* translators: %d: number of days */
+				_n( '%d day ago', '%d days ago', $cal_days, 'lpnw-alerts' ),
+				$cal_days
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * When the portal still carries an old first-listed date but the row was updated recently (relist,
+	 * agent change, feed refresh), prefer copy that reflects the fresh activity instead of "First listed 60 days ago".
+	 *
+	 * @param object $property              Row with updated_at, first_listed_date.
+	 * @param string $first                 Trimmed first_listed_date.
+	 * @param int    $max_update_age_seconds How recent updated_at must be (e.g. 7 days on "Latest activity" UI).
+	 * @return array{label: string, is_urgent: bool, is_new: bool}|null
+	 */
+	private static function get_portal_refresh_recency_row( object $property, string $first, int $max_update_age_seconds = 259200 ): ?array {
+		if ( self::portal_first_listed_calendar_days_ago( $first ) < 5 ) {
+			return null;
+		}
+
+		$upd = isset( $property->updated_at ) ? trim( (string) $property->updated_at ) : '';
+		if ( '' === $upd ) {
+			return null;
+		}
+
+		$upd_ts = strtotime( $upd );
+		if ( false === $upd_ts ) {
+			return null;
+		}
+
+		$age = time() - $upd_ts;
+		if ( $age < 0 || $age > $max_update_age_seconds ) {
+			return null;
+		}
+
+		$fl_ts = strtotime( $first );
+		if ( false !== $fl_ts && $upd_ts < $fl_ts ) {
+			return null;
+		}
+
+		$neutral = self::get_neutral_relative_time_label( $upd );
+		if ( '' === $neutral['label'] ) {
+			return null;
+		}
+
+		return array(
+			'label'     => sprintf(
+				/* translators: %s: relative time phrase, e.g. "2 hours ago", "today". */
+				__( 'Listing updated %s', 'lpnw-alerts' ),
+				$neutral['label']
+			),
+			'is_urgent' => $neutral['is_urgent'],
+			'is_new'    => $neutral['is_new'],
+		);
+	}
+
+	/**
 	 * Recency for property cards: NEW / JUST LISTED badges follow portal first-listed date when present,
 	 * so we do not mark a week-old Rightmove listing "new" just because we only ingested it today.
 	 *
 	 * Label text still prefers portal date; falls back to created_at when the portal did not give a date.
 	 *
-	 * @param object $property Row with source, first_listed_date, created_at.
+	 * @param object               $property Row with source, first_listed_date, created_at.
+	 * @param array<string, mixed> $opts     Optional. `activity_feed_ui` (bool): homepage / latest-properties; widens
+	 *                                       the window for "Listing updated …" from updated_at (7 days vs 3).
 	 * @return array{label: string, is_urgent: bool, is_new: bool}
 	 */
-	public static function get_card_listing_recency( object $property ): array {
+	public static function get_card_listing_recency( object $property, array $opts = array() ): array {
 		$first   = isset( $property->first_listed_date ) ? trim( (string) $property->first_listed_date ) : '';
 		$created = isset( $property->created_at ) ? trim( (string) $property->created_at ) : '';
+
+		$max_update_age = ! empty( $opts['activity_feed_ui'] ) ? (int) ( 7 * DAY_IN_SECONDS ) : (int) ( 3 * DAY_IN_SECONDS );
 
 		// Fresh price cuts already show PRICE DROP + "Price reduced …" + Was/now; suppress the portal
 		// "First listed …" line so the card is not read as a brand-new listing with a contradictory age.
@@ -1314,6 +1490,10 @@ class LPNW_Property {
 
 		if ( self::is_portal_listing_row( $property ) ) {
 			if ( '' !== $first ) {
+				$refresh = self::get_portal_refresh_recency_row( $property, $first, $max_update_age );
+				if ( null !== $refresh ) {
+					return $refresh;
+				}
 				return self::get_first_listed_age_label_for_portal( $first );
 			}
 
@@ -1419,6 +1599,14 @@ class LPNW_Property {
 		}
 
 		$cal_days = (int) $listed_dt->diff( $today_dt )->days;
+
+		if ( $cal_days > self::PORTAL_FIRST_LISTED_EXTREME_CALENDAR_DAYS ) {
+			return array(
+				'label'     => __( 'Still on the market — the portal link shows the live listing date.', 'lpnw-alerts' ),
+				'is_urgent' => false,
+				'is_new'    => false,
+			);
+		}
 
 		if ( 0 === $cal_days ) {
 			$result['label']     = __( 'First listed today', 'lpnw-alerts' );

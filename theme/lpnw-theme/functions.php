@@ -704,6 +704,9 @@ add_filter(
 		if ( is_page() || is_front_page() ) {
 			return 'no-sidebar';
 		}
+		if ( function_exists( 'is_woocommerce' ) && is_woocommerce() ) {
+			return 'no-sidebar';
+		}
 		return $layout;
 	}
 );
@@ -1135,7 +1138,7 @@ function lpnw_theme_render_footer_mega(): void {
 					<?php endforeach; ?>
 				</ul>
 			</nav>
-			<nav class="lpnw-footer-mega__col" aria-label="<?php echo esc_attr__( 'Subscriber links', 'lpnw-theme' ); ?>">
+			<nav class="lpnw-footer-mega__col lpnw-footer-mega__col--subscriber" aria-label="<?php echo esc_attr__( 'Subscriber links', 'lpnw-theme' ); ?>">
 				<p class="lpnw-footer-mega__heading"><?php echo esc_html__( 'For Subscribers', 'lpnw-theme' ); ?></p>
 				<ul class="lpnw-footer-mega__list">
 					<?php foreach ( $subscriber_links as $item ) : ?>

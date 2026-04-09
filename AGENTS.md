@@ -6,6 +6,19 @@
 
 This is a WordPress plugin + theme repo (no standalone app). The core product is the `lpnw-property-alerts` plugin in `plugin/` and the GeneratePress child theme in `theme/`. See `BRIEF.md` and `STATUS.md` for product context and priorities.
 
+### Autonomous investigation (default)
+
+Agents should **not** depend on the director to narrate what is deployed, what cron does, or what Mautic/WP “probably” did. That is slow and often wrong.
+
+**Do this first, without asking:**
+
+1. **Read** `BRIEF.md`, `STATUS.md`, and the relevant `docs/*.md` (especially `DEPLOYMENT.md`, `PROJECT-RUNBOOK.md`, `VERIFICATION-BATCHES.md`).
+2. **Trace behaviour in code** (`plugin/lpnw-property-alerts/`, `grep`, semantic search) until you know the real control flow.
+3. **Run repo tools** when they answer the question (`tools/*.php` with `.env` / env vars; `composer lint` on touched files).
+4. **Verify live state** when needed: WordPress via **login-as** URLs and `LPNW_LOGIN_AS_SECRET` (see below), REST endpoints documented in the repo, Mautic via `MAUTIC_*` and `tools/mautic-list-emails.php` / API patterns in code, optional MCP browser.
+
+**Ask the director only when blocked:** a secret is missing from the agent environment and cannot be read any other safe way, the action is irreversible or legally sensitive, or the decision is genuinely a product call the code cannot answer.
+
 ### Live WordPress login (cloud agents, production site)
 
 Cloud agents and browser automation should **not** guess wp-admin passwords. On **https://land-property-northwest.co.uk** use the **`lpnw-login-as`** must-use plugin (`mu-plugins/lpnw-login-as.php` in the repo; lives on the server under `wp-content/mu-plugins/`).

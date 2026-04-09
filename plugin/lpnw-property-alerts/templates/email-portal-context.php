@@ -20,13 +20,20 @@ $lpnw_rec        = class_exists( 'LPNW_Property' ) ? LPNW_Property::get_card_lis
 $lpnw_price_drop = class_exists( 'LPNW_Property' ) && LPNW_Property::is_recent_price_reduction( $prop );
 $lpnw_show_new   = ! $lpnw_price_drop && ! empty( $lpnw_rec['is_new'] );
 $lpnw_price_line = class_exists( 'LPNW_Property' ) ? LPNW_Property::format_price_change_summary_line( $prop ) : '';
+$lpnw_price_when = class_exists( 'LPNW_Property' ) ? LPNW_Property::format_price_reduction_recency_line( $prop ) : '';
 ?>
 
 <?php if ( $lpnw_price_drop ) : ?>
 <p style="margin:0 0 10px;">
 	<span style="display:inline-block;padding:4px 10px;background:#C2410C;color:#FFFFFF;font-size:11px;font-weight:700;letter-spacing:0.06em;border-radius:4px;"><?php esc_html_e( 'PRICE DROP', 'lpnw-alerts' ); ?></span>
 </p>
-<?php elseif ( $lpnw_show_new ) : ?>
+<?php endif; ?>
+<?php if ( $lpnw_price_drop && '' !== $lpnw_price_when ) : ?>
+<p style="margin:0 0 8px;font-size:13px;line-height:1.45;color:#6B7280;">
+	<?php echo esc_html( $lpnw_price_when ); ?>
+</p>
+<?php endif; ?>
+<?php if ( $lpnw_show_new ) : ?>
 <p style="margin:0 0 10px;">
 	<span style="display:inline-block;padding:4px 10px;background:#059669;color:#FFFFFF;font-size:11px;font-weight:700;letter-spacing:0.06em;border-radius:4px;"><?php esc_html_e( 'NEW', 'lpnw-alerts' ); ?></span>
 </p>
