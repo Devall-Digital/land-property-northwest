@@ -1,6 +1,6 @@
 <?php
 /**
- * Shop loop item: text-first card (pricing-style), no product image.
+ * Shop loop item: text-first card (pricing-style) with brand logo as product image.
  *
  * @package LPNW_Theme
  * @see https://woocommerce.com/document/template-structure/
@@ -17,6 +17,9 @@ if ( ! is_a( $product, WC_Product::class ) ) {
 <li <?php wc_product_class( '', $product ); ?>>
 	<?php woocommerce_show_product_loop_sale_flash(); ?>
 	<div class="lpnw-wc-shop-card">
+		<div class="lpnw-wc-shop-card__logo-wrap">
+			<?php echo wp_kses_post( $product->get_image( 'woocommerce_thumbnail', array( 'class' => 'lpnw-wc-shop-card__logo-img' ) ) ); ?>
+		</div>
 		<a class="lpnw-wc-shop-card__link" href="<?php echo esc_url( $product->get_permalink() ); ?>">
 			<h2 class="woocommerce-loop-product__title lpnw-wc-shop-card__title"><?php echo esc_html( $product->get_name() ); ?></h2>
 			<?php
