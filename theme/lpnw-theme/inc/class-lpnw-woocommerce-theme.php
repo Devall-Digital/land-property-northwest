@@ -28,6 +28,7 @@ final class LPNW_WooCommerce_Theme {
 		add_action( 'woocommerce_before_shop_loop', array( __CLASS__, 'render_shop_trust_line' ), 45 );
 		add_filter( 'woocommerce_post_class', array( __CLASS__, 'product_post_class' ), 10, 2 );
 		add_action( 'woocommerce_before_add_to_cart_button', array( __CLASS__, 'render_product_trust_note' ), 5 );
+		add_action( 'wp', array( __CLASS__, 'disable_product_images_everywhere' ), 99 );
 	}
 
 	/**
@@ -143,6 +144,33 @@ final class LPNW_WooCommerce_Theme {
 			return false;
 		}
 		return is_shop() || is_product_taxonomy();
+	}
+
+	/**
+	 * Digital subscriptions: no product photos on single product, cart, checkout, orders, or emails.
+	 */
+	public static function disable_product_images_everywhere(): void {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
+
+		remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_images', 20 );
+
+		add_filter( 'woocommerce_cart_item_thumbnail', '__return_empty_string', 99 );
+		add_filter( 'woocommerce_checkout_cart_item_thumbnail', '__return_empty_string', 99 );
+		add_filter( 'woocommerce_order_item_thumbnail', '__return_empty_string', 99, 2 );
+		add_filter( 'woocommerce_email_order_items_args', array( __CLASS__, 'email_order_items_hide_images' ), 10, 1 );
+	}
+
+	/**
+	 * Turn off images in order emails (customer invoice, completed order, etc.).
+	 *
+	 * @param array<string, mixed> $args Email order items arguments.
+	 * @return array<string, mixed>
+	 */
+	public static function email_order_items_hide_images( array $args ): array {
+		$args['show_image'] = false;
+		return $args;
 	}
 
 	/**
