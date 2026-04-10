@@ -39,3 +39,4 @@ wp_clear_scheduled_hook( 'lpnw_cron_portal_rightmove' );
 wp_clear_scheduled_hook( 'lpnw_cron_dispatch_alerts' );
 wp_clear_scheduled_hook( 'lpnw_cron_free_digest' );
 wp_clear_scheduled_hook( 'lpnw_cron_data_retention' );
+wp_clear_scheduled_hook( 'lpnw_cron_mautic_suppression' );

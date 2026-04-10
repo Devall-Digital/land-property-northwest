@@ -154,6 +154,18 @@ class LPNW_Activator {
 			self::migrate_to_2_2();
 			update_option( 'lpnw_db_version', '2.2' );
 		}
+
+		self::maybe_schedule_mautic_suppression_cron();
+	}
+
+	/**
+	 * Hourly: pull Mautic dnc:email and deactivate matching WP subscriber alerts.
+	 */
+	public static function maybe_schedule_mautic_suppression_cron(): void {
+		if ( wp_next_scheduled( 'lpnw_cron_mautic_suppression' ) ) {
+			return;
+		}
+		wp_schedule_event( time() + 600, 'hourly', 'lpnw_cron_mautic_suppression' );
 	}
 
 	private static function migrate_to_2_0(): void {
@@ -349,6 +361,9 @@ class LPNW_Activator {
 		}
 		if ( ! wp_next_scheduled( 'lpnw_cron_data_retention' ) ) {
 			wp_schedule_event( time(), 'daily', 'lpnw_cron_data_retention' );
+		}
+		if ( ! wp_next_scheduled( 'lpnw_cron_mautic_suppression' ) ) {
+			wp_schedule_event( time() + 600, 'hourly', 'lpnw_cron_mautic_suppression' );
 		}
 	}
 

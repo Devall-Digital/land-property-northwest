@@ -331,6 +331,43 @@ class LPNW_Mautic {
 	}
 
 	/**
+	 * List contacts from Mautic search (e.g. dnc:email for do-not-contact on email channel).
+	 *
+	 * @return array<string, mixed>|null Decoded JSON or null on failure.
+	 */
+	public function get_contacts_search( string $search, int $start = 0, int $limit = 50 ): ?array {
+		if ( ! $this->is_configured() ) {
+			return null;
+		}
+
+		$start  = max( 0, $start );
+		$limit  = min( 200, max( 1, $limit ) );
+		$search = trim( $search );
+		if ( '' === $search ) {
+			return null;
+		}
+
+		return $this->request(
+			'GET',
+			'api/contacts',
+			array(
+				'search'     => $search,
+				'start'      => $start,
+				'limit'      => $limit,
+				'orderBy'    => 'id',
+				'orderByDir' => 'DESC',
+			)
+		);
+	}
+
+	/**
+	 * Email from a single contact row in GET api/contacts results.
+	 */
+	public function get_email_from_contact_row( array $contact ): string {
+		return $this->extract_email_from_contact_row( $contact );
+	}
+
+	/**
 	 * Pull contact id from Mautic list/detail shapes (varies by version and serializer groups).
 	 *
 	 * @param mixed $row_key Associative key from the contacts map (often the numeric lead id).

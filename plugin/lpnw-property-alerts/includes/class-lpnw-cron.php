@@ -29,6 +29,7 @@ class LPNW_Cron {
 		add_action( 'lpnw_cron_dispatch_alerts', array( __CLASS__, 'dispatch_alerts' ) );
 		add_action( 'lpnw_cron_free_digest', array( __CLASS__, 'run_free_digest' ) );
 		add_action( 'lpnw_cron_data_retention', array( __CLASS__, 'run_data_retention' ) );
+		add_action( 'lpnw_cron_mautic_suppression', array( __CLASS__, 'run_mautic_suppression_sync' ) );
 	}
 
 	/**
@@ -181,6 +182,15 @@ class LPNW_Cron {
 	/**
 	 * Remove property rows older than configured retention and related queue/saved rows.
 	 */
+	/**
+	 * Sync Mautic email DNC to WordPress subscriber is_active (hourly).
+	 */
+	public static function run_mautic_suppression_sync(): void {
+		if ( class_exists( 'LPNW_Mautic_Suppression_Sync' ) ) {
+			LPNW_Mautic_Suppression_Sync::run();
+		}
+	}
+
 	public static function run_data_retention(): void {
 		global $wpdb;
 

@@ -477,6 +477,7 @@ class LPNW_Admin {
 			'lpnw_cron_auctions'        => __( 'Auction feeds', 'lpnw-alerts' ),
 			'lpnw_cron_dispatch_alerts' => __( 'Alert dispatch', 'lpnw-alerts' ),
 			'lpnw_cron_free_digest'     => __( 'Free digest email', 'lpnw-alerts' ),
+			'lpnw_cron_mautic_suppression' => __( 'Mautic bounce/unsub → WordPress (dnc:email sync)', 'lpnw-alerts' ),
 		);
 
 		$wp_schedules = wp_get_schedules();

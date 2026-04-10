@@ -19,6 +19,16 @@ class LPNW_Subscriber {
 	public const USER_META_ADMIN_TIER_OVERRIDE = 'lpnw_admin_tier_override';
 
 	/**
+	 * User meta: set to "1" when alerts were turned off because Mautic marked email DNC (bounce/unsub).
+	 */
+	public const USER_META_MAUTIC_EMAIL_SUPPRESSED = 'lpnw_mautic_email_suppressed';
+
+	/**
+	 * User meta: Unix time when Mautic-driven suppression last ran for this user.
+	 */
+	public const USER_META_MAUTIC_SUPPRESSED_AT = 'lpnw_mautic_suppressed_at';
+
+	/**
 	 * Allowed property type checkbox values for subscriber preferences (matches matcher + preferences UI).
 	 *
 	 * @return array<int, string>
@@ -133,6 +143,44 @@ class LPNW_Subscriber {
 		}
 
 		return $ok;
+	}
+
+	/**
+	 * Set alert delivery inactive without clearing areas, tiers, or other preference fields.
+	 * Inserts a minimal preferences row if the user has none yet.
+	 *
+	 * @return bool True on success.
+	 */
+	public static function deactivate_alerts_preserve_preferences( int $user_id ): bool {
+		global $wpdb;
+		$table = $wpdb->prefix . 'lpnw_subscriber_preferences';
+
+		$existing_id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$table} WHERE user_id = %d",
+				$user_id
+			)
+		);
+
+		if ( $existing_id ) {
+			$result = $wpdb->update(
+				$table,
+				array( 'is_active' => 0 ),
+				array( 'id' => (int) $existing_id ),
+				array( '%d' ),
+				array( '%d' )
+			);
+
+			return false !== $result;
+		}
+
+		return self::save_preferences(
+			$user_id,
+			array(
+				'is_active' => false,
+				'areas'     => array(),
+			)
+		);
 	}
 
 	/**
