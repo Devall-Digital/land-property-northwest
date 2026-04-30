@@ -162,13 +162,6 @@ $lpnw_onboarding_nudge = class_exists( 'LPNW_Onboarding' ) && ! LPNW_Onboarding:
 		</div>
 	</section>
 
-	<?php if ( 'vip' === $tier_key ) : ?>
-		<section class="lpnw-dashboard-vip-off-market" aria-labelledby="lpnw-dashboard-vip-om-heading">
-			<h3 class="lpnw-dashboard-vip-off-market__title" id="lpnw-dashboard-vip-om-heading"><?php esc_html_e( 'Share an off-market opportunity', 'lpnw-alerts' ); ?></h3>
-			<?php echo do_shortcode( '[lpnw_submit_off_market]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcode HTML from trusted plugin templates. ?>
-		</section>
-	<?php endif; ?>
-
 	<p class="lpnw-dashboard-summary">
 		<?php
 		echo esc_html(
@@ -231,6 +224,13 @@ $lpnw_onboarding_nudge = class_exists( 'LPNW_Onboarding' ) && ! LPNW_Onboarding:
 			<div class="lpnw-stat-card__label"><?php esc_html_e( 'Saved properties', 'lpnw-alerts' ); ?></div>
 		</div>
 	</div>
+
+	<?php if ( 'vip' === $tier_key ) : ?>
+		<section class="lpnw-dashboard-vip-off-market" aria-labelledby="lpnw-dashboard-vip-om-heading">
+			<h3 class="lpnw-dashboard-vip-off-market__title" id="lpnw-dashboard-vip-om-heading"><?php esc_html_e( 'Share an off-market opportunity', 'lpnw-alerts' ); ?></h3>
+			<?php echo do_shortcode( '[lpnw_submit_off_market]' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- shortcode HTML from trusted plugin templates. ?>
+		</section>
+	<?php endif; ?>
 
 	<?php if ( 'free' === $tier_key ) : ?>
 		<?php if ( $lpnw_missed_today > 0 || $lpnw_missed_week > 0 ) : ?>

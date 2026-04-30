@@ -1470,6 +1470,149 @@
 	box-shadow: var(--lpnw-glass-shadow);
 }
 
+/* VIP dashboard: off-market submission */
+.lpnw-dashboard-vip-off-market {
+	margin: 0 0 1.75rem;
+	padding: 1.125rem 1.25rem 1.35rem;
+	border-radius: 16px;
+	border: 1px solid var(--lpnw-glass-border);
+	background: var(--lpnw-glass-bg-light);
+	backdrop-filter: blur(var(--lpnw-glass-blur));
+	-webkit-backdrop-filter: blur(var(--lpnw-glass-blur));
+	box-shadow: var(--lpnw-glass-shadow);
+}
+
+.lpnw-dashboard-vip-off-market__title {
+	margin: 0 0 1rem;
+	font-size: 1.0625rem;
+	font-weight: 700;
+	color: var(--lpnw-white, #ffffff);
+	line-height: 1.3;
+}
+
+.lpnw-off-market-submit__intro {
+	margin: 0 0 1.25rem;
+	font-size: 0.9375rem;
+	line-height: 1.55;
+	color: rgba(255, 255, 255, 0.78);
+	max-width: 65ch;
+}
+
+.lpnw-off-market-submit__notice {
+	margin: 0 0 1rem;
+	padding: 0.75rem 1rem;
+	border-radius: 10px;
+	font-size: 0.9375rem;
+	line-height: 1.45;
+	font-weight: 600;
+}
+
+.lpnw-off-market-submit__notice--success {
+	background: rgba(5, 150, 105, 0.15);
+	border: 1px solid rgba(5, 150, 105, 0.45);
+	color: #a7f3d0;
+}
+
+.lpnw-off-market-submit__notice--error {
+	background: rgba(220, 38, 38, 0.12);
+	border: 1px solid rgba(248, 113, 113, 0.45);
+	color: #fecaca;
+}
+
+.lpnw-off-market-submit__form {
+	margin: 0;
+	max-width: 40rem;
+}
+
+.lpnw-off-market-submit__field {
+	margin: 0 0 1.125rem;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0.4rem;
+}
+
+.lpnw-off-market-submit__field--honeypot {
+	position: absolute;
+	left: -9999px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	margin: 0;
+}
+
+.lpnw-off-market-submit__field > label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.92);
+	line-height: 1.35;
+}
+
+.lpnw-off-market-submit__field .required {
+	color: var(--lpnw-amber, #f0a500);
+	font-weight: 700;
+}
+
+.lpnw-off-market-submit__control {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0.6rem 0.75rem;
+	min-height: 2.75rem;
+	font-size: 1rem;
+	line-height: 1.4;
+	color: var(--lpnw-navy, #0f1d35);
+	background: rgba(255, 255, 255, 0.96);
+	border: 1px solid rgba(15, 29, 53, 0.18);
+	border-radius: 10px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lpnw-off-market-submit__control:hover {
+	border-color: rgba(15, 29, 53, 0.28);
+}
+
+.lpnw-off-market-submit__control:focus {
+	outline: none;
+	border-color: var(--lpnw-teal, #00d4aa);
+	box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.25);
+}
+
+textarea.lpnw-off-market-submit__control {
+	min-height: 6rem;
+	resize: vertical;
+}
+
+select.lpnw-off-market-submit__control {
+	cursor: pointer;
+	appearance: auto;
+}
+
+.lpnw-off-market-submit__grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem 1rem;
+	margin: 0 0 1.125rem;
+}
+
+.lpnw-off-market-submit__grid .lpnw-off-market-submit__field {
+	margin-bottom: 0;
+}
+
+@media (min-width: 560px) {
+	.lpnw-off-market-submit__grid {
+		grid-template-columns: 1fr 1fr;
+		align-items: start;
+	}
+}
+
+.lpnw-off-market-submit__actions {
+	margin: 1.25rem 0 0;
+	padding-top: 0.25rem;
+}
+
 .lpnw-empty-state {
 	max-width: 32rem;
 	margin: 1.5rem 0 2rem;

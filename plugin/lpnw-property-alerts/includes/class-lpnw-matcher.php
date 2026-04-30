@@ -457,6 +457,26 @@ class LPNW_Matcher {
 			return;
 		}
 
+		// Filter `lpnw_alert_same_property_cooldown_seconds` (default 6 hours); return 0 to disable.
+		$cooldown_seconds = (int) apply_filters( 'lpnw_alert_same_property_cooldown_seconds', 6 * HOUR_IN_SECONDS );
+		if ( $cooldown_seconds > 0 ) {
+			$recent_sent = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT id FROM {$wpdb->prefix}lpnw_alert_queue
+				 WHERE subscriber_id = %d AND property_id = %d AND status = %s
+				 AND sent_at IS NOT NULL AND sent_at >= DATE_SUB(NOW(), INTERVAL %d SECOND)
+				 LIMIT 1",
+					$subscriber_id,
+					$property_id,
+					'sent',
+					$cooldown_seconds
+				)
+			);
+			if ( $recent_sent ) {
+				return;
+			}
+		}
+
 		$result = $wpdb->insert(
 			$wpdb->prefix . 'lpnw_alert_queue',
 			array(

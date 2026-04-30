@@ -452,10 +452,33 @@ body.lpnw-site .lpnw-dashboard-notice__text {
 }
 
 body.lpnw-site .lpnw-dashboard-welcome,
+body.lpnw-site .lpnw-dashboard-vip-off-market,
 body.lpnw-site .lpnw-action-card,
 body.lpnw-site .lpnw-stat-card {
 	background: var(--lpnw-plugin-surface);
 	border-color: rgba(255, 255, 255, 0.18);
+}
+
+body.lpnw-site .lpnw-dashboard-vip-off-market__title {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-off-market-submit__intro {
+	color: var(--lpnw-plugin-text-muted);
+}
+
+body.lpnw-site .lpnw-off-market-submit__field > label {
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-off-market-submit__control {
+	background: rgba(15, 29, 53, 0.65);
+	border-color: rgba(255, 255, 255, 0.22);
+	color: var(--lpnw-plugin-text);
+}
+
+body.lpnw-site .lpnw-off-market-submit__control:focus {
+	background: rgba(15, 29, 53, 0.78);
 }
 
 body.lpnw-site .lpnw-dashboard-welcome__title,

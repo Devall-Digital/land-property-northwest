@@ -22,11 +22,23 @@ class LPNW_Property {
 	private const PORTAL_FIRST_LISTED_EXTREME_CALENDAR_DAYS = 730;
 
 	/**
+	 * Minimum absolute price move (GBP) before we treat an update as alert-worthy.
+	 * Stops portal/parser noise (e.g. £1–£500 nudges) from re-queuing emails every cron.
+	 */
+	private const ALERT_PRICE_CHANGE_MIN_ABS_GBP = 2500;
+
+	/**
+	 * Minimum relative price move before we treat an update as alert-worthy (0.02 = 2%).
+	 * Threshold used is max(ALERT_PRICE_CHANGE_MIN_ABS_GBP, old_price * ratio).
+	 */
+	private const ALERT_PRICE_CHANGE_MIN_RATIO = 0.02;
+
+	/**
 	 * Insert or update a property record. Returns the property ID.
 	 *
 	 * @param array<string, mixed> $data Normalised property data.
 	 * @param bool|null            $inserted_new       If a non-null variable is passed, set to true when a new row was inserted, false when an existing row was updated.
-	 * @param bool|null            $significant_update If non-null, set true when an existing row price changed (re-queue alerts).
+	 * @param bool|null            $significant_update If non-null, set true when an existing row had a material price change (re-queue alerts).
 	 * @return int|false Property ID on success, false on failure.
 	 */
 	public static function upsert( array $data, ?bool &$inserted_new = null, ?bool &$significant_update = null ) {
@@ -90,10 +102,20 @@ class LPNW_Property {
 
 		if ( $existing && $old_row ) {
 			if ( $old_price > 0 && $new_price > 0 && $old_price !== $new_price ) {
-				$previous_price   = $old_price;
-				$price_changed_at = current_time( 'mysql' );
-				if ( null !== $significant_update ) {
-					$significant_update = true;
+				if ( self::is_significant_price_change_for_alerts( $old_price, $new_price ) ) {
+					$previous_price   = $old_price;
+					$price_changed_at = current_time( 'mysql' );
+					if ( null !== $significant_update ) {
+						$significant_update = true;
+					}
+				} else {
+					if ( isset( $old_row->previous_price ) && null !== $old_row->previous_price && '' !== (string) $old_row->previous_price ) {
+						$previous_price = absint( $old_row->previous_price );
+					}
+					$pcat = isset( $old_row->price_changed_at ) ? trim( (string) $old_row->price_changed_at ) : '';
+					if ( '' !== $pcat ) {
+						$price_changed_at = $pcat;
+					}
 				}
 			} else {
 				if ( isset( $old_row->previous_price ) && null !== $old_row->previous_price && '' !== (string) $old_row->previous_price ) {
@@ -143,6 +165,32 @@ class LPNW_Property {
 			$inserted_new = true;
 		}
 		return $new_id;
+	}
+
+	/**
+	 * Whether a price move is large enough to re-run the alert matcher (separate from storing the latest price).
+	 *
+	 * Filters: `lpnw_alert_price_change_min_gbp`, `lpnw_alert_price_change_min_ratio`.
+	 *
+	 * @param int $old_price Stored price (GBP).
+	 * @param int $new_price Incoming price (GBP).
+	 */
+	private static function is_significant_price_change_for_alerts( int $old_price, int $new_price ): bool {
+		if ( $old_price <= 0 || $new_price <= 0 ) {
+			return false;
+		}
+		$delta     = abs( $new_price - $old_price );
+		$min_abs   = (int) apply_filters( 'lpnw_alert_price_change_min_gbp', self::ALERT_PRICE_CHANGE_MIN_ABS_GBP );
+		$min_ratio = (float) apply_filters( 'lpnw_alert_price_change_min_ratio', self::ALERT_PRICE_CHANGE_MIN_RATIO );
+		if ( $min_abs < 0 ) {
+			$min_abs = 0;
+		}
+		if ( $min_ratio < 0 ) {
+			$min_ratio = 0.0;
+		}
+		$threshold = max( $min_abs, (int) round( $old_price * $min_ratio ) );
+
+		return $delta >= $threshold;
 	}
 
 	/**
